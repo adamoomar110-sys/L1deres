@@ -16,11 +16,11 @@ export default function QuickMessage({ senderLabel, accentColor = 'yellow' }: Qu
 
   const colorMap: Record<string, { bg: string; border: string; text: string; glow: string; btnBg: string }> = {
     yellow: {
-      bg: 'bg-yellow-500/10',
-      border: 'border-yellow-500/30',
-      text: 'text-yellow-500',
+      bg: 'bg-green-400/10',
+      border: 'border-green-400/30',
+      text: 'text-green-600',
       glow: 'shadow-yellow-500/30',
-      btnBg: 'bg-yellow-500 hover:bg-yellow-400',
+      btnBg: 'bg-green-400 hover:bg-yellow-400',
     },
     blue: {
       bg: 'bg-blue-500/10',
@@ -30,11 +30,11 @@ export default function QuickMessage({ senderLabel, accentColor = 'yellow' }: Qu
       btnBg: 'bg-blue-500 hover:bg-blue-400',
     },
     cyan: {
-      bg: 'bg-cyan-500/10',
-      border: 'border-cyan-500/30',
-      text: 'text-cyan-400',
+      bg: 'bg-orange-400/10',
+      border: 'border-orange-400/30',
+      text: 'text-orange-600',
       glow: 'shadow-cyan-500/30',
-      btnBg: 'bg-cyan-500 hover:bg-cyan-400',
+      btnBg: 'bg-orange-400 hover:bg-cyan-400',
     },
     lime: {
       bg: 'bg-lime-500/10',
@@ -81,15 +81,15 @@ export default function QuickMessage({ senderLabel, accentColor = 'yellow' }: Qu
       {/* MODAL DE MENSAJE */}
       {open && (
         <div className="fixed bottom-28 right-8 z-[90] w-80 animate-in slide-in-from-bottom-4 fade-in duration-300">
-          <div className={`bg-zinc-900/95 backdrop-blur-2xl border ${c.border} rounded-[2rem] p-6 shadow-2xl space-y-4`}>
+          <div className={`bg-orange-100/95 backdrop-blur-2xl border ${c.border} rounded-[2rem] p-6 shadow-2xl space-y-4`}>
             
             {sent ? (
               <div className="text-center py-4">
                 <div className={`w-14 h-14 ${c.bg} rounded-full flex items-center justify-center mx-auto mb-3`}>
                   <Send size={24} className={c.text} />
                 </div>
-                <p className="text-white font-black text-sm">¡Mensaje Enviado!</p>
-                <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">El admin lo recibirá al instante</p>
+                <p className="text-black font-black text-sm">¡Mensaje Enviado!</p>
+                <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest">El admin lo recibirá al instante</p>
               </div>
             ) : (
               <>
@@ -98,8 +98,8 @@ export default function QuickMessage({ senderLabel, accentColor = 'yellow' }: Qu
                     <MessageCircle size={18} className={c.text} />
                   </div>
                   <div>
-                    <p className="text-white font-black text-sm">Mensaje al Admin</p>
-                    <p className="text-zinc-500 text-[9px] font-bold uppercase tracking-widest">Máximo 20 caracteres</p>
+                    <p className="text-black font-black text-sm">Mensaje al Admin</p>
+                    <p className="text-zinc-600 text-[9px] font-bold uppercase tracking-widest">Máximo 20 caracteres</p>
                   </div>
                 </div>
 
@@ -109,7 +109,7 @@ export default function QuickMessage({ senderLabel, accentColor = 'yellow' }: Qu
                   value={msg}
                   onChange={e => setMsg(e.target.value)}
                   placeholder="Escribí tu mensaje..."
-                  className="w-full bg-black/50 border border-white/10 rounded-2xl px-4 py-4 text-white font-bold text-sm outline-none focus:border-yellow-500 placeholder:text-zinc-600"
+                  className="w-full bg-white border border-orange-200 rounded-2xl px-4 py-4 text-black font-bold text-sm outline-none focus:border-green-400 placeholder:text-zinc-600"
                   onKeyDown={e => e.key === 'Enter' && handleSend()}
                 />
 

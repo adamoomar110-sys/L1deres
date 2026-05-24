@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className="dark">
-      <body className={`${inter.className} bg-[#0a0a0a] text-white antialiased`}>
+      <body className={`${inter.className} bg-[#0a0a0a] text-black antialiased`}>
         <SettingsProvider>
           <SplashScreen />
           <AuthProvider>

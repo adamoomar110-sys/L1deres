@@ -106,56 +106,56 @@ export default function LavaderoPortal() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-white font-sans p-6 md:p-12">
+    <div className="min-h-screen bg-orange-50 text-black font-sans p-6 md:p-12">
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-cyan-500/5 rounded-full blur-[120px]" />
+        <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-orange-400/5 rounded-full blur-[120px]" />
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto space-y-12">
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-cyan-500/20">
+            <div className="w-16 h-16 bg-gradient-to-br from-orange-300 to-cyan-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-cyan-500/20">
                <Waves className="text-black" size={32} />
             </div>
             <div>
                <h1 className="text-4xl font-black tracking-tighter italic uppercase">Portal Lavadero</h1>
-               <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[10px]">Estética y Limpieza Lavadero De Luxe</p>
+               <p className="text-zinc-600 font-bold uppercase tracking-[0.3em] text-[10px]">Estética y Limpieza Lavadero De Luxe</p>
             </div>
           </div>
-          <button onClick={handleSignOut} className="flex items-center gap-3 px-6 py-3 bg-zinc-900/50 border border-white/5 rounded-2xl text-zinc-400 hover:text-white transition-all self-start md:self-center">
+          <button onClick={handleSignOut} className="flex items-center gap-3 px-6 py-3 bg-orange-100/50 border border-orange-200 rounded-2xl text-zinc-700 hover:text-black transition-all self-start md:self-center">
             <LogOut size={20} /> <span className="font-bold text-sm">Salir</span>
           </button>
         </header>
 
         <section className="space-y-6">
           <h2 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
-             Vehículos en Fila <span className="bg-cyan-500 text-black px-3 py-1 rounded-full text-xs font-black">{vehicles.length}</span>
+             Vehículos en Fila <span className="bg-orange-400 text-black px-3 py-1 rounded-full text-xs font-black">{vehicles.length}</span>
           </h2>
 
           {loading ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
-                {[1, 2, 3].map(i => <div key={i} className="h-64 bg-zinc-900/40 rounded-[2.5rem] border border-white/5" />)}
+                {[1, 2, 3].map(i => <div key={i} className="h-64 bg-orange-100/40 rounded-[2.5rem] border border-orange-200" />)}
              </div>
           ) : vehicles.length === 0 ? (
-             <div className="bg-zinc-900/20 border border-white/5 rounded-[3rem] py-32 text-center">
-                <CheckCircle size={64} className="text-cyan-500 mx-auto mb-6 opacity-10" />
+             <div className="bg-white border border-orange-200 rounded-[3rem] py-32 text-center">
+                <CheckCircle size={64} className="text-orange-500 mx-auto mb-6 opacity-10" />
                 <h3 className="text-2xl font-black text-zinc-700 uppercase italic">Sin trabajos pendientes</h3>
              </div>
           ) : (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {vehicles.map(v => (
-                  <div key={v.id} onClick={() => fetchHistory(v)} className="bg-zinc-900/60 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 hover:bg-zinc-900/80 transition-all group border-t-4 border-t-cyan-500 shadow-2xl cursor-pointer">
+                  <div key={v.id} onClick={() => fetchHistory(v)} className="bg-orange-100/60 backdrop-blur-xl border border-orange-200 rounded-[2.5rem] p-8 hover:bg-orange-100/80 transition-all group border-t-4 border-t-cyan-500 shadow-2xl cursor-pointer">
                      <div className="flex justify-between items-start mb-8">
                         <div>
-                           <p className="text-3xl font-black text-white tracking-tighter leading-none mb-2">{v.plate}</p>
-                           <p className="text-xs text-zinc-500 font-black uppercase tracking-widest">{v.brand} {v.model}</p>
+                           <p className="text-3xl font-black text-black tracking-tighter leading-none mb-2">{v.plate}</p>
+                           <p className="text-xs text-zinc-600 font-black uppercase tracking-widest">{v.brand} {v.model}</p>
                         </div>
-                        <div className="bg-white/5 p-3 rounded-2xl group-hover:bg-cyan-500/10 transition-colors">
-                           <Car size={24} className="text-zinc-500 group-hover:text-cyan-500" />
+                        <div className="bg-white/5 p-3 rounded-2xl group-hover:bg-orange-400/10 transition-colors">
+                           <Car size={24} className="text-zinc-600 group-hover:text-orange-500" />
                         </div>
                      </div>
-                     <div className="pt-6 border-t border-white/5">
-                        <button className="w-full py-4 bg-cyan-500 text-black font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-cyan-400 transition-all shadow-lg group/btn shadow-cyan-500/20">
+                     <div className="pt-6 border-t border-orange-200">
+                        <button className="w-full py-4 bg-orange-400 text-black font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-cyan-400 transition-all shadow-lg group/btn shadow-cyan-500/20">
                            GESTIONAR TRABAJO <ChevronRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
                         </button>
                      </div>
@@ -166,14 +166,14 @@ export default function LavaderoPortal() {
         </section>
 
         {/* FOOTER GENERAL */}
-        <footer className="pt-12 pb-4 text-center border-t border-white/5 space-y-2 opacity-40 hover:opacity-100 transition-opacity">
-          <p className="text-[10px] text-zinc-500 font-bold">
+        <footer className="pt-12 pb-4 text-center border-t border-orange-200 space-y-2 opacity-40 hover:opacity-100 transition-opacity">
+          <p className="text-[10px] text-zinc-600 font-bold">
             © 2026 Omar Adamo. Todos los derechos reservados.
           </p>
-          <div className="flex justify-center gap-4 text-[9px] text-zinc-500 font-medium">
-            <a href="mailto:adamoomar110@gmail.com" className="hover:text-cyan-500 transition-colors">Email</a>
+          <div className="flex justify-center gap-4 text-[9px] text-zinc-600 font-medium">
+            <a href="mailto:adamoomar110@gmail.com" className="hover:text-orange-500 transition-colors">Email</a>
             <span>•</span>
-            <a href="https://wa.me/5491178295317" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-500 transition-colors">WhatsApp</a>
+            <a href="https://wa.me/5491178295317" target="_blank" rel="noopener noreferrer" className="hover:text-orange-500 transition-colors">WhatsApp</a>
             <span>•</span>
             <span className="text-zinc-600 font-black">v1.0</span>
           </div>
@@ -182,19 +182,19 @@ export default function LavaderoPortal() {
 
       {/* DRAWER DE GESTIÓN Y HISTORIAL */}
       {selectedVehicle && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] flex items-center justify-end p-0 md:p-6">
-          <div className="bg-zinc-900 border-l border-white/10 w-full max-w-2xl h-full md:h-[90vh] md:rounded-[3rem] shadow-3xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 text-white">
-             <div className="p-6 md:p-10 border-b border-white/5 flex justify-between items-start">
+        <div className="fixed inset-0 bg-white/90 backdrop-blur-xl z-[100] flex items-center justify-end p-0 md:p-6">
+          <div className="bg-orange-100 border-l border-orange-200 w-full max-w-2xl h-full md:h-[90vh] md:rounded-[3rem] shadow-3xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 text-black">
+             <div className="p-6 md:p-10 border-b border-orange-200 flex justify-between items-start">
                 <div className="flex items-center gap-4 md:gap-6">
-                   <div className="w-16 h-16 md:w-20 md:h-20 bg-black rounded-2xl md:rounded-[2rem] flex items-center justify-center border border-white/5 shadow-2xl">
-                      <Waves size={30} className="text-cyan-500" />
+                   <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-2xl md:rounded-[2rem] flex items-center justify-center border border-orange-200 shadow-2xl">
+                      <Waves size={30} className="text-orange-500" />
                    </div>
                    <div>
-                      <h3 className="text-2xl md:text-3xl font-black text-white tracking-tighter italic uppercase">{selectedVehicle.plate}</h3>
-                      <p className="text-zinc-500 text-xs md:text-sm font-bold uppercase tracking-widest">{selectedVehicle.brand} {selectedVehicle.model}</p>
+                      <h3 className="text-2xl md:text-3xl font-black text-black tracking-tighter italic uppercase">{selectedVehicle.plate}</h3>
+                      <p className="text-zinc-600 text-xs md:text-sm font-bold uppercase tracking-widest">{selectedVehicle.brand} {selectedVehicle.model}</p>
                    </div>
                 </div>
-                <button onClick={() => { setSelectedVehicle(null); setEditingOrder(null); }} className="w-10 h-10 md:w-12 md:h-12 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center text-zinc-500 transition-all">
+                <button onClick={() => { setSelectedVehicle(null); setEditingOrder(null); }} className="w-10 h-10 md:w-12 md:h-12 bg-white/5 hover:bg-white/10 rounded-2xl flex items-center justify-center text-zinc-600 transition-all">
                    <X size={20} />
                 </button>
              </div>
@@ -202,41 +202,41 @@ export default function LavaderoPortal() {
              <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 md:space-y-12">
                 {/* SECCIÓN EDICIÓN (PRESUPUESTO Y TURNO) */}
                 {editingOrder && (
-                  <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 space-y-4 md:space-y-6">
-                     <h4 className="text-xs md:text-sm font-black text-cyan-400 uppercase tracking-widest flex items-center gap-2">
+                  <div className="bg-orange-400/5 border border-orange-400/20 rounded-2xl md:rounded-[2.5rem] p-5 md:p-8 space-y-4 md:space-y-6">
+                     <h4 className="text-xs md:text-sm font-black text-orange-600 uppercase tracking-widest flex items-center gap-2">
                         <Clock size={16} /> Actualizar Turno y Costo
                      </h4>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                           <label className="text-[9px] md:text-[10px] font-black text-zinc-500 uppercase tracking-widest pl-2">Fecha de Turno</label>
+                           <label className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Fecha de Turno</label>
                            <input 
                             type="datetime-local" 
                             value={editingOrder.appointment_date?.slice(0, 16) || ''} 
                             onChange={e => setEditingOrder({...editingOrder, appointment_date: e.target.value})}
-                            className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white text-xs md:text-sm font-bold outline-none focus:border-cyan-500" 
+                            className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-xs md:text-sm font-bold outline-none focus:border-orange-400" 
                            />
                         </div>
                         <div className="space-y-2">
-                           <label className="text-[9px] md:text-[10px] font-black text-zinc-500 uppercase tracking-widest pl-2">Costo ($)</label>
+                           <label className="text-[9px] md:text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Costo ($)</label>
                            <input 
                             type="number" 
                             value={editingOrder.budget || ''} 
                             onChange={e => setEditingOrder({...editingOrder, budget: e.target.value})}
-                            className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white text-xs md:text-sm font-bold outline-none focus:border-cyan-500" 
+                            className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-xs md:text-sm font-bold outline-none focus:border-orange-400" 
                            />
                         </div>
                      </div>
                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest pl-2">Detalles del Trabajo</label>
+                        <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Detalles del Trabajo</label>
                         <textarea 
                           value={editingOrder.description || ''} 
                           onChange={e => setEditingOrder({...editingOrder, description: e.target.value})}
-                          className="w-full bg-black/50 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold outline-none focus:border-cyan-500 h-24" 
+                          className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-sm font-bold outline-none focus:border-orange-400 h-24" 
                         />
                      </div>
                      <button 
                       onClick={handleUpdateOrder}
-                      className="w-full py-4 bg-cyan-500/20 text-cyan-400 font-black rounded-2xl border border-cyan-500/20 hover:bg-cyan-500/30 transition-all flex items-center justify-center gap-2 uppercase text-xs tracking-widest mb-3"
+                      className="w-full py-4 bg-orange-400/20 text-orange-600 font-black rounded-2xl border border-orange-400/20 hover:bg-orange-400/30 transition-all flex items-center justify-center gap-2 uppercase text-xs tracking-widest mb-3"
                      >
                         Actualizar Turno / Costo
                      </button>
@@ -252,22 +252,22 @@ export default function LavaderoPortal() {
 
                 {/* SECCIÓN HISTORIAL */}
                 <div className="space-y-6">
-                   <h4 className="text-xs font-black text-zinc-500 uppercase tracking-[0.3em] px-4">Historial de la Unidad</h4>
+                   <h4 className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em] px-4">Historial de la Unidad</h4>
                    <div className="space-y-4">
                       {loadingHistory ? (
-                         <div className="flex justify-center py-10"><div className="w-8 h-8 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" /></div>
+                         <div className="flex justify-center py-10"><div className="w-8 h-8 border-2 border-orange-400/20 border-t-cyan-500 rounded-full animate-spin" /></div>
                       ) : history.length === 0 ? (
                          <p className="text-center text-zinc-600 italic py-10">Sin registros previos.</p>
                       ) : (
                          history.map(h => (
-                           <div key={h.id} className="bg-white/5 border border-white/5 rounded-3xl p-6 flex justify-between items-center group">
+                           <div key={h.id} className="bg-white/5 border border-orange-200 rounded-3xl p-6 flex justify-between items-center group">
                               <div className="flex items-center gap-4">
-                                 <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center text-zinc-600">
+                                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-zinc-600">
                                     <Calendar size={18} />
                                  </div>
                                  <div>
-                                    <p className="text-sm font-black text-white">{new Date(h.created_at).toLocaleDateString()}</p>
-                                    <p className="text-[10px] text-zinc-500 font-bold uppercase">{h.description || 'Sin descripción'}</p>
+                                    <p className="text-sm font-black text-black">{new Date(h.created_at).toLocaleDateString()}</p>
+                                    <p className="text-[10px] text-zinc-600 font-bold uppercase">{h.description || 'Sin descripción'}</p>
                                  </div>
                               </div>
                               <p className="text-sm font-black text-lime-400">${Number(h.budget).toLocaleString()}</p>

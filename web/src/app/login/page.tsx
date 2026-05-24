@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 
 const CarWashAnimation = () => {
   return (
-    <div className="relative w-32 h-32 mx-auto mb-6 flex items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br from-cyan-900/40 to-blue-900/40 border border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.2)]">
+    <div className="relative w-32 h-32 mx-auto mb-6 flex items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br from-cyan-900/40 to-blue-900/40 border border-orange-400/30 shadow-[0_0_40px_rgba(6,182,212,0.2)]">
       {/* Coche Animado */}
       <motion.div
         animate={{
@@ -43,7 +43,7 @@ const CarWashAnimation = () => {
         className="absolute z-20 flex items-center justify-center"
       >
         <div className="relative flex items-center justify-center w-full h-full">
-           <Droplets size={56} className="text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.9)]" />
+           <Droplets size={56} className="text-black drop-shadow-[0_0_15px_rgba(255,255,255,0.9)]" />
            {/* Burbujas extra */}
            <motion.div 
              animate={{ y: [-10, -30], opacity: [1, 0] }} 
@@ -76,7 +76,7 @@ const CarWashAnimation = () => {
       </motion.div>
       
       {/* Piso del lavadero */}
-      <div className="absolute bottom-4 w-3/4 h-1 bg-cyan-500/20 rounded-full blur-[1px]" />
+      <div className="absolute bottom-4 w-3/4 h-1 bg-orange-400/20 rounded-full blur-[1px]" />
     </div>
   );
 };
@@ -123,28 +123,28 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#020617] text-white font-sans overflow-hidden selection:bg-cyan-500 selection:text-black">
+    <div className="flex flex-col h-screen bg-orange-50 text-black font-sans overflow-hidden selection:bg-orange-400 selection:text-black">
       {/* Background Orbs de Agua */}
       <div className="absolute top-[10%] right-[-10%] w-[40vw] h-[40vw] bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-blue-600/10 rounded-full blur-[150px] pointer-events-none" />
 
       {/* Header Minimal */}
       <header className="absolute top-0 left-0 w-full p-8 z-20">
-        <Link href="/" className="flex items-center gap-3 text-zinc-500 hover:text-cyan-400 transition-colors w-fit">
+        <Link href="/" className="flex items-center gap-3 text-zinc-600 hover:text-orange-600 transition-colors w-fit">
           <ArrowLeft size={20} />
           <span className="font-bold text-sm tracking-widest uppercase">Volver al Portal</span>
         </Link>
       </header>
 
       <main className="flex-1 flex items-center justify-center relative z-10 px-4">
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/5 p-12 rounded-[3rem] shadow-2xl w-full max-w-md relative overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-xl border border-orange-200 p-12 rounded-[3rem] shadow-2xl w-full max-w-md relative overflow-hidden">
           <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
           
           <div className="text-center mb-8">
             <CarWashAnimation />
             
-            <h1 className="font-black text-3xl tracking-tight text-white mb-2">Lavadero VIP</h1>
-            <p className="text-cyan-400/80 text-sm font-bold uppercase tracking-widest">Panel de Control</p>
+            <h1 className="font-black text-3xl tracking-tight text-black mb-2">Lavadero VIP</h1>
+            <p className="text-orange-600/80 text-sm font-bold uppercase tracking-widest">Panel de Control</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -157,23 +157,23 @@ export default function LoginPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-cyan-500/70 mb-2 uppercase tracking-widest pl-2">Correo Electrónico</label>
+                <label className="block text-[10px] font-bold text-orange-500/70 mb-2 uppercase tracking-widest pl-2">Correo Electrónico</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-black/50 border border-white/5 rounded-2xl px-6 py-4 text-white font-medium focus:outline-none focus:border-cyan-500 focus:bg-slate-950 transition-all shadow-inner"
+                  className="w-full bg-white border border-orange-200 rounded-2xl px-6 py-4 text-black font-medium focus:outline-none focus:border-orange-400 focus:bg-slate-950 transition-all shadow-inner"
                   placeholder="admin@lavadero.com"
                   required
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-cyan-500/70 mb-2 uppercase tracking-widest pl-2">Contraseña</label>
+                <label className="block text-[10px] font-bold text-orange-500/70 mb-2 uppercase tracking-widest pl-2">Contraseña</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-black/50 border border-white/5 rounded-2xl px-6 py-4 text-white font-medium focus:outline-none focus:border-cyan-500 focus:bg-slate-950 transition-all shadow-inner"
+                  className="w-full bg-white border border-orange-200 rounded-2xl px-6 py-4 text-black font-medium focus:outline-none focus:border-orange-400 focus:bg-slate-950 transition-all shadow-inner"
                   placeholder="••••••••"
                   required
                 />
@@ -183,7 +183,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-extrabold py-5 rounded-2xl transition-all shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:shadow-[0_0_50px_rgba(6,182,212,0.5)] flex items-center justify-center gap-3 transform hover:-translate-y-1 mt-8 disabled:opacity-50"
+              className="w-full bg-gradient-to-r from-orange-300 to-green-300 hover:from-orange-200 hover:to-green-200 text-black font-extrabold py-5 rounded-2xl transition-all shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:shadow-[0_0_50px_rgba(6,182,212,0.5)] flex items-center justify-center gap-3 transform hover:-translate-y-1 mt-8 disabled:opacity-50"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
@@ -200,13 +200,13 @@ export default function LoginPage() {
 
       {/* FOOTER GENERAL */}
       <footer className="absolute bottom-6 left-0 right-0 text-center space-y-1.5 opacity-40 hover:opacity-100 transition-opacity z-20">
-        <p className="text-[10px] text-cyan-500/50 font-bold">
+        <p className="text-[10px] text-orange-500/50 font-bold">
           © 2026 Omar Adamo. Todos los derechos reservados.
         </p>
-        <div className="flex justify-center gap-4 text-[9px] text-zinc-500 font-medium">
-          <a href="mailto:adamoomar110@gmail.com" className="hover:text-cyan-400 transition-colors">Email</a>
+        <div className="flex justify-center gap-4 text-[9px] text-zinc-600 font-medium">
+          <a href="mailto:adamoomar110@gmail.com" className="hover:text-orange-600 transition-colors">Email</a>
           <span>•</span>
-          <a href="https://wa.me/5491178295317" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400 transition-colors">WhatsApp</a>
+          <a href="https://wa.me/5491178295317" target="_blank" rel="noopener noreferrer" className="hover:text-orange-600 transition-colors">WhatsApp</a>
           <span>•</span>
           <span className="text-zinc-600 font-black">v1.0</span>
         </div>

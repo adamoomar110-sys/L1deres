@@ -60,7 +60,7 @@ export default function LiveMap() {
   }, []);
 
   return (
-    <div className="h-full w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+    <div className="h-full w-full rounded-2xl overflow-hidden border border-orange-200 shadow-2xl">
       <MapContainer 
         center={[-34.6037, -58.3816]} // Default: Buenos Aires
         zoom={13} 

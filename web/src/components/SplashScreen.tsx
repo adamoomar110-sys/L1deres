@@ -24,7 +24,7 @@ export default function SplashScreen() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1, ease: "easeInOut" }}
-          className="fixed inset-0 z-[9999] bg-black flex items-center justify-center overflow-hidden"
+          className="fixed inset-0 z-[9999] bg-white flex items-center justify-center overflow-hidden"
         >
           {/* Video de fondo */}
           <video
@@ -46,7 +46,7 @@ export default function SplashScreen() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.5, duration: 1.2, ease: "easeOut" }}
-              className="w-24 h-24 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-[2rem] flex items-center justify-center shadow-[0_0_80px_rgba(6,182,212,0.4)] mb-8"
+              className="w-24 h-24 bg-gradient-to-br from-orange-300 to-blue-600 rounded-[2rem] flex items-center justify-center shadow-[0_0_80px_rgba(6,182,212,0.4)] mb-8"
             >
               {settings?.brand_logo ? (
                 <img src={settings.brand_logo} alt="Logo" className="w-16 h-16 object-contain" />
@@ -63,11 +63,11 @@ export default function SplashScreen() {
               transition={{ delay: 1, duration: 1 }}
               className="text-center"
             >
-              <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white mb-2 italic uppercase">
+              <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-black mb-2 italic uppercase">
                 {settings?.brand_name || 'LAVADERO'}
               </h1>
               <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent mb-4" />
-              <p className="text-cyan-400 font-bold uppercase tracking-[0.6em] text-xs md:text-sm">
+              <p className="text-orange-600 font-bold uppercase tracking-[0.6em] text-xs md:text-sm">
                 Elite Car Wash Service
               </p>
             </motion.div>
@@ -75,7 +75,7 @@ export default function SplashScreen() {
 
           {/* Barra de carga minimalista */}
           <motion.div 
-            className="absolute bottom-0 left-0 h-1 bg-cyan-500"
+            className="absolute bottom-0 left-0 h-1 bg-orange-400"
             initial={{ width: 0 }}
             animate={{ width: "100%" }}
             transition={{ duration: 5, ease: "linear" }}

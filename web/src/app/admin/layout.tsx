@@ -57,17 +57,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   });
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-[#030303] text-white font-sans overflow-hidden selection:bg-yellow-500 selection:text-black">
+    <div className="flex flex-col lg:flex-row h-screen bg-orange-50 text-black font-sans overflow-hidden selection:bg-green-400 selection:text-black">
       {/* Background Orbs Globales para el Admin */}
       <div className="absolute top-[20%] left-[-10%] w-[30vw] h-[30vw] bg-yellow-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[10%] w-[40vw] h-[40vw] bg-yellow-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[10%] w-[40vw] h-[40vw] bg-green-400/5 rounded-full blur-[120px] pointer-events-none" />
       {/* Nuevo orbe Verde Limón */}
       <div className="absolute top-[10%] right-[20%] w-[20vw] h-[20vw] bg-lime-500/10 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Cabecera Móvil Táctil */}
-      <header className="lg:hidden h-20 px-6 bg-black/60 backdrop-blur-3xl border-b border-white/5 flex items-center justify-between sticky top-0 z-30 shrink-0">
+      <header className="lg:hidden h-20 px-6 bg-white/60 backdrop-blur-3xl border-b border-orange-200 flex items-center justify-between sticky top-0 z-30 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.2)]">
+          <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-green-500 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.2)]">
             {settings?.brand_logo ? (
               <img src={settings.brand_logo} alt="Logo" className="w-6 h-6 object-contain" />
             ) : (
@@ -77,15 +77,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
           </div>
           <div>
-            <h1 className="font-black text-md tracking-tight leading-none text-white uppercase">
+            <h1 className="font-black text-md tracking-tight leading-none text-black uppercase">
               {settings?.brand_name || 'LAVADERO'}
             </h1>
-            <span className="text-[8px] text-yellow-500 font-bold uppercase tracking-[0.2em]">Comando</span>
+            <span className="text-[8px] text-green-600 font-bold uppercase tracking-[0.2em]">Comando</span>
           </div>
         </div>
         <button 
           onClick={() => setMobileMenuOpen(true)}
-          className="p-3 text-zinc-400 hover:text-white rounded-xl bg-white/5 border border-white/5 active:scale-95 transition-transform"
+          className="p-3 text-zinc-700 hover:text-black rounded-xl bg-white/5 border border-orange-200 active:scale-95 transition-transform"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -100,44 +100,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* Fondo oscuro traslúcido */}
           <div 
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300" 
+            className="fixed inset-0 bg-white/80 backdrop-blur-sm transition-opacity duration-300" 
             onClick={() => setMobileMenuOpen(false)}
           />
           
           {/* Contenedor del menú */}
-          <aside className="fixed inset-y-0 left-0 w-72 bg-[#090909] border-r border-white/5 flex flex-col z-50 animate-in slide-in-from-left duration-300">
-            <div className="h-20 flex items-center justify-between px-6 border-b border-white/5">
+          <aside className="fixed inset-y-0 left-0 w-72 bg-[#090909] border-r border-orange-200 flex flex-col z-50 animate-in slide-in-from-left duration-300">
+            <div className="h-20 flex items-center justify-between px-6 border-b border-orange-200">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-green-500 rounded-xl flex items-center justify-center">
                   <span className="font-black text-black text-md">
                     {settings?.brand_name?.substring(0, 2).toUpperCase() || 'SG'}
                   </span>
                 </div>
                 <div>
-                  <h1 className="font-black text-md tracking-tight text-white uppercase">{settings?.brand_name || 'LAVADERO'}</h1>
-                  <span className="text-[8px] text-yellow-500 font-bold uppercase tracking-[0.25em]">Comando</span>
+                  <h1 className="font-black text-md tracking-tight text-black uppercase">{settings?.brand_name || 'LAVADERO'}</h1>
+                  <span className="text-[8px] text-green-600 font-bold uppercase tracking-[0.25em]">Comando</span>
                 </div>
               </div>
               <button 
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white"
+                className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-zinc-600 hover:text-black"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
             
-            <div className="p-6 border-b border-white/5 bg-gradient-to-b from-white/[0.01] to-transparent">
+            <div className="p-6 border-b border-orange-200 bg-gradient-to-b from-white/[0.01] to-transparent">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-zinc-500 border border-white/5">
+                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-zinc-600 border border-orange-200">
                   <UserIcon size={20} />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-xs font-black text-white truncate leading-none mb-1">
+                  <p className="text-xs font-black text-black truncate leading-none mb-1">
                     {userProfile?.full_name || 'Cargando...'}
                   </p>
                   <div className="flex items-center gap-1">
                     <div className="w-1 h-1 bg-lime-400 rounded-full animate-pulse" />
-                    <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest truncate">
+                    <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest truncate">
                       {userProfile?.role === 'admin' ? 'Administrador' : 'Gestor'}
                     </span>
                   </div>
@@ -156,8 +156,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       onClick={() => setMobileMenuOpen(false)}
                       className={`group flex items-center justify-between p-3.5 rounded-xl transition-all duration-300 ${
                         isActive 
-                          ? 'bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-bold shadow-[inset_3px_0_0_0_rgba(163,230,53,1)]' 
-                          : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                          ? 'bg-green-400/10 border border-green-400/20 text-green-600 font-bold shadow-[inset_3px_0_0_0_rgba(163,230,53,1)]' 
+                          : 'text-zinc-700 hover:bg-white/5 hover:text-black'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -170,20 +170,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </nav>
             </div>
 
-            <div className="p-6 border-t border-white/5 space-y-4">
-              <button onClick={handleSignOut} className="flex items-center gap-3 w-full p-3.5 rounded-xl text-zinc-500 hover:bg-red-500/10 hover:text-red-500 transition-all duration-300">
+            <div className="p-6 border-t border-orange-200 space-y-4">
+              <button onClick={handleSignOut} className="flex items-center gap-3 w-full p-3.5 rounded-xl text-zinc-600 hover:bg-red-500/10 hover:text-red-500 transition-all duration-300">
                 <LogOut size={18} />
                 <span className="font-bold text-xs uppercase tracking-widest">Cerrar Sesión</span>
               </button>
               
-              <div className="pt-2 text-center border-t border-white/5 space-y-1">
+              <div className="pt-2 text-center border-t border-orange-200 space-y-1">
                 <p className="text-[9px] text-zinc-600 font-bold">
                   © 2026 Omar Adamo
                 </p>
-                <div className="flex justify-center gap-3 text-[8px] text-zinc-500">
-                  <a href="mailto:adamoomar110@gmail.com" className="hover:text-yellow-500 transition-colors">Email</a>
+                <div className="flex justify-center gap-3 text-[8px] text-zinc-600">
+                  <a href="mailto:adamoomar110@gmail.com" className="hover:text-green-600 transition-colors">Email</a>
                   <span>•</span>
-                  <a href="https://wa.me/5491178295317" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-500 transition-colors">WhatsApp</a>
+                  <a href="https://wa.me/5491178295317" target="_blank" rel="noopener noreferrer" className="hover:text-green-600 transition-colors">WhatsApp</a>
                   <span>•</span>
                   <span className="font-black text-zinc-700">v1.0</span>
                 </div>
@@ -194,10 +194,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Premium Sidebar Unificado (Solo Escritorio) */}
-      <aside className="hidden lg:flex w-72 bg-black/40 backdrop-blur-3xl border-r border-white/5 flex-col relative z-20 shrink-0 h-screen sticky top-0">
-        <div className="h-24 flex items-center px-8 border-b border-white/5">
+      <aside className="hidden lg:flex w-72 bg-white/40 backdrop-blur-3xl border-r border-orange-200 flex-col relative z-20 shrink-0 h-screen sticky top-0">
+        <div className="h-24 flex items-center px-8 border-b border-orange-200">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(234,179,8,0.3)]">
+            <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-green-500 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(234,179,8,0.3)]">
               {settings?.brand_logo ? (
                 <img src={settings.brand_logo} alt="Logo" className="w-8 h-8 object-contain" />
               ) : (
@@ -207,26 +207,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               )}
             </div>
             <div>
-              <h1 className="font-black text-xl tracking-tight leading-none text-white uppercase">
+              <h1 className="font-black text-xl tracking-tight leading-none text-black uppercase">
                 {settings?.brand_name || 'LAVADERO'}
               </h1>
-              <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-[0.2em]">Comando</span>
+              <span className="text-[10px] text-green-600 font-bold uppercase tracking-[0.2em]">Comando</span>
             </div>
           </div>
         </div>
         
-        <div className="p-6 border-b border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
+        <div className="p-6 border-b border-orange-200 bg-gradient-to-b from-white/[0.02] to-transparent">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-zinc-500 border border-white/5">
+            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-zinc-600 border border-orange-200">
               <UserIcon size={24} />
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-black text-white truncate leading-none mb-1">
+              <p className="text-sm font-black text-black truncate leading-none mb-1">
                 {userProfile?.full_name || 'Cargando...'}
               </p>
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 bg-lime-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(163,230,53,0.8)]" />
-                <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest truncate">
+                <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest truncate">
                   {userProfile?.role === 'admin' ? 'Administrador' : 'Gestor'}
                 </span>
               </div>
@@ -235,7 +235,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <div className="p-6 flex-1 overflow-y-auto">
-          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-4 px-4">Menu Principal</p>
+          <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mb-4 px-4">Menu Principal</p>
           <nav className="flex flex-col gap-2">
             {loading ? (
                <div className="space-y-3 px-4">
@@ -250,8 +250,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     href={item.href}
                     className={`group flex items-center justify-between p-4 rounded-2xl transition-all duration-300 ${
                       isActive 
-                        ? 'bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 text-yellow-500 shadow-[inset_4px_0_0_0_rgba(163,230,53,1)]' 
-                        : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                        ? 'bg-gradient-to-r from-green-400/10 to-transparent border border-green-400/20 text-green-600 shadow-[inset_4px_0_0_0_rgba(163,230,53,1)]' 
+                        : 'text-zinc-700 hover:bg-white/5 hover:text-black'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -266,20 +266,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
 
-        <div className="p-6 border-t border-white/5 space-y-4">
-          <button onClick={handleSignOut} className="flex items-center gap-3 w-full p-4 rounded-2xl text-zinc-500 hover:bg-red-500/10 hover:text-red-500 transition-all duration-300">
+        <div className="p-6 border-t border-orange-200 space-y-4">
+          <button onClick={handleSignOut} className="flex items-center gap-3 w-full p-4 rounded-2xl text-zinc-600 hover:bg-red-500/10 hover:text-red-500 transition-all duration-300">
             <LogOut size={20} />
             <span className="font-bold text-sm">Cerrar Sesión</span>
           </button>
           
-          <div className="pt-2 text-center border-t border-white/5 space-y-2">
-            <p className="text-[10px] text-zinc-500 font-bold tracking-tight">
+          <div className="pt-2 text-center border-t border-orange-200 space-y-2">
+            <p className="text-[10px] text-zinc-600 font-bold tracking-tight">
               © 2026 Omar Adamo. Todos los derechos reservados.
             </p>
-            <div className="flex justify-center gap-4 text-[9px] text-zinc-500 font-medium">
-              <a href="mailto:adamoomar110@gmail.com" className="hover:text-yellow-500 transition-colors">Email</a>
+            <div className="flex justify-center gap-4 text-[9px] text-zinc-600 font-medium">
+              <a href="mailto:adamoomar110@gmail.com" className="hover:text-green-600 transition-colors">Email</a>
               <span>•</span>
-              <a href="https://wa.me/5491178295317" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-500 transition-colors">WhatsApp</a>
+              <a href="https://wa.me/5491178295317" target="_blank" rel="noopener noreferrer" className="hover:text-green-600 transition-colors">WhatsApp</a>
               <span>•</span>
               <span className="text-zinc-600 font-black">v1.0</span>
             </div>

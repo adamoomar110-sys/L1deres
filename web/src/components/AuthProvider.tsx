@@ -49,9 +49,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   if (loading && !isPublicPath(pathname)) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
-        <div className="w-12 h-12 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
-        <p className="text-zinc-500 font-medium tracking-wide animate-pulse">Verificando sesión...</p>
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-black">
+        <div className="w-12 h-12 border-4 border-green-400/30 border-t-yellow-500 rounded-full animate-spin mb-4"></div>
+        <p className="text-zinc-600 font-medium tracking-wide animate-pulse">Verificando sesión...</p>
       </div>
     );
   }

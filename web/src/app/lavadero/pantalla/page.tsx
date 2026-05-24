@@ -98,11 +98,11 @@ function VehicleTimer({ enteredAt, zone }: { enteredAt: string; zone: 'espera' |
 
     return (
       <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] font-black text-cyan-400 tracking-wider">
+        <span className="text-[10px] font-black text-orange-600 tracking-wider">
           {formatTime(remaining)}
         </span>
-        <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden border border-white/5">
-          <div className="h-full bg-cyan-500 transition-all duration-1000" style={{ width: `${percent}%` }} />
+        <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden border border-orange-200">
+          <div className="h-full bg-orange-400 transition-all duration-1000" style={{ width: `${percent}%` }} />
         </div>
       </div>
     );
@@ -110,7 +110,7 @@ function VehicleTimer({ enteredAt, zone }: { enteredAt: string; zone: 'espera' |
 
   // Tiempo en fila
   return (
-    <span className="text-[10px] font-black text-yellow-500 tracking-wider bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
+    <span className="text-[10px] font-black text-green-600 tracking-wider bg-green-400/10 px-2 py-0.5 rounded-full border border-green-400/20">
       {formatTime(seconds)}
     </span>
   );
@@ -172,36 +172,36 @@ export default function PantallaLavadero() {
   const estimatedTime = (waitQueueCount * 15) + (washingCount > 0 ? 8 : 0);
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white font-sans overflow-hidden p-6 md:p-10 relative flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
+    <div className="min-h-screen bg-[#020202] text-black font-sans overflow-hidden p-6 md:p-10 relative flex flex-col justify-between selection:bg-orange-400 selection:text-black">
       
       {/* Efecto Scanline y Grilla Neon */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,_rgba(0,0,0,0.25)_50%),_linear-gradient(90deg,_rgba(255,0,0,0.06),_rgba(0,255,0,0.02),_rgba(0,0,255,0.06))] bg-[size:100%_4px,_6px_100%] pointer-events-none z-10" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_black_100%)] pointer-events-none z-10" />
       
       {/* Fondo de Orbes de Neon */}
-      <div className="absolute top-1/4 left-1/4 w-[40vw] h-[40vw] bg-cyan-500/5 rounded-full blur-[130px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-[40vw] h-[40vw] bg-orange-400/5 rounded-full blur-[130px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-[40vw] h-[40vw] bg-lime-500/5 rounded-full blur-[130px] pointer-events-none" />
 
       {/* HEADER DE PANTALLA */}
       <header className="relative z-20 flex flex-col md:flex-row items-center justify-between border-b-2 border-dashed border-zinc-800 pb-6 mb-6 gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.3)] animate-pulse">
+          <div className="w-12 h-12 bg-gradient-to-br from-orange-300 to-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.3)] animate-pulse">
             <Waves className="text-black" size={24} />
           </div>
           <div>
             <h1 className="text-2xl font-black italic tracking-tighter uppercase flex items-center gap-2">
-              ESTADO DEL LAVADERO <span className="text-[10px] bg-red-600 text-white font-bold tracking-widest px-2 py-0.5 rounded animate-pulse">EN VIVO</span>
+              ESTADO DEL LAVADERO <span className="text-[10px] bg-red-600 text-black font-bold tracking-widest px-2 py-0.5 rounded animate-pulse">EN VIVO</span>
             </h1>
-            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.25em]">Lavadero De Luxe • Privacidad Protegida</p>
+            <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.25em]">Lavadero De Luxe • Privacidad Protegida</p>
           </div>
         </div>
 
         {/* Panel de Tiempo Estimado */}
-        <div className="flex items-center gap-4 bg-zinc-900/50 border border-white/5 rounded-2xl px-6 py-3.5 backdrop-blur-md">
-          <Clock className="text-cyan-400 animate-spin" style={{ animationDuration: '6s' }} size={20} />
+        <div className="flex items-center gap-4 bg-orange-100/50 border border-orange-200 rounded-2xl px-6 py-3.5 backdrop-blur-md">
+          <Clock className="text-orange-600 animate-spin" style={{ animationDuration: '6s' }} size={20} />
           <div>
-            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">Demora Estimada de Ingreso</p>
-            <p className="text-lg font-black text-cyan-400 tracking-tight">
+            <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider">Demora Estimada de Ingreso</p>
+            <p className="text-lg font-black text-orange-600 tracking-tight">
               {estimatedTime === 0 ? 'Sin Demoras 🎉' : `~ ${estimatedTime} MINUTOS`}
             </p>
           </div>
@@ -215,7 +215,7 @@ export default function PantallaLavadero() {
         <div className="absolute left-[-2.5rem] top-0 bottom-0 w-8 flex flex-col items-center justify-between pointer-events-none select-none">
           <div className="w-4 h-0.5 bg-zinc-700/80 shadow-[0_0_8px_rgba(255,255,255,0.1)]" />
           <div className="h-full w-0.5 bg-zinc-700/40 relative flex items-center justify-center">
-            <span className="absolute bg-[#020202] py-3 px-1 text-[9px] font-mono font-black text-zinc-500 uppercase tracking-[0.25em] origin-center -rotate-90 whitespace-nowrap">
+            <span className="absolute bg-[#020202] py-3 px-1 text-[9px] font-mono font-black text-zinc-600 uppercase tracking-[0.25em] origin-center -rotate-90 whitespace-nowrap">
               35m (LARGO / PROFUNDIDAD)
             </span>
           </div>
@@ -226,7 +226,7 @@ export default function PantallaLavadero() {
         <div className="absolute bottom-[-2.5rem] left-0 right-0 h-8 flex items-center justify-between pointer-events-none select-none">
           <div className="w-0.5 h-4 bg-zinc-700/80 shadow-[0_0_8px_rgba(255,255,255,0.1)]" />
           <div className="w-full h-0.5 bg-zinc-700/40 relative flex items-center justify-center">
-            <span className="absolute bg-[#020202] px-4 text-[9px] font-mono font-black text-zinc-500 uppercase tracking-[0.25em] whitespace-nowrap">
+            <span className="absolute bg-[#020202] px-4 text-[9px] font-mono font-black text-zinc-600 uppercase tracking-[0.25em] whitespace-nowrap">
               30m (ANCHO / FRENTE)
             </span>
           </div>
@@ -267,7 +267,7 @@ export default function PantallaLavadero() {
             </div>
             
             <div className="flex items-center gap-2 z-10">
-              <span className="text-[9px] text-zinc-400 font-mono tracking-wider">
+              <span className="text-[9px] text-zinc-700 font-mono tracking-wider">
                 ENTRADA Y SALIDA POR ARRIBA IZQ
               </span>
             </div>
@@ -279,21 +279,21 @@ export default function PantallaLavadero() {
             style={{ gridArea: 'espera', height: '100%' }}
           >
             {/* Indicador de Línea Neon */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.8)]" />
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-green-400 shadow-[0_0_15px_rgba(234,179,8,0.8)]" />
             
             {/* Diseño de Calle/Pista */}
-            <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 border-l-2 border-dashed border-yellow-500/20 pointer-events-none z-0" />
-            <div className="absolute top-10 left-1/2 -translate-x-1/2 text-yellow-500/20 font-black text-2xl tracking-widest animate-pulse pointer-events-none select-none z-0">
+            <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 border-l-2 border-dashed border-green-400/20 pointer-events-none z-0" />
+            <div className="absolute top-10 left-1/2 -translate-x-1/2 text-green-600/20 font-black text-2xl tracking-widest animate-pulse pointer-events-none select-none z-0">
               ↓↓↓
             </div>
             
             {/* Rótulo de Entrada */}
-            <div className="absolute top-3 left-4 bg-yellow-500/10 text-yellow-500 border border-yellow-500/25 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest z-10 animate-pulse">
+            <div className="absolute top-3 left-4 bg-green-400/10 text-green-600 border border-green-400/25 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest z-10 animate-pulse">
               ENTRADA ↓
             </div>
 
-            <h2 className="text-sm font-black tracking-widest text-yellow-500 uppercase mb-8 flex items-center gap-2 z-10">
-              1. ESPERA <span className="bg-yellow-500/10 text-yellow-500 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-yellow-500/20">{waitQueueCount}</span>
+            <h2 className="text-sm font-black tracking-widest text-green-600 uppercase mb-8 flex items-center gap-2 z-10">
+              1. ESPERA <span className="bg-green-400/10 text-green-600 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-green-400/20">{waitQueueCount}</span>
             </h2>
             
             <div className="flex-1 flex flex-col justify-start gap-6 w-full max-w-[200px] overflow-y-hidden z-10">
@@ -301,7 +301,7 @@ export default function PantallaLavadero() {
                 {loading ? (
                   <div className="h-full flex items-center justify-center text-zinc-700 italic text-xs">Cargando...</div>
                 ) : vehicles.filter(v => v.zone === 'espera').length === 0 ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} className="h-full flex flex-col items-center justify-center text-center py-10 text-zinc-500">
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} className="h-full flex flex-col items-center justify-center text-center py-10 text-zinc-600">
                     <AlertCircle size={32} className="mb-2" />
                     <p className="text-xs font-black uppercase tracking-wider">Línea Libre</p>
                   </motion.div>
@@ -320,7 +320,7 @@ export default function PantallaLavadero() {
                         <RetroCar color={v.color} />
                       </div>
                       <div className="text-center">
-                        <p className="text-[11px] font-black tracking-tight text-white uppercase">{v.nickname}</p>
+                        <p className="text-[11px] font-black tracking-tight text-black uppercase">{v.nickname}</p>
                         <VehicleTimer enteredAt={v.entered_at} zone="espera" />
                       </div>
                     </motion.div>
@@ -332,24 +332,24 @@ export default function PantallaLavadero() {
 
           {/* CENTRO DEL CIRCUITO (INTERIOR DE LA U) */}
           <div 
-            className="bg-zinc-900/40 border-2 border-dashed border-zinc-800/80 rounded-[2rem] p-6 flex flex-col items-center justify-center text-center shadow-2xl relative"
+            className="bg-orange-100/40 border-2 border-dashed border-zinc-800/80 rounded-[2rem] p-6 flex flex-col items-center justify-center text-center shadow-2xl relative"
             style={{ gridArea: 'central', height: '100%' }}
           >
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_black_100%)] pointer-events-none" />
             
-            <h3 className="text-cyan-400 font-mono font-black tracking-[0.25em] text-sm uppercase animate-pulse mb-1 z-10">
+            <h3 className="text-orange-600 font-mono font-black tracking-[0.25em] text-sm uppercase animate-pulse mb-1 z-10">
               LAVADERO DE LUXE
             </h3>
-            <p className="text-zinc-500 font-mono text-[9px] font-bold uppercase tracking-widest mb-4 z-10">
+            <p className="text-zinc-600 font-mono text-[9px] font-bold uppercase tracking-widest mb-4 z-10">
               PLANO TALLER: 35m x 30m
             </p>
             
             <div className="h-0.5 w-16 bg-gradient-to-r from-transparent via-cyan-500 to-transparent my-2" />
             
-            <div className="text-xs font-black text-zinc-400 tracking-wider z-10 mb-1">
+            <div className="text-xs font-black text-zinc-700 tracking-wider z-10 mb-1">
               OPERADOR ACTIVO: <span className="text-yellow-400">OMAR</span>
             </div>
-            <div className="text-md font-black text-white tracking-tight z-10">
+            <div className="text-md font-black text-black tracking-tight z-10">
               ESTADO: <span className="text-lime-400 font-mono" style={{ textShadow: '0 0 10px rgba(57, 255, 20, 0.4)' }}>ONLINE</span>
             </div>
             
@@ -364,30 +364,30 @@ export default function PantallaLavadero() {
             style={{ gridArea: 'lavado', height: '100%' }}
           >
             {/* Indicador de Línea Neon */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-orange-400 shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
             
             {/* Animación de burbujas en el fondo */}
             <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#06b6d4_1.5px,transparent_1.5px)] [background-size:18px_18px] pointer-events-none" />
             
             {/* Diseño de Calle/Pista Horizontal */}
-            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-0.5 border-t-2 border-dashed border-cyan-500/20 pointer-events-none z-0" />
-            <div className="absolute inset-y-0 left-10 flex items-center text-cyan-500/20 font-black text-2xl tracking-widest animate-pulse pointer-events-none select-none z-0">
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-0.5 border-t-2 border-dashed border-orange-400/20 pointer-events-none z-0" />
+            <div className="absolute inset-y-0 left-10 flex items-center text-orange-500/20 font-black text-2xl tracking-widest animate-pulse pointer-events-none select-none z-0">
               ➔➔➔
             </div>
             
             {/* Rótulo de Curva */}
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 px-3 py-0.5 rounded text-[8px] font-black uppercase tracking-widest z-10">
+            <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-orange-400/10 text-orange-600 border border-orange-400/25 px-3 py-0.5 rounded text-[8px] font-black uppercase tracking-widest z-10">
               CURVA DE LAVADO
             </div>
 
-            <h2 className="text-sm font-black tracking-widest text-cyan-400 uppercase mb-4 flex items-center gap-2 z-10">
-              2. EN LAVADO <span className="bg-cyan-500/10 text-cyan-400 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-cyan-500/20">{washingCount}</span>
+            <h2 className="text-sm font-black tracking-widest text-orange-600 uppercase mb-4 flex items-center gap-2 z-10">
+              2. EN LAVADO <span className="bg-orange-400/10 text-orange-600 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-orange-400/20">{washingCount}</span>
             </h2>
 
             <div className="flex-1 flex flex-row justify-center items-center gap-8 w-full z-10">
               <AnimatePresence mode="popLayout">
                 {vehicles.filter(v => v.zone === 'lavado').length === 0 ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} className="h-full flex flex-col items-center justify-center text-center py-10 text-zinc-500">
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} className="h-full flex flex-col items-center justify-center text-center py-10 text-zinc-600">
                     <Waves size={32} className="mb-2 animate-bounce" />
                     <p className="text-xs font-black uppercase tracking-wider">Box de Lavado Vacío</p>
                   </motion.div>
@@ -402,12 +402,12 @@ export default function PantallaLavadero() {
                       transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                       className="flex flex-col items-center gap-3 relative"
                     >
-                      <div className="absolute top-0 w-24 h-24 bg-cyan-500/10 rounded-full blur-xl animate-pulse pointer-events-none" />
+                      <div className="absolute top-0 w-24 h-24 bg-orange-400/10 rounded-full blur-xl animate-pulse pointer-events-none" />
                       <div className="transform rotate-90 my-2">
                         <RetroCar color={v.color} />
                       </div>
                       <div className="text-center z-10">
-                        <p className="text-[11px] font-black tracking-tight text-white uppercase">{v.nickname}</p>
+                        <p className="text-[11px] font-black tracking-tight text-black uppercase">{v.nickname}</p>
                         <VehicleTimer enteredAt={v.entered_at} zone="lavado" />
                       </div>
                     </motion.div>
@@ -443,7 +443,7 @@ export default function PantallaLavadero() {
             <div className="flex-1 flex flex-col justify-end gap-6 w-full max-w-[200px] overflow-y-hidden z-10">
               <AnimatePresence mode="popLayout">
                 {vehicles.filter(v => v.zone === 'terminado').length === 0 ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} className="h-full flex flex-col items-center justify-center text-center py-10 text-zinc-500">
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} className="h-full flex flex-col items-center justify-center text-center py-10 text-zinc-600">
                     <CheckCircle2 size={32} className="mb-2" />
                     <p className="text-xs font-black uppercase tracking-wider">Esperando Salidas</p>
                   </motion.div>
@@ -460,7 +460,7 @@ export default function PantallaLavadero() {
                     >
                       <RetroCar color={v.color} />
                       <div className="text-center">
-                        <p className="text-[11px] font-black tracking-tight text-white uppercase">{v.nickname}</p>
+                        <p className="text-[11px] font-black tracking-tight text-black uppercase">{v.nickname}</p>
                         <VehicleTimer enteredAt={v.entered_at} zone="terminado" />
                       </div>
                     </motion.div>
@@ -475,12 +475,12 @@ export default function PantallaLavadero() {
 
       {/* FOOTER PANTALLA */}
       <footer className="relative z-20 flex justify-between items-center border-t border-zinc-900 pt-6 mt-4">
-        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider">
+        <p className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider">
           © 2026 Omar Adamo • Lavadero De Luxe Estética Vehicular
         </p>
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-ping" />
-          <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Sincronización Activa</span>
+          <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Sincronización Activa</span>
         </div>
       </footer>
     </div>
