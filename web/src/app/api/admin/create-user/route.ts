@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, password, full_name, role } = body;
+    const { email, password, full_name, role, cargo, funcion, turno, legajo } = body;
 
     if (!email || !password || !full_name) {
       return NextResponse.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
@@ -40,7 +40,11 @@ export async function POST(request: Request) {
       id: userId,
       email,
       full_name,
-      role: role || 'driver'
+      role: role || 'driver',
+      cargo: cargo || null,
+      funcion: funcion || null,
+      turno: turno || null,
+      legajo: legajo || null
     });
 
     if (profileError) {

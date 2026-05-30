@@ -7,7 +7,8 @@ export default function UsuariosAdmin() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newUser, setNewUser] = useState({ full_name: '', email: '', role: 'driver', password: '' });
+  const [newUser, setNewUser] = useState({ full_name: '', email: '', role: 'driver', password: '', cargo: '', funcion: '', turno: '', legajo: '' });
+  const [expandedHistoryUserId, setExpandedHistoryUserId] = useState<string | null>(null);
   const [approvedApplicants, setApprovedApplicants] = useState<any[]>([]);
   const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
   const [addMode, setAddMode] = useState<'manual' | 'applicant'>('manual');
@@ -60,9 +61,9 @@ export default function UsuariosAdmin() {
             .eq('id', selectedApplicantId);
        }
 
-       alert('Usuario creado con éxito');
-       setShowAddModal(false);
-       setNewUser({ full_name: '', email: '', role: 'driver', password: '' });
+        alert('Usuario creado con éxito');
+        setShowAddModal(false);
+        setNewUser({ full_name: '', email: '', role: 'driver', password: '', cargo: '', funcion: '', turno: '', legajo: '' });
        setSelectedApplicantId(null);
        setAddMode('manual');
        fetchUsersWithStats();
@@ -114,60 +115,124 @@ export default function UsuariosAdmin() {
                 <div className="w-10 h-10 border-4 border-green-400/20 border-t-yellow-500 rounded-full animate-spin" />
              </div>
           ) : users.map(user => (
-            <div key={user.id} className="bg-white backdrop-blur-xl border border-orange-200 rounded-[3rem] overflow-hidden group hover:bg-orange-100/50 transition-all">
-               <div className="p-8 flex items-start gap-6">
-                  <div className="w-24 h-24 bg-gradient-to-br from-zinc-800 to-black rounded-3xl flex items-center justify-center border border-orange-200 relative">
-                     <Users size={40} className="text-zinc-600 group-hover:text-green-600 transition-colors" />
-                     <div className="absolute -bottom-2 -right-2 px-3 py-1 bg-green-400 text-black text-[9px] font-black rounded-lg uppercase shadow-lg">
-                        {user.role}
+            <div key={user.id} className="bg-white backdrop-blur-xl border border-orange-200 rounded-[3rem] overflow-hidden group hover:bg-orange-100/50 transition-all flex flex-col justify-between">
+               <div>
+                  <div className="p-8 flex items-start gap-6">
+                     <div className="w-24 h-24 bg-gradient-to-br from-zinc-800 to-black rounded-3xl flex items-center justify-center border border-orange-200 relative">
+                        <Users size={40} className="text-zinc-600 group-hover:text-green-600 transition-colors" />
+                        <div className="absolute -bottom-2 -right-2 px-3 py-1 bg-green-400 text-black text-[9px] font-black rounded-lg uppercase shadow-lg">
+                           {user.role}
+                        </div>
+                     </div>
+
+                     <div className="flex-1">
+                        <div className="flex justify-between items-start mb-2">
+                           <div>
+                              <h3 className="text-2xl font-black text-black tracking-tight">{user.full_name}</h3>
+                              {user.legajo && (
+                                 <span className="inline-block mt-1 text-[10px] font-black bg-orange-200/60 text-orange-700 px-2 py-0.5 rounded-md">
+                                    Legajo: {user.legajo}
+                                 </span>
+                              )}
+                           </div>
+                           <button 
+                              onClick={() => handleDeleteUser(user.id, user.full_name)}
+                              className="text-zinc-700 hover:text-red-500 transition-colors p-2 hover:bg-red-500/10 rounded-xl cursor-pointer"
+                              title="Eliminar Usuario"
+                           >
+                              <Trash2 size={18} />
+                           </button>
+                        </div>
+                        <p className="text-zinc-600 text-sm font-medium mb-4 flex items-center gap-2">
+                           <Mail size={14} /> {user.email}
+                        </p>
+                        
+                        {user.vehicles && (
+                           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-orange-200 text-[10px] font-bold text-zinc-700 uppercase">
+                              Unidad: {user.vehicles.plate} - {user.vehicles.brand}
+                           </div>
+                        )}
                      </div>
                   </div>
 
-                  <div className="flex-1">
-                     <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-2xl font-black text-black tracking-tight">{user.full_name}</h3>
-                        <button 
-                           onClick={() => handleDeleteUser(user.id, user.full_name)}
-                           className="text-zinc-700 hover:text-red-500 transition-colors p-2 hover:bg-red-500/10 rounded-xl"
-                           title="Eliminar Usuario"
-                        >
-                           <Trash2 size={18} />
-                        </button>
-                     </div>
-                     <p className="text-zinc-600 text-sm font-medium mb-4 flex items-center gap-2">
-                        <Mail size={14} /> {user.email}
-                     </p>
-                     
-                     {user.vehicles && (
-                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-orange-200 text-[10px] font-bold text-zinc-700 uppercase">
-                           Unidad: {user.vehicles.plate} - {user.vehicles.brand}
+                  {/* Cargos, Función y Turno Horario */}
+                  {(user.cargo || user.funcion || user.turno) && (
+                     <div className="grid grid-cols-3 gap-3 px-8 pb-6">
+                        <div className="p-3 bg-white/50 border border-orange-100 rounded-2xl flex flex-col gap-0.5">
+                           <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Cargo</span>
+                           <span className="text-xs font-bold text-black truncate">{user.cargo || 'No asignado'}</span>
                         </div>
-                     )}
-                  </div>
+                        <div className="p-3 bg-white/50 border border-orange-100 rounded-2xl flex flex-col gap-0.5">
+                           <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Especialidad</span>
+                           <span className="text-xs font-bold text-black truncate">{user.funcion || 'No asignado'}</span>
+                        </div>
+                        <div className="p-3 bg-white/50 border border-orange-100 rounded-2xl flex flex-col gap-0.5">
+                           <span className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Turno</span>
+                           <span className="text-xs font-bold text-black truncate">{user.turno || 'No asignado'}</span>
+                        </div>
+                     </div>
+                  )}
                </div>
 
-               {/* Stats Bar */}
-               <div className="grid grid-cols-3 bg-white/40 border-t border-orange-200 p-8 gap-4">
-                  <div className="text-center space-y-1">
-                     <div className="flex items-center justify-center gap-2 text-zinc-600 mb-1">
-                        <Gauge size={14} className="text-green-600" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Total KM</span>
+               <div>
+                  {/* Stats Bar */}
+                  <div className="grid grid-cols-3 bg-white/40 border-t border-orange-200 p-8 gap-4">
+                     <div className="text-center space-y-1">
+                        <div className="flex items-center justify-center gap-2 text-zinc-600 mb-1">
+                           <Gauge size={14} className="text-green-600" />
+                           <span className="text-[10px] font-black uppercase tracking-widest">Total KM</span>
+                        </div>
+                        <p className="text-xl font-black text-black">{user.stats.km.toLocaleString()}</p>
                      </div>
-                     <p className="text-xl font-black text-black">{user.stats.km.toLocaleString()}</p>
+                     <div className="text-center border-x border-orange-200 space-y-1">
+                        <div className="flex items-center justify-center gap-2 text-zinc-600 mb-1">
+                           <Clock size={14} className="text-blue-500" />
+                           <span className="text-[10px] font-black uppercase tracking-widest">Horas Uso</span>
+                        </div>
+                        <p className="text-xl font-black text-black">{user.stats.hours} hs</p>
+                     </div>
+                     <div className="text-center space-y-1">
+                        <div className="flex items-center justify-center gap-2 text-zinc-600 mb-1">
+                           <DollarSign size={14} className="text-lime-400 drop-shadow-[0_0_5px_rgba(163,230,53,0.5)]" />
+                           <span className="text-[10px] font-black uppercase tracking-widest">Recaudado</span>
+                        </div>
+                        <p className="text-xl font-black text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,0.3)]">${user.stats.revenue.toLocaleString()}</p>
+                     </div>
                   </div>
-                  <div className="text-center border-x border-orange-200 space-y-1">
-                     <div className="flex items-center justify-center gap-2 text-zinc-600 mb-1">
-                        <Clock size={14} className="text-blue-500" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Horas Uso</span>
-                     </div>
-                     <p className="text-xl font-black text-black">{user.stats.hours} hs</p>
-                  </div>
-                  <div className="text-center space-y-1">
-                     <div className="flex items-center justify-center gap-2 text-zinc-600 mb-1">
-                        <DollarSign size={14} className="text-lime-400 drop-shadow-[0_0_5px_rgba(163,230,53,0.5)]" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Recaudado</span>
-                     </div>
-                     <p className="text-xl font-black text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,0.3)]">${user.stats.revenue.toLocaleString()}</p>
+
+                  {/* Historial de Trabajo Colapsable */}
+                  <div className="border-t border-orange-200 p-6 bg-white/20">
+                     <button 
+                        type="button"
+                        onClick={() => setExpandedHistoryUserId(expandedHistoryUserId === user.id ? null : user.id)}
+                        className="w-full py-3 bg-orange-100 hover:bg-orange-200/50 border border-orange-200 text-black font-black text-xs uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                     >
+                        <span>{expandedHistoryUserId === user.id ? 'Ocultar Historial' : 'Ver Historial de Trabajo'}</span>
+                        <ChevronRight size={14} className={`transform transition-transform ${expandedHistoryUserId === user.id ? 'rotate-90' : ''}`} />
+                     </button>
+
+                     {expandedHistoryUserId === user.id && (
+                        <div className="mt-4 space-y-2 overflow-y-auto max-h-48 border border-orange-200/50 rounded-2xl p-4 bg-white/50 animate-in slide-in-from-top-2 duration-300">
+                           {!user.work_history || user.work_history.length === 0 ? (
+                              <p className="text-xs text-zinc-600 italic text-center py-4">Sin turnos registrados todavía.</p>
+                           ) : (
+                              <div className="space-y-2">
+                                 {user.work_history.map((hist: any) => (
+                                    <div key={hist.id} className="flex justify-between items-center text-xs p-3 bg-white/80 border border-orange-100 rounded-xl">
+                                       <div className="flex flex-col gap-0.5">
+                                          <span className="font-bold text-black">{new Date(hist.date).toLocaleDateString('es-AR', { hour: '2-digit', minute: '2-digit' })}</span>
+                                          <span className="text-[10px] text-zinc-600 font-bold uppercase">Unidad: {hist.vehicle_plate}</span>
+                                       </div>
+                                       <div className="flex gap-4 items-center">
+                                          <span className="text-zinc-600 font-bold">{hist.hours} hs</span>
+                                          <span className="text-green-600 font-black">${hist.revenue.toLocaleString()}</span>
+                                       </div>
+                                    </div>
+                                 ))}
+                              </div>
+                           )}
+                        </div>
+                     )}
                   </div>
                </div>
             </div>
@@ -237,10 +302,51 @@ export default function UsuariosAdmin() {
                  <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Email de Acceso</label>
                  <input required type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-5 text-black outline-none focus:border-green-400 font-bold" placeholder="email@dominio.com" />
                </div>
-               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Contraseña Inicial</label>
-                 <input required type="password" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-5 text-black outline-none focus:border-green-400 font-bold" placeholder="********" />
-               </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Contraseña Inicial</label>
+                  <input required type="password" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-5 text-black outline-none focus:border-green-400 font-bold" placeholder="********" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Legajo</label>
+                    <input required type="text" value={newUser.legajo} onChange={e => setNewUser({...newUser, legajo: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-xs outline-none focus:border-green-400 font-bold" placeholder="LEG-001" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Cargo</label>
+                    <select required value={newUser.cargo} onChange={e => setNewUser({...newUser, cargo: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-xs outline-none focus:border-green-400 font-bold appearance-none">
+                      <option value="">Seleccionar...</option>
+                      <option value="Administrador">Administrador</option>
+                      <option value="Detailer / Washer">Detailer / Washer</option>
+                      <option value="Cajero / Receptor">Cajero / Receptor</option>
+                      <option value="Supervisor">Supervisor</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Especialidad</label>
+                    <select required value={newUser.funcion} onChange={e => setNewUser({...newUser, funcion: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-xs outline-none focus:border-green-400 font-bold appearance-none">
+                      <option value="">Seleccionar...</option>
+                      <option value="Lavado Exterior">Lavado Exterior</option>
+                      <option value="Limpieza Interior">Limpieza Interior</option>
+                      <option value="Lustrado y Pulido">Lustrado y Pulido</option>
+                      <option value="Tratamiento Cerámico">Tratamiento Cerámico</option>
+                      <option value="Gestión de Caja">Gestión de Caja</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Turno Horario</label>
+                    <select required value={newUser.turno} onChange={e => setNewUser({...newUser, turno: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-xs outline-none focus:border-green-400 font-bold appearance-none">
+                      <option value="">Seleccionar...</option>
+                      <option value="Turno Mañana (08-16)">Turno Mañana (08-16)</option>
+                      <option value="Turno Tarde (16-00)">Turno Tarde (16-00)</option>
+                      <option value="Turno Completo (09-18)">Turno Completo (09-18)</option>
+                      <option value="Fin de Semana">Fin de Semana</option>
+                    </select>
+                  </div>
+                </div>
 
                <div className="flex items-center justify-between p-5 bg-white/40 rounded-2xl border border-orange-200">
                   <div className="flex flex-col">

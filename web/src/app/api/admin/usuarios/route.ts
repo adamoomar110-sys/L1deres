@@ -18,7 +18,7 @@ export async function GET() {
     const [profilesRes, vehiclesRes, reportsRes] = await Promise.all([
       supabaseAdmin.from('profiles').select('*').order('full_name'),
       supabaseAdmin.from('vehicles').select('*'),
-      supabaseAdmin.from('daily_reports').select('driver_id, revenue, start_km, end_km, start_time, end_time')
+      supabaseAdmin.from('daily_reports').select('id, driver_id, vehicle_id, revenue, start_km, end_km, start_time, end_time, created_at')
     ]);
 
     if (profilesRes.error) throw new Error('Error profiles: ' + profilesRes.error.message);
@@ -43,6 +43,23 @@ export async function GET() {
 
       const userVehicle = vehicles.find(v => v.id === user.vehicle_id);
 
+      // Mapear historial de trabajo
+      const workHistory = userReports.map(r => {
+        const vehicle = vehicles.find(v => v.id === r.vehicle_id);
+        const hours = r.end_time && r.start_time 
+          ? Math.round((new Date(r.end_time).getTime() - new Date(r.start_time).getTime()) / (1000 * 60 * 60)) 
+          : 0;
+        return {
+          id: r.id,
+          vehicle_plate: vehicle ? vehicle.plate : 'S/P',
+          vehicle_model: vehicle ? `${vehicle.brand} ${vehicle.model}` : 'Desconocido',
+          revenue: Number(r.revenue || 0),
+          km: (r.end_km || r.start_km) - (r.start_km || 0),
+          hours: hours,
+          date: r.created_at || r.start_time
+        };
+      }).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
       return {
         ...user,
         vehicles: userVehicle || null,
@@ -50,7 +67,8 @@ export async function GET() {
           revenue: totalRevenue,
           km: totalKm,
           hours: Math.round(totalHours)
-        }
+        },
+        work_history: workHistory
       };
     });
 
