@@ -103,7 +103,7 @@ export default function UsuariosAdmin() {
         </div>
         
         <button onClick={() => setShowAddModal(true)} className="bg-green-400 text-black font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-yellow-400 transition-all shadow-xl shadow-yellow-500/20">
-          <UserPlus size={20} /> ALTA CHOFER / ADMIN
+          <UserPlus size={20} /> CREAR EMPLEADO NUEVO
         </button>
       </header>
 

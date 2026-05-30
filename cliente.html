@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mi Auto - Lavadero Estética Vehicular</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Orbitron:wght@700;900&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Ajustes específicos para Mobile First (Cliente) */
+        body {
+            background-color: var(--color-bg);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+
+        .client-card {
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-card-border);
+            border-radius: 2rem;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .client-header {
+            margin-bottom: 2rem;
+        }
+
+        .client-header h1 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+
+        .client-plate {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            color: var(--color-text-dim);
+        }
+
+        .car-display {
+            margin: 2rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 150px;
+            position: relative;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10rem;
+            font-weight: 800;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-espera { background-color: var(--color-yellow-dim); color: var(--color-yellow); border: 1px solid rgba(255,184,0,0.3); box-shadow: var(--shadow-neon-yellow); }
+        .status-lavado { background-color: var(--color-cyan-dim); color: var(--color-cyan); border: 1px solid rgba(0,240,255,0.3); box-shadow: var(--shadow-neon-cyan); }
+        .status-terminado { background-color: var(--color-lime-dim); color: var(--color-lime); border: 1px solid rgba(57,255,20,0.3); box-shadow: var(--shadow-neon-lime); animation: pulse 2s infinite; }
+
+        .client-footer {
+            margin-top: 3rem;
+            font-size: 0.75rem;
+            color: var(--color-text-dim);
+        }
+
+        /* SVG Car escalado */
+        .svg-car-large {
+            transform: scale(1.5);
+            transition: all 0.5s ease;
+        }
+        
+        .in-wash .svg-car-large {
+            filter: drop-shadow(0 0 20px var(--color-cyan));
+            animation: bounce 1s infinite alternate;
+        }
+
+        @keyframes bounce {
+            0% { transform: scale(1.5) translateY(0); }
+            100% { transform: scale(1.5) translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="neon-grid"></div>
+
+    <div class="client-card">
+        <div class="client-header">
+            <h1 id="car-nickname">Cargando...</h1>
+            <div id="car-plate" class="client-plate">--</div>
+        </div>
+
+        <div id="status-container" class="status-badge status-espera">
+            Conectando...
+        </div>
+
+        <div class="car-display" id="car-display-container">
+            <!-- SVG se inyecta via JS -->
+        </div>
+
+        <p id="eta-text" style="color: var(--color-text-dim); font-size: 0.9rem; margin-top: 1rem;">Calculando demora...</p>
+    </div>
+
+    <div class="client-footer">
+        © @adamo. Todos los derechos reservados. <br> Lavadero Estética Vehicular
+    </div>
+
+    <script>
+        // Dibujo de Auto SVG adaptado
+        function getCarSvg(color) {
+            return `
+            <svg class="svg-car-large" width="60" height="110" viewBox="0 0 60 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="5" y="92" width="50" height="8" rx="2" fill="#18181b" />
+                <rect x="10" y="90" width="8" height="6" fill="#27272a" />
+                <rect x="42" y="90" width="8" height="6" fill="#27272a" />
+                <rect x="0" y="16" width="6" height="16" rx="2" fill="#09090b" />
+                <rect x="54" y="16" width="6" height="16" rx="2" fill="#09090b" />
+                <rect x="0" y="74" width="6" height="16" rx="2" fill="#09090b" />
+                <rect x="54" y="74" width="6" height="16" rx="2" fill="#09090b" />
+                <rect x="6" y="8" width="48" height="88" rx="14" fill="${color}" />
+                <rect x="26" y="8" width="8" height="88" fill="white" fill-opacity="0.15" />
+                <path d="M12 36 C 12 36, 16 26, 30 26 C 44 26, 48 36, 48 36 L 42 42 L 18 42 Z" fill="#09090b" />
+                <path d="M10 44 L 14 46 L 14 66 L 10 70 Z" fill="#09090b" />
+                <path d="M50 44 L 46 46 L 46 66 L 50 70 Z" fill="#09090b" />
+                <path d="M16 74 L 44 74 L 41 82 L 19 82 Z" fill="#09090b" />
+                <rect x="14" y="16" width="32" height="6" rx="1" fill="#18181b" fill-opacity="0.4" />
+                <rect x="12" y="6" width="8" height="4" rx="1" fill="#fef08a" />
+                <rect x="40" y="6" width="8" height="4" rx="1" fill="#fef08a" />
+                <rect x="10" y="94" width="6" height="2" fill="#f87171" />
+                <rect x="44" y="94" width="6" height="2" fill="#f87171" />
+            </svg>`;
+        }
+
+        // Parsear URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const nick = urlParams.get('n') || 'Tu Vehículo';
+        const color = urlParams.get('c') ? '#' + urlParams.get('c') : '#06b6d4';
+        const plate = urlParams.get('p') || 'SIN PATENTE';
+        const zone = urlParams.get('z') || 'espera';
+
+        document.getElementById('car-nickname').innerText = nick;
+        document.getElementById('car-plate').innerText = plate;
+        document.getElementById('car-display-container').innerHTML = getCarSvg(color);
+
+        const statusContainer = document.getElementById('status-container');
+        const etaText = document.getElementById('eta-text');
+        const displayContainer = document.getElementById('car-display-container');
+
+        // Configurar estado visual
+        if (zone === 'espera') {
+            statusContainer.className = 'status-badge status-espera';
+            statusContainer.innerText = 'En Espera';
+            etaText.innerText = 'Aproximadamente 15-20 minutos para ingresar.';
+        } else if (zone === 'lavado') {
+            statusContainer.className = 'status-badge status-lavado';
+            statusContainer.innerText = 'En Lavado';
+            etaText.innerText = 'Relájate. Tu auto está recibiendo el tratamiento premium.';
+            displayContainer.classList.add('in-wash');
+        } else if (zone === 'terminado') {
+            statusContainer.className = 'status-badge status-terminado';
+            statusContainer.innerText = '¡Listo para retirar!';
+            etaText.innerText = 'Tu vehículo ha quedado impecable. Te esperamos en la salida.';
+        }
+    </script>
+</body>
+</html>

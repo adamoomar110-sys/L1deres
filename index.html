@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador & Panel de Control - Lavadero de Autos</title>
+    <meta name="description" content="Visualizador de estado en tiempo real y panel de gestión para el Lavadero de Autos. Diseño estético premium, optimizado para visualización y administración ágil.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Orbitron:wght@700;900&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Efecto Scanlines Retro y Grilla de fondo -->
+    <div class="scanlines"></div>
+    <div class="neon-grid"></div>
+    <div class="bg-orb top-right"></div>
+    <div class="bg-orb bottom-left"></div>
+
+    <div class="app-container">
+        <!-- CABECERA -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="brand-logo animate-pulse">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.6 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.6 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.6 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+                </div>
+                <div class="brand-text">
+                    <h1 class="brand-title">LAVADERO <span>ESTÉTICA VEHICULAR</span></h1>
+                    <p class="brand-subtitle">Visualizador y Control en Vivo</p>
+                </div>
+            </div>
+
+            <!-- Panel de Demora y Controles Rápidos -->
+            <div class="header-actions">
+                <div class="eta-card">
+                    <svg class="icon-money text-lime" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <div class="eta-info">
+                        <span class="eta-label">Recaudación Real</span>
+                        <span id="revenue-real-display" class="eta-value" style="color: var(--color-lime)">$0</span>
+                    </div>
+                </div>
+                <div class="eta-card">
+                    <svg class="icon-money text-yellow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <div class="eta-info">
+                        <span class="eta-label">Facturación Pendiente</span>
+                        <span id="revenue-proj-display" class="eta-value" style="color: var(--color-yellow)">$0</span>
+                    </div>
+                </div>
+                <div class="eta-card">
+                    <svg class="icon-clock text-cyan animate-slow-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <div class="eta-info">
+                        <span class="eta-label">Demora de Ingreso</span>
+                        <span id="eta-display" class="eta-value" style="color: var(--color-cyan)">Sin Demoras 🎉</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="btn-config" class="btn btn-secondary btn-icon" title="Configuración de Servidor/Base de Datos">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </button>
+                    <button id="btn-simulation" class="btn btn-secondary font-bold" title="Toggle Simulador Automático">
+                        <span class="pulse-indicator"></span> Simular Tráfico
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- CUERPO PRINCIPAL: VISUALIZADOR RETRO ARCADE -->
+        <main class="app-main">
+            <!-- COLUMNA 1: ESPERA -->
+            <section class="lane-card lane-espera" id="lane-espera">
+                <div class="lane-header">
+                    <h2 class="lane-title">
+                        <span class="lane-dot dot-yellow"></span>
+                        1. ESPERA
+                    </h2>
+                    <span id="counter-espera" class="lane-counter bg-yellow-dim text-yellow">0</span>
+                </div>
+                <div class="lane-track" id="track-espera">
+                    <!-- Los vehículos en espera se insertarán dinámicamente aquí -->
+                    <div class="empty-lane-placeholder">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <p>Línea Libre</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMNA 2: EN LAVADO -->
+            <section class="lane-card lane-lavado" id="lane-lavado">
+                <div class="lane-header">
+                    <h2 class="lane-title">
+                        <span class="lane-dot dot-cyan"></span>
+                        2. EN LAVADO
+                    </h2>
+                    <span id="counter-lavado" class="lane-counter bg-cyan-dim text-cyan">0</span>
+                </div>
+                <!-- Animación de burbujas en el fondo -->
+                <div class="washing-bubble-bg"></div>
+                <div class="lane-track" id="track-lavado">
+                    <!-- Los vehículos en lavado se insertarán aquí -->
+                    <div class="empty-lane-placeholder">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <p>Box Vacío</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMNA 3: TERMINADO -->
+            <section class="lane-card lane-terminado" id="lane-terminado">
+                <div class="lane-header">
+                    <h2 class="lane-title">
+                        <span class="lane-dot dot-lime"></span>
+                        3. TERMINADO
+                    </h2>
+                    <span id="counter-terminado" class="lane-counter bg-lime-dim text-lime">0</span>
+                </div>
+                <div class="lane-track" id="track-terminado">
+                    <!-- Los vehículos terminados se insertarán aquí -->
+                    <div class="empty-lane-placeholder">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <p>Esperando Salidas</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- PANEL DE OPERACIÓN Y GESTIÓN -->
+        <section class="app-operator-panel">
+            <div class="panel-header">
+                <div class="panel-title-group">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="3"/><line x1="15" y1="1" x2="15" y2="3"/><line x1="9" y1="21" x2="9" y2="23"/><line x1="15" y1="21" x2="15" y2="23"/><line x1="20" y1="9" x2="22" y2="9"/><line x1="20" y1="15" x2="22" y2="15"/><line x1="1" y1="9" x2="3" y2="9"/><line x1="1" y1="15" x2="3" y2="15"/></svg>
+                    <h3>Mesa de Control - Operaciones</h3>
+                </div>
+                <span class="connection-status" id="connection-status-pill">
+                    <span class="status-indicator-dot"></span>
+                    <span class="status-label">Modo Local</span>
+                </span>
+            </div>
+
+            <div class="operator-layout">
+                <!-- FORMULARIO REGISTRO -->
+                <form id="form-register-car" class="operator-form">
+                    <h4 class="form-title">Registrar Ingreso de Vehículo</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="input-nickname">Apodo o Marca</label>
+                            <input type="text" id="input-nickname" placeholder="Ej: Rayo Veloz, Focus Rojo" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-plate">Patente (Opcional)</label>
+                            <input type="text" id="input-plate" placeholder="Ej: AE554FG">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-color">Color del Vehículo</label>
+                            <div class="color-picker-wrapper">
+                                <input type="color" id="input-color" value="#06b6d4">
+                                <span class="color-value-label" id="color-hex-label">#06b6d4</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-budget">Presupuesto Estimado ($)</label>
+                            <input type="number" id="input-budget" placeholder="Ej: 15000">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Registrar en Fila de Espera
+                    </button>
+                </form>
+
+                <!-- LISTA DE SEGUIMIENTO OPERATIVO -->
+                <div class="operator-queue-list">
+                    <h4 class="form-title">Vehículos en Gestión Activa</h4>
+                    <div class="table-container">
+                        <table class="operator-table">
+                            <thead>
+                                <tr>
+                                    <th>Vehículo</th>
+                                    <th>Patente</th>
+                                    <th>Presupuesto</th>
+                                    <th>Zona Actual</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="operator-table-body">
+                                <!-- Las filas de gestión se insertarán aquí dinámicamente -->
+                                <tr class="empty-table-row">
+                                    <td colspan="5" style="text-align: center; color: var(--color-text-dim); font-style: italic; padding: 2rem 0;">
+                                        Sin vehículos en circulación. Registra uno arriba para comenzar.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PIE DE PÁGINA -->
+        <footer class="app-footer">
+            <p>© @adamo. Todos los derechos reservados. Lavadero Estética Vehicular • Software Independiente</p>
+            <div class="footer-links">
+                <a href="mailto:adamoomar110@gmail.com">Soporte</a>
+                <span>•</span>
+                <a href="https://wa.me/5491178295317" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+                <span>•</span>
+                <span class="version-label">v2.0 (Independiente)</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- MODAL DE CONFIGURACIÓN DE BASE DE DATOS (SUPABASE) -->
+    <div id="modal-config" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Configuración de Servidor & Datos</h3>
+                <button id="btn-close-modal" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="tab-source">Conexión de Datos</button>
+                    <button class="tab-btn" data-tab="tab-history">Historial de Lavados</button>
+                </div>
+
+                <div class="tab-content" id="tab-source">
+                    <p class="tab-description">Elige de dónde se leen y guardan los datos del lavadero. Puedes usar almacenamiento local persistente o vincularlo a tu Supabase de Lavadero De Luxe.</p>
+                    
+                    <div class="form-group checkbox-group">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="check-use-supabase">
+                            <span class="slider"></span>
+                        </label>
+                        <div class="toggle-label-group">
+                            <span class="toggle-title">Habilitar Conexión con Supabase</span>
+                            <span class="toggle-desc">Sincroniza con la base de datos externa en tiempo real.</span>
+                        </div>
+                    </div>
+
+                    <div id="supabase-fields" class="supabase-fields-container hidden">
+                        <div class="form-group">
+                            <label for="supabase-url">Supabase URL</label>
+                            <input type="url" id="supabase-url" placeholder="https://xxxxxx.supabase.co">
+                        </div>
+                        <div class="form-group">
+                            <label for="supabase-key">Supabase Anon/Public Key</label>
+                            <input type="password" id="supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                        </div>
+                        <div class="form-group">
+                            <label for="supabase-table">Tabla de Cola de Cámara</label>
+                            <input type="text" id="supabase-table" value="lavadero_camera_queue">
+                        </div>
+                        <div class="form-group">
+                            <label for="supabase-service-table">Tabla de Órdenes de Servicio</label>
+                            <input type="text" id="supabase-service-table" value="service_orders">
+                        </div>
+                    </div>
+
+                    <button id="btn-save-config" class="btn btn-primary w-full mt-4">Guardar y Re-conectar</button>
+                </div>
+
+                <div class="tab-content hidden" id="tab-history">
+                    <div class="history-stats">
+                        <div class="stat-box">
+                            <span class="stat-number" id="history-total-count">0</span>
+                            <span class="stat-label">Total Lavados</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-number text-lime" id="history-total-revenue">$0</span>
+                            <span class="stat-label">Recaudación Total</span>
+                        </div>
+                    </div>
+
+                    <div class="history-list-wrapper">
+                        <div class="table-container history-table-container">
+                            <table class="operator-table history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Vehículo</th>
+                                        <th>Patente</th>
+                                        <th>Recaudado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body">
+                                    <tr class="empty-table-row">
+                                        <td colspan="4" style="text-align: center; color: var(--color-text-dim); padding: 1.5rem 0;">No hay historial de lavados registrados.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="history-actions">
+                        <button id="btn-clear-history" class="btn btn-danger btn-sm">Limpiar Todo Historial</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lógica de la aplicación -->
+    <script src="app.js"></script>
+</body>
+</html>
