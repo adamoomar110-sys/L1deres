@@ -280,12 +280,12 @@ export default function UsuariosAdmin() {
       {/* MODAL CREAR USUARIO */}
       {showAddModal && (
         <div className="fixed inset-0 bg-white/80 backdrop-blur-md z-[100] flex items-center justify-center p-6">
-          <div className="bg-orange-100 border border-orange-200 w-full max-w-md rounded-[2.5rem] p-10 shadow-3xl animate-in zoom-in-95 duration-300">
-            <div className="flex justify-between items-center mb-8">
+          <div className="bg-orange-100 border border-orange-200 w-full max-w-md rounded-[2rem] p-6 shadow-3xl animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
               <h3 className="text-2xl font-black text-black italic">Nuevo Usuario</h3>
               <button onClick={() => setShowAddModal(false)} className="text-zinc-600 hover:text-black"><X /></button>
             </div>
-             <div className="flex bg-white/40 p-2 rounded-2xl mb-8 border border-orange-200">
+             <div className="flex bg-white/40 p-1.5 rounded-xl mb-4 border border-orange-200">
                 <button 
                   onClick={() => { setAddMode('manual'); setSelectedApplicantId(null); setNewUser({ ...newUser, full_name: '' }); }}
                   className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${addMode === 'manual' ? 'bg-green-400 text-black shadow-lg shadow-yellow-500/20' : 'text-zinc-600 hover:text-black'}`}
@@ -300,13 +300,13 @@ export default function UsuariosAdmin() {
                 </button>
              </div>
 
-             <form onSubmit={handleAddUser} className="space-y-6">
+             <form onSubmit={handleAddUser} className="space-y-3">
                {addMode === 'applicant' && (
-                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                 <div className="space-y-1 animate-in fade-in slide-in-from-top-2">
                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Seleccionar Postulante Aprobado</label>
                    <select 
                     required 
-                    className="w-full bg-white border border-orange-200 rounded-2xl p-5 text-black outline-none focus:border-green-400 font-bold appearance-none"
+                    className="w-full bg-white border border-orange-200 rounded-xl p-3 text-black text-sm outline-none focus:border-green-400 font-bold appearance-none"
                     onChange={(e) => {
                       const app = approvedApplicants.find(a => a.id === e.target.value);
                       if (app) {
@@ -323,7 +323,7 @@ export default function UsuariosAdmin() {
                  </div>
                )}
 
-               <div className="space-y-2">
+                 <div className="space-y-1.5">
                  <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Nombre Completo</label>
                  <input 
                   required 
@@ -331,27 +331,27 @@ export default function UsuariosAdmin() {
                   value={newUser.full_name} 
                   onChange={e => setNewUser({...newUser, full_name: e.target.value})} 
                   readOnly={addMode === 'applicant'}
-                  className="w-full bg-white border border-orange-200 rounded-2xl p-5 text-black outline-none focus:border-green-400 font-bold disabled:opacity-50" 
+                  className="w-full bg-white border border-orange-200 rounded-xl p-3 text-black text-sm outline-none focus:border-green-400 font-bold disabled:opacity-50" 
                   placeholder="Roberto Gomez" 
                  />
                </div>
-               <div className="space-y-2">
+               <div className="space-y-1.5">
                  <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Email de Acceso</label>
-                 <input required type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-5 text-black outline-none focus:border-green-400 font-bold" placeholder="email@dominio.com" />
+                 <input required type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email: e.target.value})} className="w-full bg-white border border-orange-200 rounded-xl p-3 text-black text-sm outline-none focus:border-green-400 font-bold" placeholder="email@dominio.com" />
                </div>
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Contraseña Inicial</label>
-                  <input required type="password" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-5 text-black outline-none focus:border-green-400 font-bold" placeholder="********" />
+                  <input required type="password" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} className="w-full bg-white border border-orange-200 rounded-xl p-3 text-black text-sm outline-none focus:border-green-400 font-bold" placeholder="********" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Legajo</label>
-                    <input required type="text" value={newUser.legajo} onChange={e => setNewUser({...newUser, legajo: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-xs outline-none focus:border-green-400 font-bold" placeholder="LEG-001" />
+                    <input required type="text" value={newUser.legajo} onChange={e => setNewUser({...newUser, legajo: e.target.value})} className="w-full bg-white border border-orange-200 rounded-xl p-3 text-black text-xs outline-none focus:border-green-400 font-bold" placeholder="LEG-001" />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Cargo</label>
-                    <select required value={newUser.cargo} onChange={e => setNewUser({...newUser, cargo: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-xs outline-none focus:border-green-400 font-bold appearance-none">
+                    <select required value={newUser.cargo} onChange={e => setNewUser({...newUser, cargo: e.target.value})} className="w-full bg-white border border-orange-200 rounded-xl p-3 text-black text-xs outline-none focus:border-green-400 font-bold appearance-none">
                       <option value="">Seleccionar...</option>
                       <option value="Administrador">Administrador</option>
                       <option value="Detailer / Washer">Detailer / Washer</option>
@@ -361,10 +361,10 @@ export default function UsuariosAdmin() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Especialidad</label>
-                    <select required value={newUser.funcion} onChange={e => setNewUser({...newUser, funcion: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-xs outline-none focus:border-green-400 font-bold appearance-none">
+                    <select required value={newUser.funcion} onChange={e => setNewUser({...newUser, funcion: e.target.value})} className="w-full bg-white border border-orange-200 rounded-xl p-3 text-black text-xs outline-none focus:border-green-400 font-bold appearance-none">
                       <option value="">Seleccionar...</option>
                       <option value="Lavado Exterior">Lavado Exterior</option>
                       <option value="Limpieza Interior">Limpieza Interior</option>
@@ -373,9 +373,9 @@ export default function UsuariosAdmin() {
                       <option value="Gestión de Caja">Gestión de Caja</option>
                     </select>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest pl-2">Turno Horario</label>
-                    <select required value={newUser.turno} onChange={e => setNewUser({...newUser, turno: e.target.value})} className="w-full bg-white border border-orange-200 rounded-2xl p-4 text-black text-xs outline-none focus:border-green-400 font-bold appearance-none">
+                    <select required value={newUser.turno} onChange={e => setNewUser({...newUser, turno: e.target.value})} className="w-full bg-white border border-orange-200 rounded-xl p-3 text-black text-xs outline-none focus:border-green-400 font-bold appearance-none">
                       <option value="">Seleccionar...</option>
                       <option value="Turno Mañana (08-16)">Turno Mañana (08-16)</option>
                       <option value="Turno Tarde (16-00)">Turno Tarde (16-00)</option>
@@ -383,23 +383,21 @@ export default function UsuariosAdmin() {
                       <option value="Fin de Semana">Fin de Semana</option>
                     </select>
                   </div>
-                </div>
-
-               <div className="flex items-center justify-between p-5 bg-white/40 rounded-2xl border border-orange-200">
+                    <div className="flex items-center justify-between p-4 bg-white/40 rounded-xl border border-orange-200">
                   <div className="flex flex-col">
-                     <span className="text-xs font-black text-black uppercase tracking-tight">Notificar por Email</span>
-                     <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">Enviar credenciales al empleado</span>
+                     <span className="text-[10px] font-black text-black uppercase tracking-tight">Notificar por Email</span>
+                     <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-widest">Enviar credenciales al empleado</span>
                   </div>
                   <button 
                     type="button"
                     onClick={() => setSendEmail(!sendEmail)}
-                    className={`w-14 h-8 rounded-full p-1 transition-all duration-300 flex items-center ${sendEmail ? 'bg-green-400 justify-end' : 'bg-zinc-800 justify-start'}`}
+                    className={`w-12 h-6 rounded-full p-1 transition-all duration-300 flex items-center ${sendEmail ? 'bg-green-400 justify-end' : 'bg-zinc-800 justify-start'}`}
                   >
-                     <div className={`w-6 h-6 rounded-full shadow-lg transition-all ${sendEmail ? 'bg-white' : 'bg-zinc-500'}`} />
+                     <div className={`w-4 h-4 rounded-full shadow-lg transition-all ${sendEmail ? 'bg-white' : 'bg-zinc-500'}`} />
                   </button>
                </div>
 
-               <button type="submit" className="w-full bg-green-400 text-black font-black py-5 rounded-2xl shadow-xl shadow-yellow-500/20 hover:bg-yellow-400 transition-all mt-4">
+               <button type="submit" className="w-full bg-green-400 text-black font-black py-4 rounded-xl shadow-xl shadow-yellow-500/20 hover:bg-yellow-400 transition-all mt-2">
                  {addMode === 'applicant' ? 'CONTRATAR Y CREAR ACCESO' : 'CREAR LEGAJO DIGITAL'}
                </button>
              </form>
