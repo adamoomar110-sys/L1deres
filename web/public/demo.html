@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Modo Videojuego - Lavadero de Autos</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Orbitron:wght@700;900&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Optimización de pantalla completa para el Demo */
+        .app-operator-panel {
+            display: none !important;
+        }
+        .app-container {
+            max-width: 100vw !important;
+            padding: 1.5rem !important;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 1rem !important;
+        }
+        .app-main {
+            flex-grow: 1;
+            height: calc(100vh - 180px);
+            min-height: auto !important;
+            gap: 1.5rem !important;
+        }
+        .lane-card {
+            height: 100%;
+        }
+        .lane-track {
+            height: calc(100% - 60px);
+            overflow-y: hidden !important; /* Evitar barras de scroll en el video */
+            gap: 1.5rem !important;
+        }
+        .vehicle-sprite-container {
+            transform: scale(0.95);
+        }
+        .app-header {
+            padding-bottom: 1rem !important;
+        }
+        .header-actions {
+            display: none !important; /* Ocultar botones de config y simulador en el video */
+        }
+    </style>
+</head>
+<body>
+    <!-- Efecto Scanlines Retro y Grilla de fondo -->
+    <div class="scanlines"></div>
+    <div class="neon-grid"></div>
+    <div class="bg-orb top-right"></div>
+    <div class="bg-orb bottom-left"></div>
+
+    <div class="app-container">
+        <!-- CABECERA -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="brand-logo animate-pulse">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.6 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.6 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.6 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+                </div>
+                <div class="brand-text">
+                    <h1 class="brand-title">LAVADERO <span>ESTÉTICA VEHICULAR</span></h1>
+                    <p class="brand-subtitle">Visualizador y Control en Vivo</p>
+                </div>
+            </div>
+
+            <!-- Cabecera de Demora (siempre visible y estética) -->
+            <div class="eta-card" style="margin-left: auto;">
+                <svg class="icon-clock text-cyan animate-slow-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div class="eta-info">
+                    <span class="eta-label">Demora Estimada de Ingreso</span>
+                    <span id="eta-display" class="eta-value">~ 25 Minutos</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- CUERPO PRINCIPAL: VISUALIZADOR RETRO ARCADE -->
+        <main class="app-main circuit-mode">
+            <!-- CALLE DE RETORNO (DE DERECHA A IZQUIERDA PARTE SUPERIOR) -->
+            <section class="lane-retorno" id="lane-retorno">
+                <div class="retorno-content">
+                    <span class="retorno-badge animate-pulse">SALIDA FINAL OMAR ➔</span>
+                    <div id="track-retorno" class="retorno-track"></div>
+                    <span class="retorno-flow">←←← RETORNO A SALIDA ←←←</span>
+                    <span class="retorno-desc">ENTRADA Y SALIDA POR ARRIBA IZQ</span>
+                </div>
+            </section>
+
+            <!-- COLUMNA 1: ESPERA -->
+            <section class="lane-card lane-espera" id="lane-espera">
+                <div class="lane-header">
+                    <h2 class="lane-title">
+                        <span class="lane-dot dot-yellow"></span>
+                        1. ESPERA ↓
+                    </h2>
+                    <span id="counter-espera" class="lane-counter bg-yellow-dim text-yellow">0</span>
+                </div>
+                <div class="lane-track" id="track-espera">
+                    <div class="empty-lane-placeholder">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <p>Línea Libre</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CENTRO DEL CIRCUITO (INTERIOR DE LA U) -->
+            <section class="lane-central">
+                <div class="central-logo">LAVADERO DE LUXE</div>
+                <div class="central-stats">
+                    <div style="color: var(--color-cyan); font-family: var(--font-mono); font-size: 0.7rem; font-weight: 800;">PLANO TALLER: 35m x 30m</div>
+                    <div style="font-size: 1.25rem; font-family: var(--font-mono); margin: 0.4rem 0; color: #fff; font-weight: 900; letter-spacing: 0.05em;">
+                        MODO: <span style="color: var(--color-lime); text-shadow: 0 0 10px var(--color-lime-glow);">ONLINE</span>
+                    </div>
+                    <div style="color: var(--color-text-dim); font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em;">ENTRA POR ARRIBA IZQ • RETORNO Y SALIDA POR ARRIBA IZQ</div>
+                </div>
+            </section>
+
+            <!-- COLUMNA 2: EN LAVADO -->
+            <section class="lane-card lane-lavado" id="lane-lavado">
+                <div class="lane-header">
+                    <h2 class="lane-title">
+                        <span class="lane-dot dot-cyan"></span>
+                        2. EN LAVADO
+                    </h2>
+                    <span id="counter-lavado" class="lane-counter bg-cyan-dim text-cyan">0</span>
+                </div>
+                <!-- Animación de burbujas en el fondo -->
+                <div class="washing-bubble-bg"></div>
+                <div class="lane-track" id="track-lavado">
+                    <div class="empty-lane-placeholder">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        <p>Box Vacío</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUMNA 3: TERMINADO -->
+            <section class="lane-card lane-terminado" id="lane-terminado">
+                <div class="lane-header">
+                    <h2 class="lane-title">
+                        <span class="lane-dot dot-lime"></span>
+                        3. TERMINADO
+                    </h2>
+                    <span id="counter-terminado" class="lane-counter bg-lime-dim text-lime">0</span>
+                </div>
+                <div class="lane-track" id="track-terminado">
+                    <div class="empty-lane-placeholder">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <p>Esperando Salidas</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- PIE DE PÁGINA -->
+        <footer class="app-footer" style="padding-top: 0.5rem; margin-top: 0;">
+            <p>© 2026 Omar Adamo. Lavadero Estética Vehicular • Modo Videojuego Arcade</p>
+            <div class="footer-links">
+                <span class="version-label" style="background-color: rgba(57, 255, 20, 0.1); color: var(--color-lime); border-color: rgba(57, 255, 20, 0.2);">Sincronización en Vivo</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Lógica de la aplicación demo -->
+    <script src="demo_app.js"></script>
+</body>
+</html>
