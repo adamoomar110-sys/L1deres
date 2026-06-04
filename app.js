@@ -1037,7 +1037,7 @@ elFormRegister.addEventListener('submit', (e) => {
     // Enfocar apodo para el siguiente
     elInputNickname.focus();
     
-    showFloatingToast(\`Vehículo \${nickname} registrado.\`);
+    showFloatingToast(`Vehículo ${nickname} registrado.`);
 });
 
 // Toggle Botón Simulación
@@ -1123,11 +1123,11 @@ function renderEmpleados() {
 
     empleados.forEach(emp => {
         const tr = document.createElement('tr');
-        tr.innerHTML = 
-            <td>\</td>
-            <td><span class="plate-badge">\</span></td>
-            <td><button class="btn btn-danger btn-sm" onclick="eliminarEmpleado(\)">Eliminar</button></td>
-        ;
+        tr.innerHTML = `
+            <td>${emp.name}</td>
+            <td><span class="plate-badge">${emp.role}</span></td>
+            <td><button class="btn btn-danger btn-sm" onclick="eliminarEmpleado(${emp.id})">Eliminar</button></td>
+        `;
         tbodyEmpleados.appendChild(tr);
     });
 }
@@ -1170,11 +1170,11 @@ function renderInsumos() {
 
     insumos.forEach(ins => {
         const tr = document.createElement('tr');
-        tr.innerHTML = 
-            <td>\</td>
-            <td>\ unid.</td>
-            <td><button class="btn btn-danger btn-sm" onclick="eliminarInsumo(\)">Eliminar</button></td>
-        ;
+        tr.innerHTML = `
+            <td>${ins.name}</td>
+            <td>${ins.quantity} unid.</td>
+            <td><button class="btn btn-danger btn-sm" onclick="eliminarInsumo(${ins.id})">Eliminar</button></td>
+        `;
         tbodyInsumos.appendChild(tr);
     });
 }
@@ -1208,20 +1208,20 @@ function renderPrecios() {
     
     WASH_PACKAGES.forEach((pkg, index) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = 
-            <td style="font-family:var(--font-mono);font-size:0.8rem;">\</td>
+        tr.innerHTML = `
+            <td style="font-family:var(--font-mono);font-size:0.8rem;">${pkg.id}</td>
             <td>
                 <div style="display:flex;align-items:center;gap:0.5rem;">
-                    <span style="font-size:1.2rem;">\</span>
-                    <input type="text" class="precio-input-name" data-index="\" value="\" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:#fff;padding:0.25rem;border-radius:4px;width:120px;">
+                    <span style="font-size:1.2rem;">${pkg.icon}</span>
+                    <input type="text" class="precio-input-name" data-index="${index}" value="${pkg.title}" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:#fff;padding:0.25rem;border-radius:4px;width:120px;">
                 </div>
             </td>
             <td>
-                $&nbsp;<input type="number" class="precio-input-val" data-index="\" value="\" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--color-lime);font-weight:bold;padding:0.25rem;border-radius:4px;width:80px;">
+                $&nbsp;<input type="number" class="precio-input-val" data-index="${index}" value="${pkg.price}" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--color-lime);font-weight:bold;padding:0.25rem;border-radius:4px;width:80px;">
             </td>
-            <td><span class="plate-badge">\</span></td>
-            <td><button class="btn btn-primary btn-sm btn-save-precio" data-index="\">Guardar</button></td>
-        ;
+            <td><span class="plate-badge">${pkg.duration}</span></td>
+            <td><button class="btn btn-primary btn-sm btn-save-precio" data-index="${index}">Guardar</button></td>
+        `;
         tbodyPrecios.appendChild(tr);
     });
 
@@ -1261,13 +1261,13 @@ function renderWashMenu() {
         card.className = 'wash-option-card ' + (selectedWashType === pkg.id ? 'selected' : '');
         card.setAttribute('data-id', pkg.id);
         
-        card.innerHTML = 
-            <div class="wash-icon">\</div>
+        card.innerHTML = `
+            <div class="wash-icon">${pkg.icon}</div>
             <div class="wash-details">
-                <div class="wash-title">\</div>
-                <div class="wash-price">$\</div>
+                <div class="wash-title">${pkg.title}</div>
+                <div class="wash-price">$${pkg.price}</div>
             </div>
-        ;
+        `;
         
         card.addEventListener('click', () => {
             document.querySelectorAll('.wash-option-card').forEach(c => c.classList.remove('selected'));
@@ -1405,49 +1405,6 @@ window.rechazarPostulante = async function(id) {
     renderPostulantes();
 }
 
-// Para evadir el match
-window._dummyContratar = function(id, name) {
-    const role = prompt(`Â¿QuÃ© rol le asignarÃ¡s a ${name}? (Ej: Lavador, Detallador, Encargado)`, 'Lavador');
-    if (role === null) return; // Cancelado
-
-    // Mover a empleados
-    const savedEmp = localStorage.getItem('lavadero_empleados');
-    let empList = savedEmp ? JSON.parse(savedEmp) : [];
-    empList.push({ id: Date.now(), name: name, role: role });
-    localStorage.setItem('lavadero_empleados', JSON.stringify(empList));
-
-    // Eliminar de postulantes (o marcar como hired)
-    const applicantsStr = localStorage.getItem('lavadero_applicants');
-    let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
-    
-    applicants = applicants.map(a => {
-        if (a.id === id) a.status = 'hired';
-        return a;
-    });
-    localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
-
-    renderPostulantes();
-    if(typeof renderEmpleados === 'function') renderEmpleados();
-    
-    if(typeof showFloatingToast === 'function') {
-        showFloatingToast(`${name} contratado como ${role}!`);
-    } else {
-        alert(`${name} fue contratado como ${role}!`);
-    }
-}
-
-window.rechazarPostulante = function(id) {
-    if(!confirm('Â¿Seguro que quieres rechazar y eliminar a este postulante?')) return;
-    
-    const applicantsStr = localStorage.getItem('lavadero_applicants');
-    let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
-    
-    applicants = applicants.filter(a => a.id !== id);
-    localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
-    
-    renderPostulantes();
-}
-
 // Escuchar cambios de pestaÃ±a para renderizar postulantes
 document.addEventListener('DOMContentLoaded', () => {
     const navBtns = document.querySelectorAll('.nav-btn');
@@ -1459,4 +1416,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-
