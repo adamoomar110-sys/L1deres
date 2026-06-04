@@ -298,8 +298,6 @@ export default function LavaderoAdmin() {
                 </div>
               )}
             </div>
-
-            </div>
           </div>
         )}
       </div>
