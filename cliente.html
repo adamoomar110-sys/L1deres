@@ -102,6 +102,13 @@
             0% { transform: scale(1.5) translateY(0); }
             100% { transform: scale(1.5) translateY(-10px); }
         }
+
+        /* Configuración UI */
+        .wash-menu-grid { display: grid; }
+        .wash-menu-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 1rem; cursor: pointer; transition: 0.3s; position: relative; }
+        .wash-menu-card.selected { border-color: var(--color-cyan); background: rgba(0,240,255,0.1); }
+        .check-badge { display: none; position: absolute; top: 5px; right: 5px; background: var(--color-cyan); border-radius: 50%; width: 15px; height: 15px; font-size: 10px; color: #000; }
+        .selected .check-badge { display: block; }
     </style>
 </head>
 <body>
@@ -111,29 +118,63 @@
     <div class="client-card">
         <div class="client-header">
             <h1 id="car-nickname">Cargando...</h1>
-            <div id="car-plate" class="client-plate">--</div>
+            <div class="client-plate" id="car-plate">--</div>
         </div>
 
-        <div id="status-container" class="status-badge status-espera">
-            Conectando...
-        </div>
+        <!-- CONTENEDOR DE ESTADO (Oculto en modo configuración) -->
+        <div id="tracking-view">
+            <div id="status-container" class="status-badge" style="display: none;"></div>
 
-        <div class="car-display" id="car-display-container">
-            <!-- SVG se inyecta via JS -->
-        </div>
-
-        <p id="eta-text" style="color: var(--color-text-dim); font-size: 0.9rem; margin-top: 1rem;">Calculando demora...</p>
-
-        <!-- Tarjeta de Servicio Premium Contratado -->
-        <div id="service-card" style="margin-top: 2rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: left; display: none;">
-            <div style="font-size: 0.65rem; text-transform: uppercase; color: var(--color-text-dim); font-weight: 700; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Servicio Contratado</div>
-            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-                <h4 id="service-name" style="font-size: 0.95rem; font-weight: 900; color: #fff; margin: 0;">-</h4>
-                <span id="service-price" style="font-size: 1.1rem; font-weight: 900; color: var(--color-lime); font-family: var(--font-mono);">-</span>
+            <div class="car-display" id="car-display-container">
+                <!-- SVG se inyecta via JS -->
             </div>
-            <div id="service-items" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                <!-- items se inyectan dinámicamente -->
+
+            <p id="eta-text" style="color: var(--color-text-dim); font-size: 0.9rem; margin-top: 1rem;"></p>
+
+            <!-- Tarjeta de Servicio Premium Contratado -->
+            <div id="service-card" style="margin-top: 2rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: left; display: none;">
+                <div style="font-size: 0.65rem; text-transform: uppercase; color: var(--color-text-dim); font-weight: 700; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Servicio Contratado</div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                    <h4 id="service-name" style="font-size: 0.95rem; font-weight: 900; color: #fff; margin: 0;">-</h4>
+                    <span id="service-price" style="font-size: 1.1rem; font-weight: 900; color: var(--color-lime); font-family: var(--font-mono);">-</span>
+                </div>
+                <div id="service-items" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <!-- items se inyectan dinámicamente -->
+                </div>
+                <div id="payment-status" style="margin-top: 1rem; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <span style="color: var(--color-text-dim);">Forma de Pago:</span>
+                    <strong id="payment-method-display" style="color: var(--color-cyan); text-transform: uppercase;">A DEFINIR</strong>
+                </div>
             </div>
+        </div>
+
+        <!-- CONTENEDOR DE CONFIGURACIÓN (Visible si no hay tipo seleccionado) -->
+        <div id="config-view" style="display: none; text-align: left; margin-top: 1.5rem;">
+            <p style="font-size: 0.85rem; color: var(--color-cyan); font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">1. Elige tu Servicio</p>
+            <div id="config-wash-grid" class="wash-menu-grid" style="grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <!-- Dinámico -->
+            </div>
+
+            <p style="font-size: 0.85rem; color: var(--color-cyan); font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">2. Forma de Pago</p>
+            <div id="config-pay-grid" class="wash-menu-grid" style="grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+                <div class="wash-menu-card" data-pay="efectivo" onclick="selectPayment(this, 'efectivo')">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-icon" style="font-size: 1.2rem;">💵</div>
+                    <div class="wash-card-title" style="font-size: 0.65rem;">Efectivo</div>
+                </div>
+                <div class="wash-menu-card" data-pay="tarjeta" onclick="selectPayment(this, 'tarjeta')">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-icon" style="font-size: 1.2rem;">💳</div>
+                    <div class="wash-card-title" style="font-size: 0.65rem;">Tarjeta</div>
+                </div>
+                <div class="wash-menu-card" data-pay="transferencia" onclick="selectPayment(this, 'transferencia')">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-icon" style="font-size: 1.2rem;">📱</div>
+                    <div class="wash-card-title" style="font-size: 0.65rem;">MercadoPago</div>
+                </div>
+            </div>
+
+            <button onclick="confirmarConfiguracion()" class="btn btn-primary" style="width: 100%; margin-top: 2rem; padding: 1rem; font-size: 1rem; border-radius: 1rem;">Confirmar y Comenzar</button>
         </div>
     </div>
 
@@ -142,58 +183,29 @@
     </div>
 
     <script>
-        const WASH_DETAILS = {
-            'combo-limpieza-total': {
-                name: 'Combo Limpieza Total 🌀',
-                price: 18000,
-                items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clásico']
-            },
-            'combo-vip-gold': {
-                name: 'Combo VIP Gold 🏆',
-                price: 25000,
-                items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor']
-            },
-            'lavado-carroceria': {
-                name: 'Lavado Exterior Simple 🚗',
-                price: 12000,
-                items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumáticos']
-            },
-            'aspirado-interior': {
-                name: 'Aspirado e Interior Pro 💨',
-                price: 10000,
-                items: ['Aspirado butacas y paneles', 'Desinfección de contacto', 'Acondicionado de plásticos']
-            },
-            'lavado-express': {
-                name: 'Lavado Express ⚡',
-                price: 8000,
-                items: ['Lavado exterior a presión', 'Secado rápido', 'Brillo básico de cubiertas']
-            },
-            'lavado-motor': {
-                name: 'Limpieza de Motor a Vapor 🔥',
-                price: 15000,
-                items: ['Limpieza técnica a vapor', 'Desengrasantes biodegradables', 'Protector dieléctrico plásticos']
-            },
-            'encerado-acrilico': {
-                name: 'Encerado Acrílico Sellador 🛡️',
-                price: 22000,
-                items: ['Lavado artesanal descontaminante', 'Cera selladora acrílica manual', 'Efecto hidrofóbico extremo']
-            },
-            'lavado-chasis': {
-                name: 'Limpieza de Chasis & Motor 🔩',
-                price: 28000,
-                items: ['Limpieza chasis inferior', 'Desengrasado pesado a vapor', 'Protector antioxidante metal']
-            },
-            'pulido-opticas': {
-                name: 'Restauración de Ópticas 💡',
-                price: 16000,
-                items: ['Lijado al agua multietapa', 'Pulido de policarbonato', 'Sellado UV de ópticas']
-            },
-            'tratamiento-ceramico': {
-                name: 'Tratamiento Cerámico 9H 💎',
-                price: 65000,
-                items: ['Corrección de pintura 2 etapas', 'Sellador cerámico 9H importado', 'Protección contra rayones UV']
-            }
-        };
+        // Cargar configuración de localStorage si existe (modo compartido en el mismo dispositivo)
+        let WASH_DETAILS = {};
+        const savedSettings = localStorage.getItem('lavadero_wash_settings');
+        
+        if (savedSettings) {
+            const packages = JSON.parse(savedSettings);
+            packages.forEach(pkg => {
+                WASH_DETAILS[pkg.id] = {
+                    name: `${pkg.title} ${pkg.icon}`,
+                    price: pkg.price,
+                    items: pkg.items || ['Servicio premium garantizado']
+                };
+            });
+        } else {
+            // Fallback por defecto si no hay localStorage
+            WASH_DETAILS = {
+                'combo-limpieza-total': { name: 'Combo Limpieza Total 🌀', price: 18000, items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clásico'] },
+                'combo-vip-gold': { name: 'Combo VIP Gold 🏆', price: 25000, items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor'] },
+                'lavado-carroceria': { name: 'Lavado Exterior Simple 🚗', price: 12000, items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumáticos'] },
+                'aspirado-interior': { name: 'Aspirado e Interior Pro 💨', price: 10000, items: ['Aspirado butacas y paneles', 'Desinfección de contacto', 'Acondicionado de plásticos'] },
+                'lavado-express': { name: 'Lavado Express ⚡', price: 8000, items: ['Lavado exterior a presión', 'Secado rápido', 'Brillo básico de cubiertas'] }
+            };
+        }
 
         // Dibujo de Auto SVG adaptado
         function getCarSvg(color) {
@@ -217,64 +229,141 @@
                 <rect x="40" y="6" width="8" height="4" rx="1" fill="#fef08a" />
                 <rect x="10" y="94" width="6" height="2" fill="#f87171" />
                 <rect x="44" y="94" width="6" height="2" fill="#f87171" />
-            </svg>`;
-        }
-
-        // Parsear URL parameters
+          // Parsear URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const nick = urlParams.get('n') || 'Tu Vehículo';
         const color = urlParams.get('c') ? '#' + urlParams.get('c') : '#06b6d4';
         const plate = urlParams.get('p') || 'SIN PATENTE';
         const zone = urlParams.get('z') || 'espera';
-        const type = urlParams.get('t') || '';
+        let type = urlParams.get('t') || '';
+        let payment = urlParams.get('pay') || '';
 
         document.getElementById('car-nickname').innerText = nick;
         document.getElementById('car-plate').innerText = plate;
         document.getElementById('car-display-container').innerHTML = getCarSvg(color);
 
+        const trackingView = document.getElementById('tracking-view');
+        const configView = document.getElementById('config-view');
         const statusContainer = document.getElementById('status-container');
         const etaText = document.getElementById('eta-text');
         const displayContainer = document.getElementById('car-display-container');
 
-        // Configurar estado visual
-        if (zone === 'espera') {
-            statusContainer.className = 'status-badge status-espera';
-            statusContainer.innerText = 'En Espera';
-            etaText.innerText = 'Aproximadamente 15-20 minutos para ingresar.';
-        } else if (zone === 'lavado') {
-            statusContainer.className = 'status-badge status-lavado';
-            statusContainer.innerText = 'En Lavado';
-            etaText.innerText = 'Relájate. Tu auto está recibiendo el tratamiento premium.';
-            displayContainer.classList.add('in-wash');
-        } else if (zone === 'terminado') {
-            statusContainer.className = 'status-badge status-terminado';
-            statusContainer.innerText = '¡Listo para retirar!';
-            etaText.innerText = 'Tu vehículo ha quedado impecable. Te esperamos en la salida.';
+        let pendingType = '';
+        let pendingPay = '';
+
+        // Lógica de Selección de Configuración
+        function renderConfigMenu() {
+            const grid = document.getElementById('config-wash-grid');
+            let html = '';
+            for (const [id, details] of Object.entries(WASH_DETAILS)) {
+                html += `
+                <div class="wash-menu-card" data-type="${id}" onclick="selectWash(this, '${id}')">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-title" style="font-size: 0.75rem; min-height: 2.5em; display:flex; align-items:center; justify-content:center;">${details.name}</div>
+                    <div class="wash-card-price" style="font-size: 0.9rem;">$${details.price.toLocaleString('es-AR')}</div>
+                </div>
+                `;
+            }
+            grid.innerHTML = html;
         }
 
-        // Cargar detalles del servicio contratado
-        const serviceCard = document.getElementById('service-card');
-        if (type && WASH_DETAILS[type]) {
-            const details = WASH_DETAILS[type];
-            document.getElementById('service-name').innerText = details.name;
-            document.getElementById('service-price').innerText = `$${details.price.toLocaleString('es-AR')}`;
+        function selectWash(el, id) {
+            document.querySelectorAll('#config-wash-grid .wash-menu-card').forEach(card => card.classList.remove('selected'));
+            el.classList.add('selected');
+            pendingType = id;
+        }
+
+        function selectPayment(el, id) {
+            document.querySelectorAll('#config-pay-grid .wash-menu-card').forEach(card => card.classList.remove('selected'));
+            el.classList.add('selected');
+            pendingPay = id;
+        }
+
+        function confirmarConfiguracion() {
+            if (!pendingType) { alert('Por favor, selecciona un tipo de lavado.'); return; }
+            if (!pendingPay) { alert('Por favor, selecciona una forma de pago.'); return; }
             
-            const itemsContainer = document.getElementById('service-items');
-            itemsContainer.innerHTML = details.items.map(item => `
-                <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
-                    <span style="color: var(--color-lime);">✔</span>
-                    <span>${item}</span>
-                </div>
-            `).join('');
+            // Actualizar URL sin recargar (para demo fluido)
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('t', pendingType);
+            newUrl.searchParams.set('pay', pendingPay);
+            window.history.pushState({}, '', newUrl);
+
+            type = pendingType;
+            payment = pendingPay;
             
-            serviceCard.style.display = 'block';
-        } else if (type) {
-            // Caso en el que venga un string personalizado no catalogado
-            document.getElementById('service-name').innerText = decodeURIComponent(type);
-            document.getElementById('service-price').innerText = '';
-            document.getElementById('service-items').innerHTML = '';
-            serviceCard.style.display = 'block';
+            // Transición a vista de seguimiento
+            configView.style.display = 'none';
+            trackingView.style.display = 'block';
+            
+            // Inyectar el auto en el tracking view (ya que pudo moverse)
+            document.getElementById('car-display-container').innerHTML = getCarSvg(color);
+            initTrackingView();
+        }
+
+        function initTrackingView() {
+            statusContainer.style.display = 'inline-block';
+            // Configurar estado visual
+            if (zone === 'espera') {
+                statusContainer.className = 'status-badge status-espera';
+                statusContainer.innerText = 'En Espera';
+                etaText.innerText = 'Aproximadamente 15-20 minutos para ingresar.';
+            } else if (zone === 'lavado') {
+                statusContainer.className = 'status-badge status-lavado';
+                statusContainer.innerText = 'En Lavado';
+                etaText.innerText = 'Relájate. Tu auto está recibiendo el tratamiento premium.';
+                displayContainer.classList.add('in-wash');
+            } else if (zone === 'terminado') {
+                statusContainer.className = 'status-badge status-terminado';
+                statusContainer.innerText = '¡Listo para retirar!';
+                etaText.innerText = 'Tu vehículo ha quedado impecable. Te esperamos en la salida.';
+            }
+
+            // Cargar detalles del servicio contratado
+            const serviceCard = document.getElementById('service-card');
+            if (type && WASH_DETAILS[type]) {
+                const details = WASH_DETAILS[type];
+                document.getElementById('service-name').innerText = details.name;
+                document.getElementById('service-price').innerText = `$${details.price.toLocaleString('es-AR')}`;
+                document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                
+                const itemsContainer = document.getElementById('service-items');
+                itemsContainer.innerHTML = details.items.map(item => `
+                    <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
+                        <span style="color: var(--color-lime);">✓</span>
+                        <span>${item}</span>
+                    </div>
+                `).join('');
+                
+                serviceCard.style.display = 'block';
+            } else if (type) {
+                // Caso en el que venga un string personalizado no catalogado
+                document.getElementById('service-name').innerText = decodeURIComponent(type);
+                document.getElementById('service-price').innerText = '';
+                document.getElementById('service-items').innerHTML = '';
+                document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                serviceCard.style.display = 'block';
+            }
+        }
+
+        // INIT LOGIC
+        if (!type || !payment) {
+            // Entra en modo Configuración si falta algún dato
+            trackingView.style.display = 'none';
+            configView.style.display = 'block';
+            
+            // Inyectamos un auto base en la cabecera del config
+            configView.insertAdjacentHTML('afterbegin', `<div style="display:flex; justify-content:center; margin-bottom: 1.5rem; transform: scale(0.8);">${getCarSvg(color)}</div>`);
+
+            renderConfigMenu();
+        } else {
+            // Ya está configurado, entra en modo Tracking Directamente
+            initTrackingView();
         }
     </script>
+<footer style="text-align: center; padding: 20px; font-family: sans-serif; font-size: 14px; color: #888; margin-top: 40px;">
+    &copy; 2026 Omar. Todos los derechos reservados.
+</footer>
 </body>
 </html>
+

@@ -60,7 +60,7 @@ def db_get_all():
         print(f"Error cargando base de datos: {e}")
     return []
 
-def db_insert(tracking_id, nickname, zone, color):
+def db_insert(tracking_id, nickname, zone, color, pos_x=None, pos_y=None):
     if not SUPABASE_URL: return None
     url = f"{SUPABASE_URL}/rest/v1/lavadero_camera_queue"
     body = {
@@ -69,6 +69,8 @@ def db_insert(tracking_id, nickname, zone, color):
         "zone": zone,
         "color": color
     }
+    if pos_x is not None: body["pos_x"] = pos_x
+    if pos_y is not None: body["pos_y"] = pos_y
     try:
         r = requests.post(url, headers=HEADERS, json=body)
         if r.status_code == 201:
@@ -78,19 +80,33 @@ def db_insert(tracking_id, nickname, zone, color):
         print(f"Error insertando vehículo: {e}")
     return None
 
-def db_update_zone(id, zone):
+def db_update_zone(id, zone, pos_x=None, pos_y=None):
     if not SUPABASE_URL: return
     url = f"{SUPABASE_URL}/rest/v1/lavadero_camera_queue?id=eq.{id}"
     body = {
         "zone": zone,
         "entered_at": "now()"
     }
+    if pos_x is not None: body["pos_x"] = pos_x
+    if pos_y is not None: body["pos_y"] = pos_y
     try:
         r = requests.patch(url, headers=HEADERS, json=body)
         if r.status_code in [200, 204]:
             print(f"🔄 [UPDATE] Auto actualizado a zona '{zone}'")
     except Exception as e:
         print(f"Error actualizando zona: {e}")
+
+def db_update_pos(id, pos_x, pos_y):
+    if not SUPABASE_URL: return
+    url = f"{SUPABASE_URL}/rest/v1/lavadero_camera_queue?id=eq.{id}"
+    body = {
+        "pos_x": pos_x,
+        "pos_y": pos_y
+    }
+    try:
+        requests.patch(url, headers=HEADERS, json=body)
+    except Exception as e:
+        print(f"Error actualizando pos: {e}")
 
 def db_delete(id):
     if not SUPABASE_URL: return
@@ -112,49 +128,59 @@ def db_clear_all():
         print(f"Error limpiando tabla: {e}")
 
 # MODO SIMULACIÓN AUTOMÁTICA EN BD
-def run_simulation(interval=12):
+def run_simulation(interval=1):
     if not SUPABASE_URL:
         print("❌ Error: No se puede simular en base de datos remota porque faltan las credenciales.")
         sys.exit(1)
         
-    print("🎮 Iniciando Simulación de Lavadero de Autos en Supabase...")
+    print("🎮 Iniciando Simulación Dinámica de Lavadero de Autos en Supabase...")
     db_clear_all()
     virtual_id_counter = 100
+    wash_timer = 0
+    WASH_DURATION = 11
+    
+    # Autos iniciales
+    db_insert(virtual_id_counter, generar_apodo(), 'espera', generar_color())
+    virtual_id_counter += 1
+    db_insert(virtual_id_counter, generar_apodo(), 'espera', generar_color())
+    virtual_id_counter += 1
     
     while True:
         try:
             current_queue = db_get_all()
-            num_cars = len(current_queue)
+            espera_cars = sorted([c for c in current_queue if c['zone'] == 'espera'], key=lambda x: x.get('id', 0))
+            lavado_cars = [c for c in current_queue if c['zone'] == 'lavado']
+            terminado_cars = [c for c in current_queue if c['zone'] == 'terminado']
             
-            action = random.choice(['add', 'move', 'remove', 'idle'])
+            # 1. Quitar autos terminados (con probabilidad para que se vean un rato)
+            if terminado_cars and random.random() < 0.3:
+                car_to_remove = random.choice(terminado_cars)
+                db_delete(car_to_remove['id'])
+                print(f"🚗 {car_to_remove['nickname']} fue retirado por el cliente.")
             
-            if action == 'add' and num_cars < 6:
+            # 2. Lógica de cola
+            if lavado_cars:
+                wash_timer += interval
+                if wash_timer >= WASH_DURATION:
+                    car_to_move = lavado_cars[0]
+                    db_update_zone(car_to_move['id'], 'terminado')
+                    print(f"✨ {car_to_move['nickname']} terminó su lavado de 11 minutos simulados!")
+                    wash_timer = 0
+            else:
+                if espera_cars:
+                    car_to_move = espera_cars[0]
+                    db_update_zone(car_to_move['id'], 'lavado')
+                    print(f"💧 {car_to_move['nickname']} ingresó a zona de lavado.")
+                    wash_timer = 0
+                    
+            # 3. Agregar nuevos aleatoriamente (max 4 en espera)
+            if len(espera_cars) < 4 and random.random() < 0.1:
                 nickname = generar_apodo()
                 color = generar_color()
                 db_insert(virtual_id_counter, nickname, 'espera', color)
                 virtual_id_counter += 1
-                
-            elif action == 'move' and num_cars > 0:
-                espera_cars = [c for c in current_queue if c['zone'] == 'espera']
-                lavado_cars = [c for c in current_queue if c['zone'] == 'lavado']
-                
-                if lavado_cars and (not espera_cars or random.random() > 0.5):
-                    car_to_move = random.choice(lavado_cars)
-                    db_update_zone(car_to_move['id'], 'terminado')
-                    print(f"✨ {car_to_move['nickname']} terminó su lavado!")
-                elif espera_cars:
-                    car_to_move = random.choice(espera_cars)
-                    db_update_zone(car_to_move['id'], 'lavado')
-                    print(f"💧 {car_to_move['nickname']} ingresó a zona de lavado.")
-                    
-            elif action == 'remove' and num_cars > 0:
-                terminado_cars = [c for c in current_queue if c['zone'] == 'terminado']
-                if terminado_cars:
-                    car_to_remove = random.choice(terminado_cars)
-                    db_delete(car_to_remove['id'])
-                    print(f"🚗 {car_to_remove['nickname']} fue retirado por el cliente.")
             
-            print(f"Status actual: {len(db_get_all())} vehículos en sistema.")
+            print(f"Status: {len(db_get_all())} vehículos en sist. Wash Timer: {wash_timer}/{WASH_DURATION}")
             time.sleep(interval)
             
         except KeyboardInterrupt:
@@ -247,6 +273,8 @@ def run_camera(source=0):
                 
             x, y, w_box, h_box = cv2.boundingRect(c)
             cx, cy = x + w_box // 2, y + h_box // 2
+            pos_x = round((cx / w) * 100, 2)
+            pos_y = round((cy / h) * 100, 2)
             
             cv2.circle(frame, (cx, cy), 5, (0, 0, 255), -1)
             cv2.rectangle(frame, (x, y), (x + w_box, y + h_box), (0, 0, 255), 1)
@@ -262,7 +290,9 @@ def run_camera(source=0):
                         break
                         
             if current_zone:
-                cv2.putText(frame, f"Zona: {current_zone.upper()}", (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                cv2.putText(frame, f"Zona: {current_zone.upper()} ({pos_x}%, {pos_y}%)", (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                # NOTA: Para producción con cámara real, aquí se llamaría a db_update_pos si se mapea el tracking de la id
+                # db_update_pos(tracked_id, pos_x, pos_y)
                 
         if current_drawing_zone:
             cv2.putText(frame, f"DIBUJANDO: {current_drawing_zone.upper()} (Haz 4 clics)", (15, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)

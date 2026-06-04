@@ -79,7 +79,11 @@
         </header>
 
         <!-- CUERPO PRINCIPAL: VISUALIZADOR RETRO ARCADE -->
-        <main class="app-main circuit-mode">
+        <main class="app-main circuit-mode" style="position: relative;">
+            
+            <!-- CONTENEDOR GLOBAL DE TRACKING XY -->
+            <div id="global-track" style="position: absolute; inset: 0; pointer-events: none; z-index: 50; overflow: hidden;"></div>
+
             <!-- CALLE DE RETORNO (DE DERECHA A IZQUIERDA PARTE SUPERIOR) -->
             <section class="lane-retorno" id="lane-retorno">
                 <div class="retorno-content">
@@ -167,5 +171,9 @@
 
     <!-- Lógica de la aplicación demo -->
     <script src="demo_app.js"></script>
+<footer style="text-align: center; padding: 20px; font-family: sans-serif; font-size: 14px; color: #888; margin-top: 40px;">
+    &copy; 2026 Omar. Todos los derechos reservados.
+</footer>
 </body>
 </html>
+

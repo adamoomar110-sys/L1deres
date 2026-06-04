@@ -64,6 +64,7 @@ const elEtaDisplay = document.getElementById('eta-display');
 function createVehicleElement(car) {
     const container = document.createElement('div');
     container.className = 'vehicle-sprite-container';
+    container.id = 'vehicle-' + car.id;
     if (car.zone === 'lavado') {
         container.classList.add('in-wash-glow');
     }
@@ -86,12 +87,28 @@ function createVehicleElement(car) {
             </div>
         `;
     } else if (car.zone === 'terminado') {
-        timerHtml = `<span class="timer-badge finished">✔ LISTO</span>`;
+        timerHtml = `<span class="timer-badge finished">🚀 LISTO</span>`;
     }
 
+    // Rotación específica por zona para simular el circuito
+    let rot = 0;
+    if (car.zone === 'espera') rot = 180;
+    if (car.zone === 'lavado') rot = 90;
+    if (car.zone === 'retorno') rot = -90;
+
+    // Posición exacta XY
+    container.style.left = (car.pos_x !== undefined ? car.pos_x : 50) + '%';
+    container.style.top = (car.pos_y !== undefined ? car.pos_y : 50) + '%';
+    container.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(0.95)`;
+    container.style.position = 'absolute';
+    container.style.width = '80px';
+    container.style.transition = 'left 0.1s linear, top 0.1s linear, transform 0.5s ease-in-out';
+    container.style.pointerEvents = 'auto';
+
+    // Para evitar que el texto se rote, invertimos la rotación en el label
     container.innerHTML = `
         ${carSvg}
-        <div class="vehicle-label">
+        <div class="vehicle-label" style="transform: rotate(${-rot}deg); margin-top: ${rot===180?'-1rem':'0'};">
             <div style="font-weight:900; letter-spacing: 0.05em; font-family: var(--font-sans);">${car.nickname}</div>
             ${timerHtml}
         </div>
@@ -102,68 +119,67 @@ function createVehicleElement(car) {
 
 // Render General
 function renderAll() {
-    elTrackEspera.innerHTML = '';
-    elTrackLavado.innerHTML = '';
-    elTrackTerminado.innerHTML = '';
-    
-    const elTrackRetorno = document.getElementById('track-retorno');
-    if (elTrackRetorno) {
-        elTrackRetorno.innerHTML = '';
-    }
-
     const esperaVehicles = activeVehicles.filter(v => v.zone === 'espera');
     const lavadoVehicles = activeVehicles.filter(v => v.zone === 'lavado');
     const terminadoVehicles = activeVehicles.filter(v => v.zone === 'terminado');
-    const retornoVehicles = activeVehicles.filter(v => v.zone === 'retorno');
 
     // Actualizar contadores
     elCounterEspera.innerText = esperaVehicles.length;
     elCounterLavado.innerText = lavadoVehicles.length;
     elCounterTerminado.innerText = terminadoVehicles.length;
 
-    // Renderizar espera
-    if (esperaVehicles.length === 0) {
-        elTrackEspera.innerHTML = `
-            <div class="empty-lane-placeholder">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                <p>Línea Libre</p>
-            </div>`;
-    } else {
-        esperaVehicles.forEach(car => {
-            elTrackEspera.appendChild(createVehicleElement(car));
-        });
-    }
+    // Renderizar placeholders visuales en las pistas (solo background)
+    elTrackEspera.innerHTML = esperaVehicles.length === 0 ? `
+        <div class="empty-lane-placeholder">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <p>Línea Libre</p>
+        </div>` : '';
 
-    // Renderizar lavado
-    if (lavadoVehicles.length === 0) {
-        elTrackLavado.innerHTML = `
-            <div class="empty-lane-placeholder">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                <p>Box Vacío</p>
-            </div>`;
-    } else {
-        lavadoVehicles.forEach(car => {
-            elTrackLavado.appendChild(createVehicleElement(car));
-        });
-    }
+    elTrackLavado.innerHTML = lavadoVehicles.length === 0 ? `
+        <div class="empty-lane-placeholder">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <p>Box Vacío</p>
+        </div>` : '';
 
-    // Renderizar terminado
-    if (terminadoVehicles.length === 0) {
-        elTrackTerminado.innerHTML = `
-            <div class="empty-lane-placeholder">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <p>Esperando Salidas</p>
-            </div>`;
-    } else {
-        terminadoVehicles.forEach(car => {
-            elTrackTerminado.appendChild(createVehicleElement(car));
-        });
-    }
+    elTrackTerminado.innerHTML = terminadoVehicles.length === 0 ? `
+        <div class="empty-lane-placeholder">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <p>Esperando Salidas</p>
+        </div>` : '';
 
-    // Renderizar retorno de vehículos en tránsito
-    if (elTrackRetorno && retornoVehicles.length > 0) {
-        retornoVehicles.forEach(car => {
-            elTrackRetorno.appendChild(createVehicleElement(car));
+    const elTrackRetorno = document.getElementById('track-retorno');
+    if (elTrackRetorno) elTrackRetorno.innerHTML = '';
+
+    // Actualizar o crear vehículos en el global-track
+    const globalTrack = document.getElementById('global-track');
+    if (globalTrack) {
+        // Eliminar del DOM los que ya no están en activeVehicles
+        Array.from(globalTrack.children).forEach(child => {
+            const id = child.getAttribute('data-id');
+            if (!activeVehicles.find(v => v.id === id)) {
+                globalTrack.removeChild(child);
+            }
+        });
+
+        // Crear o actualizar
+        activeVehicles.forEach(car => {
+            let el = document.getElementById('vehicle-' + car.id);
+            if (!el) {
+                globalTrack.appendChild(createVehicleElement(car));
+            } else {
+                // Actualizar posicion y rotacion
+                let rot = 0;
+                if (car.zone === 'espera') rot = 180;
+                if (car.zone === 'lavado') rot = 90;
+                if (car.zone === 'retorno') rot = -90;
+                
+                el.style.left = (car.pos_x !== undefined ? car.pos_x : 50) + '%';
+                el.style.top = (car.pos_y !== undefined ? car.pos_y : 50) + '%';
+                el.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(0.95)`;
+                
+                if (car.zone === 'lavado') el.classList.add('in-wash-glow');
+                else el.classList.remove('in-wash-glow');
+            }
         });
     }
 
@@ -189,7 +205,7 @@ function retirarVehiculo(id) {
 function calculateETA() {
     const esperaCount = activeVehicles.filter(v => v.zone === 'espera').length;
     const lavadoCount = activeVehicles.filter(v => v.zone === 'lavado').length;
-    const etaMinutos = (esperaCount * 15) + (lavadoCount > 0 ? 8 : 0);
+    const etaMinutos = (esperaCount * 11) + (lavadoCount > 0 ? 11 : 0);
 
     if (etaMinutos === 0) {
         elEtaDisplay.innerText = "Sin Demoras 🎉";
@@ -205,6 +221,36 @@ function startRealtimeTicker() {
     setInterval(() => {
         const now = Date.now();
         
+        // Simulación de Movimiento Exacto (Posiciones XY)
+        let needsRender = false;
+        activeVehicles.forEach(car => {
+            if (car.pos_x === undefined) car.pos_x = 16;
+            if (car.pos_y === undefined) car.pos_y = 10; // Inicio arriba
+            
+            // Lógica de avance continuo según la zona
+            if (car.zone === 'espera') {
+                car.pos_x = 16; // Columna izquierda
+                if (car.pos_y < 85) { car.pos_y += 0.4; needsRender = true; }
+            } else if (car.zone === 'lavado') {
+                car.pos_y = 50; // Centro vertical
+                // Entra desde la izquierda hacia el centro
+                if (car.pos_x < 50) { car.pos_x += 0.8; needsRender = true; }
+            } else if (car.zone === 'terminado') {
+                // Sale hacia arriba por la columna derecha
+                car.pos_x = 84; 
+                // Inicia desde abajo si recién llega
+                if (car.pos_y > 85 && car.pos_y === 50) car.pos_y = 85;
+                if (car.pos_y > 15) { car.pos_y -= 0.6; needsRender = true; }
+            } else if (car.zone === 'retorno') {
+                // Se retira por el techo hacia la izquierda
+                car.pos_y = 5;
+                car.pos_x -= 1.5; 
+                needsRender = true;
+            }
+        });
+        
+        if (needsRender) renderAll();
+
         // Actualizar segunderos en fila de espera
         document.querySelectorAll('[data-timer-type="waiting"]').forEach(el => {
             const start = Number(el.getAttribute('data-start'));
@@ -221,10 +267,10 @@ function startRealtimeTicker() {
         document.querySelectorAll('[data-timer-type="washing"]').forEach(el => {
             const start = Number(el.getAttribute('data-start'));
             const elapsed = Math.floor((now - start) / 1000);
-            const totalWashingDemoSecs = 15 * 60; // 15 minutos de lavado nominales
+            const totalWashingDemoSecs = 11 * 60; // 11 minutos de lavado nominales
             
-            // Lavado rápido en demo: el lavado dura 10 segundos reales (900 seg demo)
-            const demoWashedSecs = Math.min(totalWashingDemoSecs, elapsed * 90);
+            // Lavado rápido en demo: el lavado dura 11 segundos reales (660 seg demo)
+            const demoWashedSecs = Math.min(totalWashingDemoSecs, elapsed * 60);
             const remainingSecs = Math.max(0, totalWashingDemoSecs - demoWashedSecs);
             
             const mm = Math.floor(remainingSecs / 60).toString().padStart(2, '0');
@@ -236,117 +282,80 @@ function startRealtimeTicker() {
         document.querySelectorAll('.wash-progress-fill').forEach(el => {
             const start = Number(el.getAttribute('data-progress-fill'));
             const elapsed = Math.floor((now - start) / 1000);
-            const percent = Math.min(100, Math.floor((elapsed / 10) * 100)); // 10 segundos reales para completar la barra
+            const percent = Math.min(100, Math.floor((elapsed / 11) * 100)); // 11 segundos reales para completar la barra
             el.style.width = `${percent}%`;
         });
     }, 100);
 }
 
-// --- SECUENCIA DE EVENTOS PREPROGRAMADA ---
-const scriptEvents = [
-    // t = 0: Estado Inicial
-    {
-        time: 0,
-        action: () => {
-            activeVehicles = [
-                { id: "1", nickname: "Toro Rojo", color: "#ef4444", zone: "espera", entered_at: Date.now() },
-                { id: "2", nickname: "Rayo Azul", color: "#00f0ff", zone: "lavado", entered_at: Date.now() }
-            ];
+// --- GESTOR DINÁMICO DE COLA ---
+let autoIdCounter = 1;
+const NOMBRES = ["Rayo", "Toro", "Halcón", "Puma", "Tigre", "Furia", "Centella", "Cometa"];
+const ADJETIVOS = ["Azul", "Rojo", "Gris", "Plata", "Verde", "Negro", "Dorado"];
+
+function generarAutoRandom() {
+    const color = COLORES[Math.floor(Math.random() * COLORES.length)];
+    const nombre = `${NOMBRES[Math.floor(Math.random() * NOMBRES.length)]} ${ADJETIVOS[Math.floor(Math.random() * ADJETIVOS.length)]}`;
+    return {
+        id: (autoIdCounter++).toString(),
+        nickname: nombre,
+        color: color,
+        zone: 'espera',
+        entered_at: Date.now()
+    };
+}
+
+function processQueueLogic() {
+    const now = Date.now();
+    const lavadoVehicles = activeVehicles.filter(v => v.zone === 'lavado');
+    const esperaVehicles = activeVehicles.filter(v => v.zone === 'espera');
+    const terminadoVehicles = activeVehicles.filter(v => v.zone === 'terminado');
+
+    // 1. Limpiar terminados después de unos segundos
+    terminadoVehicles.forEach(car => {
+        const elapsed = (now - car.entered_at) / 1000;
+        if (elapsed > 4) { // Se queda 4 segundos en terminado antes de salir
+            retirarVehiculo(car.id);
+        }
+    });
+
+    // 2. Mover de lavado a terminado si ya pasaron 11 segundos reales
+    lavadoVehicles.forEach(car => {
+        const elapsed = (now - car.entered_at) / 1000;
+        if (elapsed >= 11) {
+            car.zone = 'terminado';
+            car.entered_at = Date.now();
             renderAll();
         }
-    },
-    // t = 2 segundos: Entra un auto a espera y Rayo Azul termina lavado
-    {
-        time: 2000,
-        action: () => {
-            // Rayo Azul pasa a terminado
-            const rayo = activeVehicles.find(v => v.id === "2");
-            if (rayo) {
-                rayo.zone = "terminado";
-                rayo.entered_at = Date.now();
-            }
-            // Entra Fénix Dorado a espera
-            activeVehicles.push({ id: "3", nickname: "Fénix Dorado", color: "#ffb800", zone: "espera", entered_at: Date.now() });
+    });
+
+    // 3. Mover de espera a lavado SOLAMENTE si lavado está completamente vacío
+    if (activeVehicles.filter(v => v.zone === 'lavado').length === 0) {
+        if (esperaVehicles.length > 0) {
+            // Ordenar por tiempo de llegada (el más antiguo primero)
+            esperaVehicles.sort((a, b) => a.entered_at - b.entered_at);
+            const nextCar = esperaVehicles[0];
+            nextCar.zone = 'lavado';
+            nextCar.entered_at = Date.now();
             renderAll();
-        }
-    },
-    // t = 4.5 segundos: Toro Rojo entra a lavado y Rayo Azul sale
-    {
-        time: 4500,
-        action: () => {
-            // Toro Rojo pasa a lavado
-            const toro = activeVehicles.find(v => v.id === "1");
-            if (toro) {
-                toro.zone = "lavado";
-                toro.entered_at = Date.now();
-            }
-            // Rayo Azul es retirado vía carril de retorno
-            retirarVehiculo("2");
-        }
-    },
-    // t = 7.5 segundos: Fénix Dorado entra a lavado y entra Lobo Negro a espera
-    {
-        time: 7500,
-        action: () => {
-            // Fénix Dorado pasa a lavado
-            const fenix = activeVehicles.find(v => v.id === "3");
-            if (fenix) {
-                fenix.zone = "lavado";
-                fenix.entered_at = Date.now();
-            }
-            // Entra Lobo Negro a espera
-            activeVehicles.push({ id: "4", nickname: "Lobo Negro", color: "#a855f7", zone: "espera", entered_at: Date.now() });
-            renderAll();
-        }
-    },
-    // t = 10.5 segundos: Toro Rojo pasa a terminado
-    {
-        time: 10500,
-        action: () => {
-            // Toro Rojo pasa a terminado
-            const toro = activeVehicles.find(v => v.id === "1");
-            if (toro) {
-                toro.zone = "terminado";
-                toro.entered_at = Date.now();
-            }
-            // Entra Halcón Verde a espera
-            activeVehicles.push({ id: "5", nickname: "Halcón Verde", color: "#84cc16", zone: "espera", entered_at: Date.now() });
-            renderAll();
-        }
-    },
-    // t = 13.5 segundos: Lobo Negro entra a lavado y Toro Rojo es retirado
-    {
-        time: 13500,
-        action: () => {
-            // Lobo Negro pasa a lavado
-            const lobo = activeVehicles.find(v => v.id === "4");
-            if (lobo) {
-                lobo.zone = "lavado";
-                lobo.entered_at = Date.now();
-            }
-            // Toro Rojo es retirado vía carril de retorno
-            retirarVehiculo("1");
         }
     }
-];
+
+    // 4. Agregar autos aleatorios a la cola si hay pocos (máximo 4 en espera)
+    if (activeVehicles.filter(v => v.zone === 'espera').length < 4 && Math.random() < 0.2) {
+        activeVehicles.push(generarAutoRandom());
+        renderAll();
+    }
+}
 
 // Iniciar Secuencia
 window.addEventListener('DOMContentLoaded', () => {
+    // Autos iniciales
+    activeVehicles.push(generarAutoRandom());
+    activeVehicles.push(generarAutoRandom());
+    
     startRealtimeTicker();
     
-    // Programar todos los eventos
-    scriptEvents.forEach(evt => {
-        setTimeout(evt.action, evt.time);
-    });
-
-    // Loop infinito del demo cada 16 segundos para mantenerlo vivo si el usuario lo ve en vivo
-    setInterval(() => {
-        scriptEvents.forEach(evt => {
-            if (evt.time > 0) {
-                setTimeout(evt.action, evt.time);
-            } else {
-                evt.action();
-            }
-        });
-    }, 16000);
+    // Loop de lógica de cola cada 1 segundo
+    setInterval(processQueueLogic, 1000);
 });
