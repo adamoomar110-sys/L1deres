@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (err) {
             console.error("Error al acceder a la cámara:", err);
-            showMessage('No se pudo acceder a la cámara. Por favor, da los permisos necesarios.', 'error');
+            showMessage('Error de cámara: ' + (err.name || err.message || 'Desconocido') + '. Verifica permisos o si otra app la está usando.', 'error');
         }
     }
 
