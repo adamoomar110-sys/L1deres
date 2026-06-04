@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('video-preview');
     const canvas = document.getElementById('canvas-preview');
     const btnStartCamera = document.getElementById('btn-start-camera');
+    const btnSwitchCamera = document.getElementById('btn-switch-camera');
     const btnTakePhoto = document.getElementById('btn-take-photo');
     const btnRetakePhoto = document.getElementById('btn-retake-photo');
     const inputSelfie = document.getElementById('selfie_base64');
@@ -34,13 +35,44 @@ document.addEventListener('DOMContentLoaded', () => {
         formMessage.className = 'form-feedback ' + type;
     }
 
-    async function startCamera() {
+    let videoDevices = [];
+    let currentDeviceIndex = 0;
+
+    async function getVideoDevices() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+            console.log("enumerateDevices not supported.");
+            return;
+        }
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            videoDevices = devices.filter(device => device.kind === 'videoinput');
+            if (videoDevices.length > 1) {
+                btnSwitchCamera.style.display = 'block';
+            }
+        } catch(e) {
+            console.error("Error al enumerar dispositivos", e);
+        }
+    }
+
+    async function startCamera(deviceId = null) {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        let constraints = { video: { facingMode: 'user' } };
+        if (deviceId) {
+            constraints = { video: { deviceId: { exact: deviceId } } };
+        }
+
         try {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
             } catch (fallbackErr) {
-                // Si falla facingMode (típico en webcams USB de PC)
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                if (!deviceId) {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                } else {
+                    throw fallbackErr;
+                }
             }
             video.srcObject = stream;
             video.style.display = 'block';
@@ -48,11 +80,22 @@ document.addEventListener('DOMContentLoaded', () => {
             btnStartCamera.style.display = 'none';
             btnTakePhoto.style.display = 'block';
             btnRetakePhoto.style.display = 'none';
+            
+            // Una vez que tenemos permiso, enumeramos las cámaras para ver si hay más de una
+            if (videoDevices.length === 0) {
+                await getVideoDevices();
+            }
         } catch (err) {
             console.error("Error al acceder a la cámara:", err);
             showMessage('No se pudo acceder a la cámara. Por favor, da los permisos necesarios.', 'error');
         }
     }
+
+    btnSwitchCamera.addEventListener('click', () => {
+        if (videoDevices.length <= 1) return;
+        currentDeviceIndex = (currentDeviceIndex + 1) % videoDevices.length;
+        startCamera(videoDevices[currentDeviceIndex].deviceId);
+    });
 
     function takePhoto() {
         if (!stream) return;
@@ -72,6 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
         video.style.display = 'none';
         canvas.style.display = 'block';
         btnTakePhoto.style.display = 'none';
+        btnSwitchCamera.style.display = 'none';
         btnRetakePhoto.style.display = 'block';
     }
 
@@ -124,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputSelfie.value = '';
             canvas.style.display = 'none';
             btnRetakePhoto.style.display = 'none';
+            btnSwitchCamera.style.display = 'none';
             btnStartCamera.style.display = 'block';
 
         } catch (error) {
