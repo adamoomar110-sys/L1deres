@@ -18,7 +18,37 @@
     <div class="bg-orb top-right"></div>
     <div class="bg-orb bottom-left"></div>
 
-    <div class="app-container">
+    <div class="layout-wrapper">
+        <!-- BARRA LATERAL -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.6 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.6 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.6 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-target="view-lavadero" title="Lavadero">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <span>Lavadero</span>
+                </button>
+                <button class="nav-btn" data-target="view-empleados" title="Empleados">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Empleados</span>
+                </button>
+                <button class="nav-btn" data-target="view-postulantes" title="Postulantes">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Postulantes</span>
+                </button>
+                <button class="nav-btn" data-target="view-insumos" title="Insumos">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    <span>Insumos</span>
+                </button>
+                <button class="nav-btn" data-target="view-precios" title="Precios">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span>Config</span>
+                </button>
+            </nav>
+        </aside>
+
+        <div class="app-container">
         <!-- CABECERA -->
         <header class="app-header">
             <div class="header-brand">
@@ -67,7 +97,8 @@
         </header>
 
         <!-- CUERPO PRINCIPAL: VISUALIZADOR RETRO ARCADE -->
-        <main class="app-main">
+        <div id="view-lavadero" class="view-section active">
+            <main class="app-main">
             <!-- COLUMNA 1: ESPERA -->
             <section class="lane-card lane-espera" id="lane-espera">
                 <div class="lane-header">
@@ -158,20 +189,9 @@
                                 <span class="color-value-label" id="color-hex-label">#06b6d4</span>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="input-wash-type">Tipo de Lavado</label>
-                            <select id="input-wash-type" required>
-                                <option value="combo-limpieza-total" data-price="18000">Combo Limpieza Total 🌀 - $18,000</option>
-                                <option value="combo-vip-gold" data-price="25000">Combo VIP Gold 🏆 - $25,000</option>
-                                <option value="lavado-carroceria" data-price="12000">Lavado Exterior Simple 🚗 - $12,000</option>
-                                <option value="aspirado-interior" data-price="10000">Aspirado e Interior Pro 💨 - $10,000</option>
-                                <option value="lavado-express" data-price="8000">Lavado Express ⚡ - $8,000</option>
-                                <option value="lavado-motor" data-price="15000">Limpieza de Motor a Vapor 🔥 - $15,000</option>
-                                <option value="encerado-acrilico" data-price="22000">Encerado Acrílico Sellador 🛡️ - $22,000</option>
-                                <option value="lavado-chasis" data-price="28000">Limpieza de Chasis & Motor 🔩 - $28,000</option>
-                                <option value="pulido-opticas" data-price="16000">Restauración de Ópticas 💡 - $16,000</option>
-                                <option value="tratamiento-ceramico" data-price="65000">Tratamiento Cerámico 9H 💎 - $65,000</option>
-                            </select>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Seleccionar Servicio</label>
+                            <div id="wash-menu-grid" class="wash-menu-grid"></div>
                         </div>
                         <div class="form-group">
                             <label for="input-budget">Presupuesto Estimado ($)</label>
@@ -209,8 +229,143 @@
                         </table>
                     </div>
                 </div>
+            </section>
+        </div> <!-- Fin view-lavadero -->
+
+        <!-- VISTA POSTULANTES -->
+        <div id="view-postulantes" class="view-section hidden">
+            <div class="panel-header" style="margin-bottom: 2rem;">
+                <div class="panel-title-group">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <h3>Gestión de Postulantes</h3>
+                </div>
             </div>
-        </section>
+            <div class="operator-layout" style="grid-template-columns: 1fr;">
+                <div class="operator-queue-list">
+                    <h4 class="form-title">Candidatos Pendientes</h4>
+                    <div class="table-container">
+                        <table class="operator-table">
+                            <thead>
+                                <tr>
+                                    <th>Selfie</th>
+                                    <th>Nombre y DNI</th>
+                                    <th>Contacto & Zona</th>
+                                    <th>Experiencia & Disponibilidad</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="postulantes-tbody">
+                                <!-- Filas de postulantes dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA EMPLEADOS -->
+        <div id="view-empleados" class="view-section hidden">
+            <div class="panel-header" style="margin-bottom: 2rem;">
+                <div class="panel-title-group">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    <h3>Gestión de Empleados</h3>
+                </div>
+            </div>
+            <div class="operator-layout">
+                <form id="form-empleado" class="operator-form">
+                    <h4 class="form-title">Nuevo Empleado</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre</label>
+                            <input type="text" id="emp-name" placeholder="Ej: Juan Perez" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rol</label>
+                            <select id="emp-role" class="select-zone-dropdown" style="width:100%">
+                                <option value="Lavador">Lavador</option>
+                                <option value="Detallador">Detallador</option>
+                                <option value="Encargado">Encargado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full">Agregar Empleado</button>
+                </form>
+                <div class="operator-queue-list">
+                    <h4 class="form-title">Nómina</h4>
+                    <div class="table-container">
+                        <table class="operator-table">
+                            <thead><tr><th>Nombre</th><th>Rol</th><th>Acciones</th></tr></thead>
+                            <tbody id="empleados-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA INSUMOS -->
+        <div id="view-insumos" class="view-section hidden">
+            <div class="panel-header" style="margin-bottom: 2rem;">
+                <div class="panel-title-group">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    <h3>Control de Insumos</h3>
+                </div>
+            </div>
+            <div class="operator-layout">
+                <form id="form-insumo" class="operator-form">
+                    <h4 class="form-title">Nuevo Insumo</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Producto</label>
+                            <input type="text" id="ins-name" placeholder="Ej: Shampoo pH Neutro" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad/Stock</label>
+                            <input type="number" id="ins-stock" value="10" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full">Agregar Insumo</button>
+                </form>
+                <div class="operator-queue-list">
+                    <h4 class="form-title">Inventario</h4>
+                    <div class="table-container">
+                        <table class="operator-table">
+                            <thead><tr><th>Producto</th><th>Stock</th><th>Acciones</th></tr></thead>
+                            <tbody id="insumos-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA PRECIOS -->
+        <div id="view-precios" class="view-section hidden">
+            <div class="panel-header" style="margin-bottom: 2rem;">
+                <div class="panel-title-group">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <h3>Configuración de Precios y Tipos de Lavado</h3>
+                </div>
+                <button id="btn-reset-precios" class="btn btn-secondary btn-sm">Restaurar Valores por Defecto</button>
+            </div>
+            <div class="operator-layout" style="grid-template-columns: 1fr;">
+                <div class="operator-queue-list">
+                    <h4 class="form-title">Tipos de Servicio Habilitados</h4>
+                    <div class="table-container">
+                        <table class="operator-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre (Icono)</th>
+                                    <th>Precio ($)</th>
+                                    <th>Categoría</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="precios-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- PIE DE PÁGINA -->
         <footer class="app-footer">
@@ -223,7 +378,8 @@
                 <span class="version-label">v2.1 (Premium)</span>
             </div>
         </footer>
-    </div>
+        </div> <!-- Fin app-container -->
+    </div> <!-- Fin layout-wrapper -->
 
     <!-- MODAL DE CONFIGURACIÓN DE BASE DE DATOS (SUPABASE) -->
     <div id="modal-config" class="modal-overlay">

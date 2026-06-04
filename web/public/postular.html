@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Postulación - Lavadero de Lujo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Orbitron:wght@700;900&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .postular-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(16, 24, 39, 0.8);
+            border: 1px solid var(--color-cyan);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        .postular-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .postular-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--color-cyan);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px var(--color-cyan);
+        }
+        .postular-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .camera-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border: 2px dashed var(--color-cyan);
+            padding: 1rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        #video-preview {
+            width: 100%;
+            max-width: 320px;
+            border-radius: 8px;
+            display: none;
+        }
+        #canvas-preview {
+            display: none;
+            width: 100%;
+            max-width: 320px;
+            border-radius: 8px;
+            border: 2px solid var(--color-cyan);
+        }
+        .camera-btns {
+            display: flex;
+            gap: 1rem;
+        }
+        .form-feedback {
+            display: none;
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-weight: 600;
+        }
+        .form-feedback.success {
+            display: block;
+            background: rgba(132, 204, 22, 0.2);
+            color: var(--color-lime);
+            border: 1px solid var(--color-lime);
+        }
+        .form-feedback.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--color-red);
+            border: 1px solid var(--color-red);
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="neon-grid"></div>
+    
+    <div class="layout-wrapper" style="display: block; min-height: 100vh; padding: 2rem;">
+        <div class="postular-container">
+            <div class="postular-header">
+                <h1>Únete al Equipo</h1>
+                <p style="color: var(--color-text-dim)">Completa el formulario y tómate una selfie para postularte en Lavadero Estética Vehicular.</p>
+            </div>
+
+            <form id="form-postular" class="postular-form operator-form">
+                
+                <div class="form-group">
+                    <label>Selfie (Requerido)</label>
+                    <div class="camera-container">
+                        <video id="video-preview" autoplay playsinline></video>
+                        <canvas id="canvas-preview"></canvas>
+                        <div class="camera-btns">
+                            <button type="button" id="btn-start-camera" class="btn btn-secondary">Abrir Cámara</button>
+                            <button type="button" id="btn-take-photo" class="btn btn-primary" style="display: none;">Tomar Foto</button>
+                            <button type="button" id="btn-retake-photo" class="btn btn-secondary" style="display: none;">Reintentar</button>
+                        </div>
+                        <input type="hidden" id="selfie_base64" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="full_name">Nombre Completo</label>
+                        <input type="text" id="full_name" required placeholder="Ej: Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label for="dni">DNI</label>
+                        <input type="text" id="dni" required placeholder="Ej: 12345678">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Teléfono (WhatsApp)</label>
+                        <input type="text" id="phone" required placeholder="Ej: 1123456789">
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Edad</label>
+                        <input type="number" id="age" required placeholder="Ej: 25">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="zone">Zona / Domicilio</label>
+                        <input type="text" id="zone" required placeholder="Ej: Palermo, Capital Federal">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="app_experience">Experiencia Previa en Lavaderos / Estética</label>
+                        <textarea id="app_experience" rows="3" required placeholder="Cuéntanos brevemente tu experiencia..." style="width: 100%; background: var(--color-surface); border: 1px solid var(--color-border); color: white; padding: 0.75rem; border-radius: 8px;"></textarea>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="availability">Disponibilidad Horaria</label>
+                        <select id="availability" required style="width: 100%; background: var(--color-surface); border: 1px solid var(--color-border); color: white; padding: 0.75rem; border-radius: 8px;">
+                            <option value="">Selecciona tu disponibilidad</option>
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time Mañana">Part-time Mañana</option>
+                            <option value="Part-time Tarde">Part-time Tarde</option>
+                            <option value="Fines de semana">Fines de semana</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="form-message" class="form-feedback"></div>
+
+                <button type="submit" id="btn-submit" class="btn btn-primary w-full mt-4" style="font-size: 1.1rem; padding: 1rem;">
+                    Enviar Postulación
+                </button>
+            </form>
+        </div>
+
+        <footer style="text-align: center; padding: 20px; font-family: sans-serif; font-size: 14px; color: #888; margin-top: 40px;">
+            &copy; 2026 Omar. Todos los derechos reservados.
+        </footer>
+    </div>
+
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="postular.js"></script>
+</body>
+</html>

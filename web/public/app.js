@@ -3,22 +3,44 @@ const NOMBRES = ["Rayo", "Toro", "Halcón", "Puma", "Tigre", "Furia", "Centella"
 const ADJETIVOS = ["Azul", "Rojo", "Gris", "Plata", "Verde", "Negro", "Dorado", "Feroz", "Veloz", "Oscuro", "Blanco", "Brillante", "Neon", "Rápido", "Relámpago"];
 const COLORES = ["#00f0ff", "#84cc16", "#ffb800", "#3b82f6", "#ef4444", "#a855f7", "#f97316", "#ec4899", "#14b8a6"];
 
-const WASH_NAMES = {
-    'combo-limpieza-total': 'Combo Limpieza Total 🌀',
-    'combo-vip-gold': 'Combo VIP Gold 🏆',
-    'lavado-carroceria': 'Lavado Exterior Simple 🚗',
-    'aspirado-interior': 'Aspirado e Interior Pro 💨',
-    'lavado-express': 'Lavado Express ⚡',
-    'lavado-motor': 'Limpieza de Motor a Vapor 🔥',
-    'encerado-acrilico': 'Encerado Acrílico Sellador 🛡️',
-    'lavado-chasis': 'Limpieza de Chasis & Motor 🔩',
-    'pulido-opticas': 'Restauración de Ópticas 💡',
-    'tratamiento-ceramico': 'Tratamiento Cerámico 9H 💎'
-};
+const DEFAULT_WASH_PACKAGES = [
+    { id: 'combo-limpieza-total', title: 'Limpieza Total', icon: '🌀', price: 18000, category: 'combos', items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clásico'] },
+    { id: 'combo-vip-gold', title: 'VIP Gold', icon: '🏆', price: 25000, category: 'combos', items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor'] },
+    { id: 'lavado-carroceria', title: 'Exterior Simple', icon: '🚗', price: 12000, category: 'lavados', items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumáticos'] },
+    { id: 'aspirado-interior', title: 'Interior Pro', icon: '💨', price: 10000, category: 'lavados', items: ['Aspirado butacas y paneles', 'Desinfección de contacto', 'Acondicionado de plásticos'] },
+    { id: 'lavado-express', title: 'Express', icon: '⚡', price: 8000, category: 'lavados', items: ['Lavado exterior a presión', 'Secado rápido', 'Brillo básico de cubiertas'] },
+    { id: 'lavado-motor', title: 'Motor Vapor', icon: '🔥', price: 15000, category: 'especiales', items: ['Limpieza técnica a vapor', 'Desengrasantes biodegradables', 'Protector dieléctrico plásticos'] },
+    { id: 'encerado-acrilico', title: 'Encerado', icon: '🛡️', price: 22000, category: 'estetica', items: ['Lavado artesanal descontaminante', 'Cera selladora acrílica manual', 'Efecto hidrofóbico extremo'] },
+    { id: 'lavado-chasis', title: 'Chasis', icon: '🔩', price: 28000, category: 'especiales', items: ['Limpieza chasis inferior', 'Desengrasado pesado a vapor', 'Protector antioxidante metal'] },
+    { id: 'pulido-opticas', title: 'Ópticas', icon: '💡', price: 16000, category: 'estetica', items: ['Lijado al agua multietapa', 'Pulido de policarbonato', 'Sellado UV de ópticas'] },
+    { id: 'tratamiento-ceramico', title: 'Cerámico 9H', icon: '💎', price: 65000, category: 'estetica', items: ['Corrección de pintura 2 etapas', 'Sellador cerámico 9H importado', 'Protección contra rayones UV'] }
+];
+
+let WASH_PACKAGES = [];
+let WASH_NAMES = {};
+
+function initWashPackages() {
+    const saved = localStorage.getItem('lavadero_wash_settings');
+    if (saved) {
+        WASH_PACKAGES = JSON.parse(saved);
+    } else {
+        WASH_PACKAGES = [...DEFAULT_WASH_PACKAGES];
+        localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
+    }
+    WASH_NAMES = {};
+    WASH_PACKAGES.forEach(pkg => {
+        WASH_NAMES[pkg.id] = `${pkg.title} ${pkg.icon}`;
+    });
+}
+initWashPackages();
+
+let selectedWashType = 'combo-limpieza-total';
 
 // --- ESTADO GLOBAL ---
 let activeVehicles = [];
 let washHistory = [];
+let empleados = [];
+let insumos = [];
 let config = {
     useSupabase: false,
     supabaseUrl: '',
@@ -965,37 +987,57 @@ elInputColor.addEventListener('input', (e) => {
     elColorHexLabel.innerText = e.target.value.toUpperCase();
 });
 
-// Formulario de Registro
-const elInputWashType = document.getElementById('input-wash-type');
+// Función para renderizar el menú interactivo
+function renderWashMenu() {
+    const grid = document.getElementById('wash-menu-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
 
-if (elInputWashType) {
-    elInputWashType.addEventListener('change', (e) => {
-        const selectedOption = e.target.options[e.target.selectedIndex];
-        const price = selectedOption.getAttribute('data-price');
-        elInputBudget.value = price;
+    WASH_PACKAGES.forEach(pkg => {
+        const card = document.createElement('div');
+        card.className = `wash-menu-card ${pkg.id === selectedWashType ? 'selected' : ''}`;
+        card.setAttribute('data-id', pkg.id);
+        card.setAttribute('data-price', pkg.price);
+
+        card.innerHTML = `
+            <div class="check-badge">✓</div>
+            <div class="wash-card-icon">${pkg.icon}</div>
+            <div class="wash-card-title">${pkg.title}</div>
+            <div class="wash-card-price">$${pkg.price.toLocaleString('es-AR')}</div>
+        `;
+
+        card.addEventListener('click', () => {
+            selectedWashType = pkg.id;
+            elInputBudget.value = pkg.price;
+            renderWashMenu(); // Re-render to update selected class
+        });
+
+        grid.appendChild(card);
     });
 }
 
+// Formulario de Registro
 elFormRegister.addEventListener('submit', (e) => {
     e.preventDefault();
     const nickname = elInputNickname.value.trim();
     const plate = elInputPlate.value.trim();
     const color = elInputColor.value;
     const budget = elInputBudget.value;
-    const washType = elInputWashType ? elInputWashType.value : 'combo-limpieza-total';
+    const washType = selectedWashType;
 
     addVehicle(nickname, plate, color, budget, washType);
 
     // Resetear formulario
     elInputNickname.value = '';
     elInputPlate.value = '';
-    if (elInputWashType) elInputWashType.value = 'combo-limpieza-total';
+    selectedWashType = 'combo-limpieza-total';
     elInputBudget.value = '18000';
+    renderWashMenu();
     
     // Enfocar apodo para el siguiente
     elInputNickname.focus();
     
-    showFloatingToast(`Vehículo ${nickname} registrado.`);
+    showFloatingToast(\`Vehículo \${nickname} registrado.\`);
 });
 
 // Toggle Botón Simulación
@@ -1008,6 +1050,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Intentar cargar primero la configuración de Vercel/Supabase remota
     await loadRemoteConfig();
     loadLocalData();
+    renderWashMenu();
     renderAll();
     startRealtimeTicker();
 
@@ -1018,3 +1061,338 @@ window.addEventListener('DOMContentLoaded', async () => {
         setInterval(syncFromSupabase, 10000);
     }
 });
+
+// --- L�GICA DE NAVEGACI�N (SIDEBAR) ---
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        // Remover active de todos los botones
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        // Agregar active al bot�n clickeado
+        const targetBtn = e.currentTarget;
+        targetBtn.classList.add('active');
+
+        // Ocultar todas las vistas
+        document.querySelectorAll('.view-section').forEach(v => {
+            v.classList.remove('active');
+            v.classList.add('hidden');
+        });
+
+        // Mostrar la vista objetivo
+        const targetView = targetBtn.getAttribute('data-target');
+        const viewEl = document.getElementById(targetView);
+        if (viewEl) {
+            viewEl.classList.remove('hidden');
+            viewEl.classList.add('active');
+        }
+
+        // Si entramos a ciertas vistas, refrescamos
+        if (targetView === 'view-empleados') renderEmpleados();
+        if (targetView === 'view-insumos') renderInsumos();
+        if (targetView === 'view-precios') renderPrecios();
+    });
+});
+
+// --- L�GICA DE EMPLEADOS ---
+const formEmpleado = document.getElementById('form-empleado');
+const tbodyEmpleados = document.getElementById('empleados-tbody');
+
+if (formEmpleado) {
+    formEmpleado.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('emp-name').value;
+        const role = document.getElementById('emp-role').value;
+        empleados.push({ id: Date.now(), name, role });
+        localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
+        document.getElementById('emp-name').value = '';
+        renderEmpleados();
+        showFloatingToast('Empleado agregado exitosamente');
+    });
+}
+
+function renderEmpleados() {
+    const saved = localStorage.getItem('lavadero_empleados');
+    if (saved) empleados = JSON.parse(saved);
+    
+    if (!tbodyEmpleados) return;
+    tbodyEmpleados.innerHTML = '';
+    
+    if (empleados.length === 0) {
+        tbodyEmpleados.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--color-text-dim);">No hay empleados registrados</td></tr>';
+        return;
+    }
+
+    empleados.forEach(emp => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = 
+            <td>\</td>
+            <td><span class="plate-badge">\</span></td>
+            <td><button class="btn btn-danger btn-sm" onclick="eliminarEmpleado(\)">Eliminar</button></td>
+        ;
+        tbodyEmpleados.appendChild(tr);
+    });
+}
+
+window.eliminarEmpleado = function(id) {
+    empleados = empleados.filter(e => e.id !== id);
+    localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
+    renderEmpleados();
+};
+
+// --- L�GICA DE INSUMOS ---
+const formInsumo = document.getElementById('form-insumo');
+const tbodyInsumos = document.getElementById('insumos-tbody');
+
+if (formInsumo) {
+    formInsumo.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('ins-name').value;
+        const stock = document.getElementById('ins-stock').value;
+        insumos.push({ id: Date.now(), name, stock: parseInt(stock) });
+        localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+        document.getElementById('ins-name').value = '';
+        document.getElementById('ins-stock').value = '10';
+        renderInsumos();
+        showFloatingToast('Insumo agregado');
+    });
+}
+
+function renderInsumos() {
+    const saved = localStorage.getItem('lavadero_insumos');
+    if (saved) insumos = JSON.parse(saved);
+    
+    if (!tbodyInsumos) return;
+    tbodyInsumos.innerHTML = '';
+    
+    if (insumos.length === 0) {
+        tbodyInsumos.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--color-text-dim);">No hay insumos registrados</td></tr>';
+        return;
+    }
+
+    insumos.forEach(ins => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = 
+            <td>\</td>
+            <td>\ unid.</td>
+            <td><button class="btn btn-danger btn-sm" onclick="eliminarInsumo(\)">Eliminar</button></td>
+        ;
+        tbodyInsumos.appendChild(tr);
+    });
+}
+
+window.eliminarInsumo = function(id) {
+    insumos = insumos.filter(i => i.id !== id);
+    localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+    renderInsumos();
+};
+
+// --- L�GICA DE PRECIOS ---
+const tbodyPrecios = document.getElementById('precios-tbody');
+const btnResetPrecios = document.getElementById('btn-reset-precios');
+
+if (btnResetPrecios) {
+    btnResetPrecios.addEventListener('click', () => {
+        if(confirm('�Restaurar precios y paquetes a sus valores por defecto?')) {
+            WASH_PACKAGES = JSON.parse(JSON.stringify(DEFAULT_WASH_PACKAGES));
+            localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
+            initWashPackages();
+            renderPrecios();
+            renderWashMenu(); // Refrescar el grid de la vista lavadero
+            showFloatingToast('Precios restaurados');
+        }
+    });
+}
+
+function renderPrecios() {
+    if (!tbodyPrecios) return;
+    tbodyPrecios.innerHTML = '';
+    
+    WASH_PACKAGES.forEach((pkg, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = 
+            <td style="font-family:var(--font-mono);font-size:0.8rem;">\</td>
+            <td>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span style="font-size:1.2rem;">\</span>
+                    <input type="text" class="precio-input-name" data-index="\" value="\" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:#fff;padding:0.25rem;border-radius:4px;width:120px;">
+                </div>
+            </td>
+            <td>
+                $&nbsp;<input type="number" class="precio-input-val" data-index="\" value="\" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--color-lime);font-weight:bold;padding:0.25rem;border-radius:4px;width:80px;">
+            </td>
+            <td><span class="plate-badge">\</span></td>
+            <td><button class="btn btn-primary btn-sm btn-save-precio" data-index="\">Guardar</button></td>
+        ;
+        tbodyPrecios.appendChild(tr);
+    });
+
+    document.querySelectorAll('.btn-save-precio').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const idx = e.target.getAttribute('data-index');
+            const row = e.target.closest('tr');
+            const newTitle = row.querySelector('.precio-input-name').value;
+            const newPrice = row.querySelector('.precio-input-val').value;
+            
+            WASH_PACKAGES[idx].title = newTitle;
+            WASH_PACKAGES[idx].price = parseInt(newPrice);
+            
+            localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
+            initWashPackages(); // Actualizar mapeos
+            renderWashMenu(); // Refrescar men� del form
+            showFloatingToast('Precio actualizado correctamente');
+            
+            e.target.innerText = '?';
+            e.target.style.backgroundColor = 'var(--color-lime)';
+            setTimeout(() => {
+                e.target.innerText = 'Guardar';
+                e.target.style.backgroundColor = '';
+            }, 1500);
+        });
+    });
+}
+
+// Override de la renderizaci�n del grid de lavados inicial
+function renderWashMenu() {
+    const grid = document.getElementById('wash-menu-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    WASH_PACKAGES.forEach(pkg => {
+        const card = document.createElement('div');
+        card.className = 'wash-option-card ' + (selectedWashType === pkg.id ? 'selected' : '');
+        card.setAttribute('data-id', pkg.id);
+        
+        card.innerHTML = 
+            <div class="wash-icon">\</div>
+            <div class="wash-details">
+                <div class="wash-title">\</div>
+                <div class="wash-price">$\</div>
+            </div>
+        ;
+        
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.wash-option-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedWashType = pkg.id;
+            
+            if (elInputBudget) {
+                elInputBudget.value = pkg.price;
+                elInputBudget.classList.add('pulse-highlight');
+                setTimeout(() => elInputBudget.classList.remove('pulse-highlight'), 500);
+            }
+        });
+        
+        grid.appendChild(card);
+    });
+}
+// Llamar a renderWashMenu en el boot inicial para asegurar que cargue lo de localStorage
+setTimeout(renderWashMenu, 500);
+
+// --- LÃ“GICA DE POSTULANTES ---
+const tbodyPostulantes = document.getElementById('postulantes-tbody');
+
+function renderPostulantes() {
+    if (!tbodyPostulantes) return;
+    
+    // Tratamos de leer de localStorage
+    const applicantsStr = localStorage.getItem('lavadero_applicants');
+    let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
+    
+    // Solo mostrar los que estÃ©n pendientes
+    applicants = applicants.filter(a => a.status === 'pending');
+
+    tbodyPostulantes.innerHTML = '';
+
+    if (applicants.length === 0) {
+        tbodyPostulantes.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--color-text-dim);padding:2rem;">No hay postulantes pendientes en este momento.</td></tr>';
+        return;
+    }
+
+    applicants.forEach(app => {
+        const tr = document.createElement('tr');
+        const imgSrc = app.selfie_url && app.selfie_url.length > 50 ? app.selfie_url : 'https://ui-avatars.com/api/?name='+encodeURIComponent(app.full_name)+'&background=06b6d4&color=fff';
+
+        tr.innerHTML = `
+            <td>
+                <img src="${imgSrc}" alt="Selfie de ${app.full_name}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid var(--color-cyan);">
+            </td>
+            <td>
+                <div style="font-weight:bold; color:var(--color-cyan)">${app.full_name}</div>
+                <div style="font-size:0.85em; color:var(--color-text-dim)">DNI: ${app.dni} â€¢ ${app.age || '--'} aÃ±os</div>
+            </td>
+            <td>
+                <div><a href="https://wa.me/${app.phone}" target="_blank" style="color:var(--color-lime); text-decoration:none;">${app.phone}</a></div>
+                <div style="font-size:0.85em; color:var(--color-text-dim)">${app.zone || '--'}</div>
+            </td>
+            <td>
+                <div style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${app.app_experience || 'Sin experiencia'}">${app.app_experience || 'Sin experiencia'}</div>
+                <div style="font-size:0.85em; color:var(--color-yellow)">Disp: ${app.availability || '--'}</div>
+            </td>
+            <td>
+                <div style="display:flex; gap:0.5rem;">
+                    <button class="btn btn-primary btn-sm" onclick="contratarPostulante('${app.id}', '${app.full_name}')" title="Contratar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="rechazarPostulante('${app.id}')" title="Rechazar">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            </td>
+        `;
+        tbodyPostulantes.appendChild(tr);
+    });
+}
+
+window.contratarPostulante = function(id, name) {
+    const role = prompt(`Â¿QuÃ© rol le asignarÃ¡s a ${name}? (Ej: Lavador, Detallador, Encargado)`, 'Lavador');
+    if (role === null) return; // Cancelado
+
+    // Mover a empleados
+    const savedEmp = localStorage.getItem('lavadero_empleados');
+    let empList = savedEmp ? JSON.parse(savedEmp) : [];
+    empList.push({ id: Date.now(), name: name, role: role });
+    localStorage.setItem('lavadero_empleados', JSON.stringify(empList));
+
+    // Eliminar de postulantes (o marcar como hired)
+    const applicantsStr = localStorage.getItem('lavadero_applicants');
+    let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
+    
+    applicants = applicants.map(a => {
+        if (a.id === id) a.status = 'hired';
+        return a;
+    });
+    localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
+
+    renderPostulantes();
+    if(typeof renderEmpleados === 'function') renderEmpleados();
+    
+    if(typeof showFloatingToast === 'function') {
+        showFloatingToast(`${name} contratado como ${role}!`);
+    } else {
+        alert(`${name} fue contratado como ${role}!`);
+    }
+}
+
+window.rechazarPostulante = function(id) {
+    if(!confirm('Â¿Seguro que quieres rechazar y eliminar a este postulante?')) return;
+    
+    const applicantsStr = localStorage.getItem('lavadero_applicants');
+    let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
+    
+    applicants = applicants.filter(a => a.id !== id);
+    localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
+    
+    renderPostulantes();
+}
+
+// Escuchar cambios de pestaÃ±a para renderizar postulantes
+document.addEventListener('DOMContentLoaded', () => {
+    const navBtns = document.querySelectorAll('.nav-btn');
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (btn.dataset.target === 'view-postulantes') {
+                renderPostulantes();
+            }
+        });
+    });
+});
+
