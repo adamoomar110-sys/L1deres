@@ -2,6 +2,7 @@ import './globals.css'
 import { Inter } from 'next/font/google'
 import AuthProvider from '@/components/AuthProvider'
 
+import SplashScreen from '@/components/SplashScreen'
 import { SettingsProvider } from '@/context/SettingsContext'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -20,6 +21,7 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <body className={`${inter.className} bg-[#0a0a0a] text-black antialiased`}>
         <SettingsProvider>
+          <SplashScreen />
           <AuthProvider>
             {children}
           </AuthProvider>
