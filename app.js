@@ -1237,7 +1237,10 @@ function renderEmpleados() {
             <td>${emp.name}</td>
             <td><span class="plate-badge">${emp.role}</span></td>
             <td>${emp.hours || 0} hs</td>
-            <td class="print-visible"><button class="btn btn-danger btn-sm print-visible" onclick="eliminarEmpleado(${emp.id})">Eliminar</button></td>
+            <td class="print-visible">
+                <button class="btn btn-primary btn-sm" onclick="editarEmpleado(${emp.id})" style="margin-right: 5px;">Editar</button>
+                <button class="btn btn-danger btn-sm" onclick="eliminarEmpleado(${emp.id})">Eliminar</button>
+            </td>
         `;
         tbodyEmpleados.appendChild(tr);
     });
@@ -1258,6 +1261,24 @@ window.eliminarEmpleado = async function(id) {
     }
     
     renderEmpleados();
+};
+
+window.editarEmpleado = async function(id) {
+    const emp = empleados.find(e => e.id === id);
+    if (!emp) return;
+    const newHours = prompt(`Modificar horas de ${emp.name} (actual: ${emp.hours}):`, emp.hours);
+    if (newHours !== null && newHours.trim() !== '' && !isNaN(newHours)) {
+        emp.hours = parseInt(newHours);
+        localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
+        if (config.useSupabase) {
+            await fetchSupabase(`lavadero_empleados?id=eq.${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ hours: emp.hours })
+            });
+        }
+        renderEmpleados();
+        showFloatingToast('Horas actualizadas');
+    }
 };
 
 // --- Lï¿½GICA DE INSUMOS ---
@@ -1365,7 +1386,10 @@ function renderInsumos() {
         tr.innerHTML = `
             <td>${ins.name}</td>
             <td><span class="badge ${ins.stock < 5 ? 'bg-danger' : 'bg-success'}">${ins.stock} unid.</span></td>
-            <td class="print-visible"><button class="btn btn-danger btn-sm print-visible" onclick="eliminarInsumo(${ins.id})">Eliminar</button></td>
+            <td class="print-visible">
+                <button class="btn btn-primary btn-sm" onclick="editarInsumo(${ins.id})" style="margin-right: 5px;">Editar</button>
+                <button class="btn btn-danger btn-sm" onclick="eliminarInsumo(${ins.id})">Eliminar</button>
+            </td>
         `;
         tbodyInsumos.appendChild(tr);
     });
@@ -1384,6 +1408,24 @@ window.eliminarInsumo = async function(id) {
     }
     
     renderInsumos();
+};
+
+window.editarInsumo = async function(id) {
+    const ins = insumos.find(i => i.id === id);
+    if (!ins) return;
+    const newStock = prompt(`Modificar stock exacto de ${ins.name} (actual: ${ins.stock}):`, ins.stock);
+    if (newStock !== null && newStock.trim() !== '' && !isNaN(newStock)) {
+        ins.stock = parseInt(newStock);
+        localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+        if (config.useSupabase) {
+            await fetchSupabase(`lavadero_insumos?id=eq.${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ stock: ins.stock })
+            });
+        }
+        renderInsumos();
+        showFloatingToast('Stock actualizado');
+    }
 };
 
 // --- Lï¿½GICA DE PRECIOS ---
