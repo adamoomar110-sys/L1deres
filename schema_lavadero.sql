@@ -104,3 +104,32 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- ============================================================
+-- 8. EMPLEADOS E INSUMOS (NUEVOS MÓDULOS)
+-- ============================================================
+
+-- Tabla de Empleados (Nómina y Jornadas)
+CREATE TABLE IF NOT EXISTS lavadero_empleados (
+  id BIGINT PRIMARY KEY, -- Usaremos Date.now() como ID simple por compatibilidad
+  date TEXT,
+  name TEXT NOT NULL,
+  hours INTEGER DEFAULT 0,
+  role TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Tabla de Insumos (Inventario)
+CREATE TABLE IF NOT EXISTS lavadero_insumos (
+  id BIGINT PRIMARY KEY,
+  name TEXT NOT NULL,
+  stock INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS para nuevas tablas
+ALTER TABLE lavadero_empleados ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lavadero_insumos ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Auth users full access" ON lavadero_empleados FOR ALL USING (true);
+CREATE POLICY "Auth users full access" ON lavadero_insumos FOR ALL USING (true);

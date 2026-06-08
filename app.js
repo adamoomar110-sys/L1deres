@@ -204,6 +204,64 @@ function loadLocalData() {
 }
 
 // --- CONEXIÃ“N DE DATOS & SYNC SUPABASE ---
+async function syncFromSupabase() {
+    if (!config.useSupabase || !config.supabaseUrl || !config.supabaseKey) return;
+    
+    isSyncing = true;
+    updateConnectionStatus("Syncing...");
+
+    try {
+        // 1. Cargar cola de cámara
+        const queueData = await fetchSupabase(config.queueTable);
+        if (queueData && Array.isArray(queueData)) {
+            activeVehicles = queueData;
+            localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
+        }
+
+        // 2. Cargar órdenes completadas (Historial)
+        const historyData = await fetchSupabase(`${config.serviceTable}?status=eq.completed`);
+        if (historyData && Array.isArray(historyData)) {
+            const historyMap = historyData.map(h => ({
+                id: h.vehicle_id || h.id,
+                plate: h.description ? h.description.split(' - ')[0] : '???',
+                nickname: h.description ? h.description.split(' - ')[1] : 'Historial',
+                budget: h.budget,
+                completed_at: h.appointment_date || h.created_at
+            }));
+            
+            // Unir local con remoto sin duplicados
+            const localHist = JSON.parse(localStorage.getItem('lavadero_completed_history') || '[]');
+            const combined = [...historyMap, ...localHist];
+            const uniqueHistory = Array.from(new Map(combined.map(item => [item.id, item])).values());
+            
+            washHistory = uniqueHistory.sort((a,b) => new Date(b.completed_at) - new Date(a.completed_at));
+            localStorage.setItem('lavadero_completed_history', JSON.stringify(washHistory));
+        }
+        
+        // 3. Cargar Empleados
+        const empData = await fetchSupabase('lavadero_empleados');
+        if (empData && Array.isArray(empData)) {
+            empleados = empData;
+            localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
+        }
+        
+        // 4. Cargar Insumos
+        const insData = await fetchSupabase('lavadero_insumos');
+        if (insData && Array.isArray(insData)) {
+            insumos = insData;
+            localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+        }
+
+        updateConnectionStatus("Connected");
+        renderAll();
+    } catch (e) {
+        console.error("Error sincronizando de Supabase:", e);
+        updateConnectionStatus("Error", "bg-danger");
+    } finally {
+        isSyncing = false;
+    }
+}
+
 async function fetchSupabase(endpoint, options = {}) {
     if (!config.useSupabase || !config.supabaseUrl || !config.supabaseKey) return null;
     
@@ -1116,21 +1174,30 @@ const formEmpleado = document.getElementById('form-empleado');
 const tbodyEmpleados = document.getElementById('empleados-tbody');
 
 if (formEmpleado) {
-    formEmpleado.addEventListener('submit', (e) => {
+    formEmpleado.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('emp-name').value;
         const hours = document.getElementById('emp-hours').value;
         const role = document.getElementById('emp-role').value;
         
-        empleados.push({ 
+        const newEmp = { 
             id: Date.now(), 
             date: new Date().toISOString().split('T')[0],
             name, 
             hours: parseInt(hours),
             role 
-        });
+        };
         
+        empleados.push(newEmp);
         localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
+        
+        if (config.useSupabase) {
+            await fetchSupabase('lavadero_empleados', {
+                method: 'POST',
+                body: JSON.stringify(newEmp)
+            });
+        }
+        
         document.getElementById('emp-name').value = '';
         document.getElementById('emp-hours').value = '8';
         renderEmpleados();
@@ -1180,9 +1247,16 @@ function renderEmpleados() {
 document.getElementById('filter-emp-date')?.addEventListener('change', renderEmpleados);
 document.getElementById('filter-emp-name')?.addEventListener('input', renderEmpleados);
 
-window.eliminarEmpleado = function(id) {
+window.eliminarEmpleado = async function(id) {
     empleados = empleados.filter(e => e.id !== id);
     localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
+    
+    if (config.useSupabase) {
+        await fetchSupabase(`lavadero_empleados?id=eq.${id}`, {
+            method: 'DELETE'
+        });
+    }
+    
     renderEmpleados();
 };
 
@@ -1191,12 +1265,22 @@ const formInsumo = document.getElementById('form-insumo');
 const tbodyInsumos = document.getElementById('insumos-tbody');
 
 if (formInsumo) {
-    formInsumo.addEventListener('submit', (e) => {
+    formInsumo.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('ins-name').value;
         const stock = document.getElementById('ins-stock').value;
-        insumos.push({ id: Date.now(), name, stock: parseInt(stock) });
+        
+        const newIns = { id: Date.now(), name, stock: parseInt(stock) };
+        insumos.push(newIns);
         localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+        
+        if (config.useSupabase) {
+            await fetchSupabase('lavadero_insumos', {
+                method: 'POST',
+                body: JSON.stringify(newIns)
+            });
+        }
+        
         document.getElementById('ins-name').value = '';
         document.getElementById('ins-stock').value = '10';
         renderInsumos();
@@ -1236,9 +1320,16 @@ function renderInsumos() {
 
 document.getElementById('filter-ins-name')?.addEventListener('input', renderInsumos);
 
-window.eliminarInsumo = function(id) {
+window.eliminarInsumo = async function(id) {
     insumos = insumos.filter(i => i.id !== id);
     localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+    
+    if (config.useSupabase) {
+        await fetchSupabase(`lavadero_insumos?id=eq.${id}`, {
+            method: 'DELETE'
+        });
+    }
+    
     renderInsumos();
 };
 
