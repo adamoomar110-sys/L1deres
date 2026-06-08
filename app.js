@@ -1267,18 +1267,35 @@ const tbodyInsumos = document.getElementById('insumos-tbody');
 if (formInsumo) {
     formInsumo.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name = document.getElementById('ins-name').value;
-        const stock = document.getElementById('ins-stock').value;
+        const name = document.getElementById('ins-name').value.trim();
+        const stockToAdd = parseInt(document.getElementById('ins-stock').value) || 0;
         
-        const newIns = { id: Date.now(), name, stock: parseInt(stock) };
-        insumos.push(newIns);
-        localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+        // Buscar si ya existe
+        const existingInsumo = insumos.find(i => i.name.toLowerCase() === name.toLowerCase());
         
-        if (config.useSupabase) {
-            await fetchSupabase('lavadero_insumos', {
-                method: 'POST',
-                body: JSON.stringify(newIns)
-            });
+        if (existingInsumo) {
+            existingInsumo.stock += stockToAdd;
+            localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+            
+            if (config.useSupabase) {
+                await fetchSupabase(`lavadero_insumos?id=eq.${existingInsumo.id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ stock: existingInsumo.stock })
+                });
+            }
+            showFloatingToast(`Stock actualizado: ${existingInsumo.name}`);
+        } else {
+            const newIns = { id: Date.now(), name, stock: stockToAdd };
+            insumos.push(newIns);
+            localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+            
+            if (config.useSupabase) {
+                await fetchSupabase('lavadero_insumos', {
+                    method: 'POST',
+                    body: JSON.stringify(newIns)
+                });
+            }
+            showFloatingToast('Nuevo insumo agregado');
         }
         
         document.getElementById('ins-name').value = '';
@@ -1292,6 +1309,42 @@ function renderInsumos() {
     const saved = localStorage.getItem('lavadero_insumos');
     if (saved) insumos = JSON.parse(saved);
     
+    // Semilla de Insumos Predeterminados (15)
+    if (insumos.length === 0) {
+        const predefinidos = [
+            "Shampoo pH Neutro", "Cera de Carnauba", "Silicona Interior", 
+            "Limpia Motores", "Acondicionador de Plásticos", "Desengrasante Multiuso", 
+            "Limpia Vidrios", "Cepillos de Limpieza", "Paños de Microfibra", 
+            "Revividor de Neumáticos", "Ambientador Líquido", "APC (All Purpose Cleaner)",
+            "Limpia Llantas", "Esponjas de Lavado", "Sellador Acrílico"
+        ];
+        
+        predefinidos.forEach((nombre, idx) => {
+            insumos.push({ id: Date.now() + idx, name: nombre, stock: 123 });
+        });
+        localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+        
+        if (config.useSupabase) {
+            // Mandar todos a Supabase en bloque o iterando
+            // Simplificado para no hacer 15 peticiones juntas, asume local por ahora si falla
+            insumos.forEach(async (ins) => {
+                fetchSupabase('lavadero_insumos', { method: 'POST', body: JSON.stringify(ins) });
+            });
+        }
+    }
+
+    // Llenar datalist para autocompletado
+    const datalist = document.getElementById('insumos-list');
+    if (datalist) {
+        datalist.innerHTML = '';
+        const nombresUnicos = [...new Set(insumos.map(i => i.name))];
+        nombresUnicos.forEach(nombre => {
+            const option = document.createElement('option');
+            option.value = nombre;
+            datalist.appendChild(option);
+        });
+    }
+
     if (!tbodyInsumos) return;
     tbodyInsumos.innerHTML = '';
     
