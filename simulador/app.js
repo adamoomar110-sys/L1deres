@@ -73,8 +73,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function generateRandomCar() {
-        const base = carModels[Math.floor(Math.random() * carModels.length)];
-        const wash = washTypes[Math.floor(Math.random() * washTypes.length)];
+        const typeSelect = document.getElementById('car-type-select').value;
+        const washSelect = document.getElementById('wash-type-select').value;
+        
+        let base = carModels[Math.floor(Math.random() * carModels.length)];
+        if (typeSelect !== "random") {
+            base = carModels.find(c => c.model === typeSelect) || base;
+        }
+        
+        let wash = washTypes[Math.floor(Math.random() * washTypes.length)];
+        if (washSelect !== "random") {
+            wash = washTypes.find(w => w.name === washSelect) || wash;
+        }
         return {
             id: washCounter++,
             model: base.model,

@@ -55,7 +55,24 @@
             <div class="panel-list" id="queue-list">
                 <!-- Los autos en espera se cargarán aquí -->
             </div>
-            <button id="add-car-btn" class="gta-btn small-btn mt-20" style="width: 100%; font-size: 1.2rem;">+ SIMULAR LLEGADA</button>
+            <div id="add-car-controls" class="mt-20">
+                <select id="car-type-select" class="gta-select">
+                    <option value="random">Auto Aleatorio</option>
+                    <option value="VW Gol">VW Gol (Auto)</option>
+                    <option value="Ford EcoSport">Ford EcoSport (Auto)</option>
+                    <option value="Renault Kangoo">Renault Kangoo (Utilitario)</option>
+                    <option value="BMW X5">BMW X5 (Camioneta)</option>
+                    <option value="Toyota Hilux">Toyota Hilux (Camioneta)</option>
+                    <option value="VW Amarok">VW Amarok (Camioneta)</option>
+                </select>
+                <select id="wash-type-select" class="gta-select mt-10">
+                    <option value="random">Lavado Aleatorio</option>
+                    <option value="Básico">Básico (x1)</option>
+                    <option value="Premium">Premium (x1.5)</option>
+                    <option value="VIP">VIP (x2)</option>
+                </select>
+                <button id="add-car-btn" class="gta-btn small-btn mt-10" style="width: 100%; font-size: 1.2rem;">+ SIMULAR LLEGADA</button>
+            </div>
         </div>
 
         <!-- PANEL CENTRAL: TÚNEL DE LAVADO Y HUD -->
