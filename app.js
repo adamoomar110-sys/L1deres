@@ -13,7 +13,7 @@ const DEFAULT_WASH_PACKAGES = [
     { id: 'encerado-acrilico', title: 'Encerado', icon: 'ðŸ›¡ï¸', price: 22000, category: 'estetica', items: ['Lavado artesanal descontaminante', 'Cera selladora acrÃ­lica manual', 'Efecto hidrofÃ³bico extremo'] },
     { id: 'lavado-chasis', title: 'Chasis', icon: 'ðŸ”©', price: 28000, category: 'especiales', items: ['Limpieza chasis inferior', 'Desengrasado pesado a vapor', 'Protector antioxidante metal'] },
     { id: 'pulido-opticas', title: 'Ã“pticas', icon: 'ðŸ’¡', price: 16000, category: 'estetica', items: ['Lijado al agua multietapa', 'Pulido de policarbonato', 'Sellado UV de Ã³pticas'] },
-    { id: 'tratamiento-ceramico', title: 'CerÃ¡mico 9H', icon: 'ðŸ’Ž', price: 65000, category: 'estetica', items: ['CorrecciÃ³n de pintura 2 etapas', 'Sellador cerÃ¡mico 9H importado', 'ProtecciÃ³n contra rayones UV'] }
+    { id: 'tratamiento-ceramico', title: 'CerÃ¡mico 9H', icon: 'ðŸ’Ž', price: 65000, category: 'estetica', items: ['CorrecciÃ³n de pintura 2 etapas', 'Sellador cerÃ¡mico 9H importado', 'ProtecciÃ³n contra rayones UV'], active: true }
 ];
 
 let WASH_PACKAGES = [];
@@ -34,7 +34,7 @@ function initWashPackages() {
 }
 initWashPackages();
 
-let selectedWashType = 'combo-limpieza-total';
+let selectedWashTypes = ['combo-limpieza-total'];
 
 // --- ESTADO GLOBAL ---
 let activeVehicles = [];
@@ -115,6 +115,7 @@ const elFormRegister = document.getElementById('form-register-car');
 const elInputNickname = document.getElementById('input-nickname');
 const elInputPlate = document.getElementById('input-plate');
 const elInputColor = document.getElementById('input-color');
+const elInputCategory = document.getElementById('input-category');
 const elInputBudget = document.getElementById('input-budget');
 const elColorHexLabel = document.getElementById('color-hex-label');
 
@@ -1086,7 +1087,7 @@ function renderWashMenu() {
         card.addEventListener('click', () => {
             selectedWashType = pkg.id;
             elInputBudget.value = pkg.price;
-            renderWashMenu(); // Re-render to update selected class
+            if(window.renderWashMenuOverride) window.renderWashMenuOverride(); else renderWashMenu(); // Re-render to update selected class
         });
 
         grid.appendChild(card);
@@ -1100,14 +1101,14 @@ elFormRegister.addEventListener('submit', (e) => {
     const plate = elInputPlate.value.trim();
     const color = elInputColor.value;
     const budget = elInputBudget.value;
-    const washType = selectedWashType;
+    const washType = selectedWashTypes.join(',');
 
     addVehicle(nickname, plate, color, budget, washType);
 
     // Resetear formulario
     elInputNickname.value = '';
     elInputPlate.value = '';
-    selectedWashType = 'combo-limpieza-total';
+    selectedWashTypes = ['combo-limpieza-total'];
     elInputBudget.value = '18000';
     renderWashMenu();
     
@@ -1703,4 +1704,116 @@ function copyPostularLink() {
     navigator.clipboard.writeText(url).then(() => {
         showFloatingToast("Enlace de postulaciÃ³n copiado para WhatsApp.");
     });
+}
+
+window.renderWashMenuOverride = function() {
+    const grid = document.getElementById('wash-menu-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    
+    WASH_PACKAGES.forEach(pkg => {
+        if(pkg.active === false) return;
+        
+        const card = document.createElement('div');
+        const isSelected = selectedWashTypes.includes(pkg.id);
+        card.className = 'wash-option-card wash-menu-card ' + (isSelected ? 'selected' : '');
+        card.setAttribute('data-id', pkg.id);
+        
+        card.innerHTML = `
+            <div class="check-badge">✓</div>
+            <div class="wash-icon">${pkg.icon}</div>
+            <div class="wash-details">
+                <div class="wash-title">${pkg.title}</div>
+                <div class="wash-price">$${pkg.price.toLocaleString('es-AR')}</div>
+            </div>
+        `;
+        
+        card.addEventListener('click', () => {
+            if (selectedWashTypes.includes(pkg.id)) {
+                selectedWashTypes = selectedWashTypes.filter(id => id !== pkg.id);
+            } else {
+                selectedWashTypes.push(pkg.id);
+            }
+            
+            window.renderWashMenuOverride();
+            
+            let total = 0;
+            selectedWashTypes.forEach(id => {
+                const found = WASH_PACKAGES.find(w => w.id === id);
+                if (found) total += found.price;
+            });
+            
+            if (elInputBudget) {
+                elInputBudget.value = total;
+                elInputBudget.classList.add('pulse-highlight');
+                setTimeout(() => elInputBudget.classList.remove('pulse-highlight'), 500);
+            }
+        });
+        
+        grid.appendChild(card);
+    });
+}
+setTimeout(() => { if(window.renderWashMenuOverride) window.renderWashMenuOverride(); }, 500);
+
+window.openScannerModal = function() {
+    const modal = document.getElementById('modal-scanner-ia');
+    const feed = document.querySelector('.scanner-feed');
+    const text = document.getElementById('scanner-text');
+    
+    if(!modal) return;
+    
+    modal.style.display = 'flex';
+    void modal.offsetWidth;
+    modal.classList.add('active');
+    
+    setTimeout(() => {
+        feed.classList.add('scanning-active');
+        text.innerText = "ANALIZANDO VEHÍCULO...";
+        
+        setTimeout(() => {
+            text.innerText = "¡VEHÍCULO DETECTADO!";
+            feed.classList.remove('scanning-active');
+            feed.style.background = 'radial-gradient(circle at center, rgba(0,240,255,0.2) 0%, #000 100%)';
+            
+            const mockCars = [
+                { nick: "Audi A3", plate: "AF432RT", color: "#ffffff", cat: "Auto", img: "assets/car_auto.png" },
+                { nick: "Toyota Hilux", plate: "AD991ZZ", color: "#a8a8a8", cat: "Camioneta", img: "assets/car_camioneta.png" },
+                { nick: "VW Taos", plate: "AE123CD", color: "#1e3a8a", cat: "SUV", img: "assets/car_suv.png" },
+                { nick: "Ford Focus", plate: "AC876HG", color: "#dc2626", cat: "Auto", img: "assets/car_auto.png" },
+                { nick: "RAM 1500", plate: "AE112QQ", color: "#000000", cat: "Camioneta", img: "assets/car_camioneta.png" }
+            ];
+            const randCar = mockCars[Math.floor(Math.random() * mockCars.length)];
+            
+            document.getElementById('input-nickname').value = randCar.nick;
+            document.getElementById('input-plate').value = randCar.plate;
+            document.getElementById('input-color').value = randCar.color;
+            if(document.getElementById('input-category')) {
+                document.getElementById('input-category').value = randCar.cat;
+            }
+            if(document.getElementById('color-hex-label')) {
+                document.getElementById('color-hex-label').innerText = randCar.color;
+            }
+
+            const realImg = document.getElementById('scanner-real-image');
+            if (realImg) {
+                realImg.src = randCar.img;
+                realImg.style.display = 'block';
+                void realImg.offsetWidth;
+                realImg.style.opacity = '1';
+            }
+            
+            if(window.calculateBudget) { window.calculateBudget(); }
+            
+            setTimeout(() => {
+                if(window.closeScannerModal) window.closeScannerModal();
+                else modal.style.display = 'none';
+                if(typeof showFloatingToast === 'function') showFloatingToast("Datos del vehículo cargados por IA.");
+                if (realImg) {
+                    realImg.style.opacity = '0';
+                    setTimeout(() => { realImg.style.display = 'none'; }, 500);
+                }
+            }, 2500);
+            
+        }, 3000);
+    }, 500);
 }
