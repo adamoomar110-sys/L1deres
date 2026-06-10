@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi Auto - Lavadero EstÃ©tica Vehicular</title>
+    <title>Mi Auto - Lavadero Estética Vehicular</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,7 +11,7 @@
     
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Ajustes especÃ­ficos para Mobile First (Cliente) */
+        /* Ajustes específicos para Mobile First (Cliente) */
         body {
             background-color: var(--color-bg);
             display: flex;
@@ -103,7 +103,7 @@
             100% { transform: scale(1.5) translateY(-10px); }
         }
 
-        /* ConfiguraciÃ³n UI */
+        /* Configuración UI */
         .wash-menu-grid { display: grid; }
         .wash-menu-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; padding: 1rem; cursor: pointer; transition: 0.3s; position: relative; }
         .wash-menu-card.selected { border-color: var(--color-cyan); background: rgba(0,240,255,0.1); }
@@ -235,7 +235,7 @@
             <div class="client-plate" id="car-plate">--</div>
         </div>
 
-        <!-- CONTENEDOR DE ESTADO (Oculto en modo configuraciÃ³n) -->
+        <!-- CONTENEDOR DE ESTADO (Oculto en modo configuración) -->
         <div id="tracking-view">
             <div id="status-container" class="status-badge" style="display: none;"></div>
 
@@ -287,7 +287,7 @@
                     <span id="service-price" style="font-size: 1.1rem; font-weight: 900; color: var(--color-lime); font-family: var(--font-mono);">-</span>
                 </div>
                 <div id="service-items" style="display: flex; flex-direction: column; gap: 0.5rem;">
-                    <!-- items se inyectan dinÃ¡micamente -->
+                    <!-- items se inyectan dinámicamente -->
                 </div>
                 <div id="payment-status" style="margin-top: 1rem; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.1);">
                     <span style="color: var(--color-text-dim);">Forma de Pago:</span>
@@ -296,11 +296,17 @@
             </div>
         </div>
 
-        <!-- CONTENEDOR DE CONFIGURACIÃ“N (Visible si no hay tipo seleccionado) -->
+        <!-- CONTENEDOR DE CONFIGURACIÓN (Visible si no hay tipo seleccionado) -->
         <div id="config-view" style="display: none; text-align: left; margin-top: 1.5rem;">
-            <p style="font-size: 0.85rem; color: var(--color-cyan); font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">1. Elige tu Servicio</p>
+            
+            <p style="font-size: 0.85rem; color: var(--color-cyan); font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">0. ¿Qué vehículo tienes?</p>
+            <div id="config-cat-grid" class="wash-menu-grid" style="grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 2rem;">
+                <!-- Dinámico -->
+            </div>
+
+            <p style="font-size: 0.85rem; color: var(--color-cyan); font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">1. Elige tu Servicio (Puedes elegir varios)</p>
             <div id="config-wash-grid" class="wash-menu-grid" style="grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                <!-- DinÃ¡mico -->
+                <!-- Dinámico -->
             </div>
 
             <p style="font-size: 0.85rem; color: var(--color-cyan); font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">2. Forma de Pago</p>
@@ -327,11 +333,11 @@
     </div>
 
     <div class="client-footer">
-        Â© 2026 Omar Adamo. Todos los derechos reservados. <br> Lavadero EstÃ©tica Vehicular â€¢ Software Independiente
+        © 2026 Omar Adamo. Todos los derechos reservados. <br> Lavadero Estética Vehicular â€¢ Software Independiente
     </div>
 
     <script>
-        // Cargar configuraciÃ³n de localStorage si existe (modo compartido en el mismo dispositivo)
+        // Cargar configuración de localStorage si existe (modo compartido en el mismo dispositivo)
         let WASH_DETAILS = {};
         const savedSettings = localStorage.getItem('lavadero_wash_settings');
         
@@ -347,11 +353,11 @@
         } else {
             // Fallback por defecto si no hay localStorage
             WASH_DETAILS = {
-                'combo-limpieza-total': { name: 'Combo Limpieza Total ðŸŒ€', price: 18000, items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clÃ¡sico'] },
-                'combo-vip-gold': { name: 'Combo VIP Gold ðŸ†', price: 25000, items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileÃ±a', 'Aspirado con vapor'] },
-                'lavado-carroceria': { name: 'Lavado Exterior Simple ðŸš—', price: 12000, items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumÃ¡ticos'] },
-                'aspirado-interior': { name: 'Aspirado e Interior Pro ðŸ’¨', price: 10000, items: ['Aspirado butacas y paneles', 'DesinfecciÃ³n de contacto', 'Acondicionado de plÃ¡sticos'] },
-                'lavado-express': { name: 'Lavado Express âš¡', price: 8000, items: ['Lavado exterior a presiÃ³n', 'Secado rÃ¡pido', 'Brillo bÃ¡sico de cubiertas'] }
+                'combo-limpieza-total': { name: 'Combo Limpieza Total ðŸŒ€', price: 18000, items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clásico'] },
+                'combo-vip-gold': { name: 'Combo VIP Gold ðŸ†', price: 25000, items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor'] },
+                'lavado-carroceria': { name: 'Lavado Exterior Simple ðŸš—', price: 12000, items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumáticos'] },
+                'aspirado-interior': { name: 'Aspirado e Interior Pro ðŸ’¨', price: 10000, items: ['Aspirado butacas y paneles', 'Desinfección de contacto', 'Acondicionado de plásticos'] },
+                'lavado-express': { name: 'Lavado Express âš¡', price: 8000, items: ['Lavado exterior a presión', 'Secado rápido', 'Brillo básico de cubiertas'] }
             };
         }
 
@@ -383,11 +389,11 @@
 
         // Parsear URL parameters
         const urlParams = new URLSearchParams(window.location.search);
-        const nick = urlParams.get('n') || 'Tu VehÃ­culo';
+        const nick = urlParams.get('n') || 'Tu Vehículo';
         const color = urlParams.get('c') ? '#' + urlParams.get('c') : '#06b6d4';
         const plate = urlParams.get('p') || 'SIN PATENTE';
         const zone = urlParams.get('z') || 'espera';
-        const pos = parseInt(urlParams.get('pos') || '1'); // PosiciÃ³n en cola
+        const pos = parseInt(urlParams.get('pos') || '1'); // Posición en cola
         let type = urlParams.get('t') || '';
         let payment = urlParams.get('pay') || '';
 
@@ -404,16 +410,76 @@
         let pendingType = '';
         let pendingPay = '';
 
-        // LÃ³gica de SelecciÃ³n de ConfiguraciÃ³n
+        // Lógica de Selección de Configuración
+        
+        let VEHICLE_CATEGORIES = [];
+        const savedCatSettings = localStorage.getItem('lavadero_vehicle_categories');
+        if (savedCatSettings) {
+            VEHICLE_CATEGORIES = JSON.parse(savedCatSettings);
+        } else {
+            VEHICLE_CATEGORIES = [
+                { id: 'Auto', surcharge: 0, icon: '🚗' },
+                { id: 'SUV', surcharge: 20, icon: '🚙' },
+                { id: 'Camioneta', surcharge: 50, icon: '🛻' }
+            ];
+        }
+
+        let pendingCats = '';
+        let currentSurcharge = 0;
+
+        function renderCatMenu() {
+            const grid = document.getElementById('config-cat-grid');
+            if(!grid) return;
+            let h = '';
+            VEHICLE_CATEGORIES.forEach(cat => {
+                h += `
+                <div class="wash-menu-card" data-cat="${cat.id}" onclick="selectCat(this, '${cat.id}', ${cat.surcharge})">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-icon" style="font-size: 1.5rem;">${cat.icon}</div>
+                    <div class="wash-card-title" style="font-size: 0.65rem;">${cat.id} ${cat.surcharge >= 0 ? '+</div>
+                </div>
+                `;
+            });
+            grid.innerHTML = h;
+            
+            // Auto select URL parameter if present
+            const urlCat = urlParams.get('cat');
+            if (urlCat) {
+                const catNode = document.querySelector(`#config-cat-grid .wash-menu-card[data-cat="${urlCat}"]`);
+                if (catNode) {
+                    const found = VEHICLE_CATEGORIES.find(c => c.id === urlCat);
+                    selectCat(catNode, urlCat, found ? found.surcharge : 0);
+                    document.getElementById('config-cat-grid').parentElement.style.display = 'none'; // hide step 0 if pre-filled
+                }
+            } else if (VEHICLE_CATEGORIES.length > 0) {
+                // select first by default
+                const first = document.querySelector(`#config-cat-grid .wash-menu-card`);
+                if (first) selectCat(first, VEHICLE_CATEGORIES[0].id, VEHICLE_CATEGORIES[0].surcharge);
+            }
+        }
+
+        function selectCat(el, id, perc) {
+            document.querySelectorAll('#config-cat-grid .wash-menu-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            pendingCats = id;
+            currentSurcharge = perc;
+            renderCatMenu(); renderConfigMenu(); // re-render prices
+        }
+
+        let pendingTypeIds = [];
+
         function renderConfigMenu() {
             const grid = document.getElementById('config-wash-grid');
+            if(!grid) return;
             let html = '';
             for (const [id, details] of Object.entries(WASH_DETAILS)) {
+                const adjustedPrice = details.price + currentSurcharge;
+                const isSelected = pendingTypeIds.includes(id) ? 'selected' : '';
                 html += `
-                <div class="wash-menu-card" data-type="${id}" onclick="selectWash(this, '${id}')">
-                    <div class="check-badge">âœ“</div>
+                <div class="wash-menu-card ${isSelected}" data-type="${id}" onclick="selectWash(this, '${id}')">
+                    <div class="check-badge">✓</div>
                     <div class="wash-card-title" style="font-size: 0.75rem; min-height: 2.5em; display:flex; align-items:center; justify-content:center;">${details.name}</div>
-                    <div class="wash-card-price" style="font-size: 0.9rem;">$${details.price.toLocaleString('es-AR')}</div>
+                    <div class="wash-card-price" style="font-size: 0.9rem;">${adjustedPrice.toLocaleString('es-AR')}</div>
                 </div>
                 `;
             }
@@ -421,23 +487,24 @@
         }
 
         function selectWash(el, id) {
-            document.querySelectorAll('#config-wash-grid .wash-menu-card').forEach(card => card.classList.remove('selected'));
-            el.classList.add('selected');
-            pendingType = id;
-        }
-
-        function selectPayment(el, id) {
-            document.querySelectorAll('#config-pay-grid .wash-menu-card').forEach(card => card.classList.remove('selected'));
-            el.classList.add('selected');
-            pendingPay = id;
+            if (pendingTypeIds.includes(id)) {
+                pendingTypeIds = pendingTypeIds.filter(i => i !== id);
+                el.classList.remove('selected');
+            } else {
+                pendingTypeIds.push(id);
+                el.classList.add('selected');
+            }
         }
 
         function confirmarConfiguracion() {
-            if (!pendingType) { alert('Por favor, selecciona un tipo de lavado.'); return; }
+            if (!pendingCats) { alert('Por favor, selecciona qué vehículo tienes.'); return; }
+            if (pendingTypeIds.length === 0) { alert('Por favor, selecciona al menos un tipo de lavado.'); return; }
             if (!pendingPay) { alert('Por favor, selecciona una forma de pago.'); return; }
             
-            // Actualizar URL sin recargar (para demo fluido)
+            pendingType = pendingTypeIds.join(',');
+            
             const newUrl = new URL(window.location);
+            newUrl.searchParams.set('cat', pendingCats);
             newUrl.searchParams.set('t', pendingType);
             newUrl.searchParams.set('pay', pendingPay);
             window.history.pushState({}, '', newUrl);
@@ -445,14 +512,13 @@
             type = pendingType;
             payment = pendingPay;
             
-            // TransiciÃ³n a vista de seguimiento
             configView.style.display = 'none';
             trackingView.style.display = 'block';
             
-            // Inyectar el auto en el tracking view (ya que pudo moverse)
             document.getElementById('car-display-container').innerHTML = getCarSvg(color);
             initTrackingView();
         }
+
 
         function initTrackingView() {
             statusContainer.style.display = 'none'; // Ocultamos el viejo badge en favor del stepper
@@ -475,11 +541,11 @@
             // Configurar estado visual
             if (zone === 'espera') {
                 step1.classList.add('active');
-                etaText.innerText = 'RelÃ¡jate, ya casi es tu turno.';
+                etaText.innerText = 'Relájate, ya casi es tu turno.';
                 
                 queueCard.style.display = 'block';
                 document.getElementById('queue-number').innerText = '#' + pos;
-                document.getElementById('queue-subtitle').innerText = pos === 1 ? 'Â¡Eres el prÃ³ximo!' : 'Autos delante tuyo';
+                document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
 
             } else if (zone === 'lavado') {
                 step1.classList.add('completed');
@@ -490,7 +556,7 @@
                 displayContainer.classList.add('in-wash');
                 
                 progressCard.style.display = 'block';
-                // AnimaciÃ³n simulada de progreso
+                // Animación simulada de progreso
                 setTimeout(() => {
                     document.getElementById('wash-progress').style.width = '65%';
                     document.getElementById('progress-text').innerText = 'Aprox. 8 min restantes';
@@ -503,48 +569,159 @@
                 line2.classList.add('active');
                 step3.classList.add('active', 'completed');
                 
-                etaText.innerText = 'Tu vehÃ­culo ha quedado impecable. Te esperamos en la salida.';
+                etaText.innerText = 'Tu vehículo ha quedado impecable. Te esperamos en la salida.';
             }
 
             // Cargar detalles del servicio contratado
             const serviceCard = document.getElementById('service-card');
-            if (type && WASH_DETAILS[type]) {
-                const details = WASH_DETAILS[type];
-                document.getElementById('service-name').innerText = details.name;
-                document.getElementById('service-price').innerText = `$${details.price.toLocaleString('es-AR')}`;
-                document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+            if (type) {
+                const typeIds = type.split(',');
+                let totalName = [];
+                let totalPrice = 0;
+                let allItems = [];
+                let hasKnownPackages = false;
+
+                typeIds.forEach(id => {
+                    const trimmedId = id.trim();
+                    if (WASH_DETAILS[trimmedId]) {
+                        hasKnownPackages = true;
+                        totalName.push(WASH_DETAILS[trimmedId].name);
+                        totalPrice += WASH_DETAILS[trimmedId].price;
+                        allItems = allItems.concat(WASH_DETAILS[trimmedId].items);
+                    }
+                });
+
+                if (hasKnownPackages) {
+                    document.getElementById('service-name').innerText = totalName.join(' + ');
+                    document.getElementById('service-price').innerText = `$${totalPrice.toLocaleString('es-AR')}`;
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    
+                    const itemsContainer = document.getElementById('service-items');
+                    itemsContainer.innerHTML = [...new Set(allItems)].map(item => `
+                        <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
+                            <span style="color: var(--color-lime);">âœ“</span>
+                            <span>${item}</span>
+                        </div>
+                    `).join('');
+                    
+                    serviceCard.style.display = 'block';
+                } else {
+                    // Caso en el que venga un string personalizado no catalogado
+                    document.getElementById('service-name').innerText = decodeURIComponent(type);
+                    document.getElementById('service-price').innerText = '';
+                    document.getElementById('service-items').innerHTML = '';
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+
+
+        function initTrackingView() {
+            statusContainer.style.display = 'none'; // Ocultamos el viejo badge en favor del stepper
+            document.getElementById('stepper-wrapper').style.display = 'flex';
+            etaText.style.display = 'block';
+            
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const line1 = document.getElementById('line-1');
+            const line2 = document.getElementById('line-2');
+
+            const queueCard = document.getElementById('queue-position-card');
+            const progressCard = document.getElementById('progress-card');
+
+            queueCard.style.display = 'none';
+            progressCard.style.display = 'none';
+            displayContainer.classList.remove('in-wash');
+
+            // Configurar estado visual
+            if (zone === 'espera') {
+                step1.classList.add('active');
+                etaText.innerText = 'Relájate, ya casi es tu turno.';
                 
-                const itemsContainer = document.getElementById('service-items');
-                itemsContainer.innerHTML = details.items.map(item => `
-                    <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
-                        <span style="color: var(--color-lime);">âœ“</span>
-                        <span>${item}</span>
-                    </div>
-                `).join('');
+                queueCard.style.display = 'block';
+                document.getElementById('queue-number').innerText = '#' + pos;
+                document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
+
+            } else if (zone === 'lavado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('active');
                 
-                serviceCard.style.display = 'block';
-            } else if (type) {
-                // Caso en el que venga un string personalizado no catalogado
-                document.getElementById('service-name').innerText = decodeURIComponent(type);
-                document.getElementById('service-price').innerText = '';
-                document.getElementById('service-items').innerHTML = '';
-                document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
-                serviceCard.style.display = 'block';
+                etaText.innerText = 'Estamos dejando tu auto impecable.';
+                displayContainer.classList.add('in-wash');
+                
+                progressCard.style.display = 'block';
+                // Animación simulada de progreso
+                setTimeout(() => {
+                    document.getElementById('wash-progress').style.width = '65%';
+                    document.getElementById('progress-text').innerText = 'Aprox. 8 min restantes';
+                }, 500);
+
+            } else if (zone === 'terminado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('completed');
+                line2.classList.add('active');
+                step3.classList.add('active', 'completed');
+                
+                etaText.innerText = 'Tu vehículo ha quedado impecable. Te esperamos en la salida.';
+            }
+
+            // Cargar detalles del servicio contratado
+            const serviceCard = document.getElementById('service-card');
+            if (type) {
+                const typeIds = type.split(',');
+                let totalName = [];
+                let totalPrice = 0;
+                let allItems = [];
+                let hasKnownPackages = false;
+
+                typeIds.forEach(id => {
+                    const trimmedId = id.trim();
+                    if (WASH_DETAILS[trimmedId]) {
+                        hasKnownPackages = true;
+                        totalName.push(WASH_DETAILS[trimmedId].name);
+                        totalPrice += WASH_DETAILS[trimmedId].price;
+                        allItems = allItems.concat(WASH_DETAILS[trimmedId].items);
+                    }
+                });
+
+                if (hasKnownPackages) {
+                    document.getElementById('service-name').innerText = totalName.join(' + ');
+                    document.getElementById('service-price').innerText = `$${totalPrice.toLocaleString('es-AR')}`;
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    
+                    const itemsContainer = document.getElementById('service-items');
+                    itemsContainer.innerHTML = [...new Set(allItems)].map(item => `
+                        <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
+                            <span style="color: var(--color-lime);">âœ“</span>
+                            <span>${item}</span>
+                        </div>
+                    `).join('');
+                    
+                    serviceCard.style.display = 'block';
+                } else {
+                    // Caso en el que venga un string personalizado no catalogado
+                    document.getElementById('service-name').innerText = decodeURIComponent(type);
+                    document.getElementById('service-price').innerText = '';
+                    document.getElementById('service-items').innerHTML = '';
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    serviceCard.style.display = 'block';
+                }
             }
         }
 
         // INIT LOGIC
         if (!type || !payment) {
-            // Entra en modo ConfiguraciÃ³n si falta algÃºn dato
+            // Entra en modo Configuración si falta algún dato
             trackingView.style.display = 'none';
             configView.style.display = 'block';
             
             // Inyectamos un auto base en la cabecera del config
             configView.insertAdjacentHTML('afterbegin', `<div style="display:flex; justify-content:center; margin-bottom: 1.5rem; transform: scale(0.8);">${getCarSvg(color)}</div>`);
 
+            renderCatMenu();
             renderConfigMenu();
         } else {
-            // Ya estÃ¡ configurado, entra en modo Tracking Directamente
+            // Ya está configurado, entra en modo Tracking Directamente
             initTrackingView();
         }
     </script>
@@ -553,4 +730,591 @@
 </footer>
 </body>
 </html>
+ : '-</div>
+                </div>
+                `;
+            });
+            grid.innerHTML = h;
+            
+            // Auto select URL parameter if present
+            const urlCat = urlParams.get('cat');
+            if (urlCat) {
+                const catNode = document.querySelector(`#config-cat-grid .wash-menu-card[data-cat="${urlCat}"]`);
+                if (catNode) {
+                    const found = VEHICLE_CATEGORIES.find(c => c.id === urlCat);
+                    selectCat(catNode, urlCat, found ? found.surcharge : 0);
+                    document.getElementById('config-cat-grid').parentElement.style.display = 'none'; // hide step 0 if pre-filled
+                }
+            } else if (VEHICLE_CATEGORIES.length > 0) {
+                // select first by default
+                const first = document.querySelector(`#config-cat-grid .wash-menu-card`);
+                if (first) selectCat(first, VEHICLE_CATEGORIES[0].id, VEHICLE_CATEGORIES[0].surcharge);
+            }
+        }
 
+        function selectCat(el, id, perc) {
+            document.querySelectorAll('#config-cat-grid .wash-menu-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            pendingCats = id;
+            currentMultiplier = 1 + (perc / 100);
+            renderCatMenu(); renderConfigMenu(); // re-render prices
+        }
+
+        let pendingTypeIds = [];
+
+        function renderConfigMenu() {
+            const grid = document.getElementById('config-wash-grid');
+            if(!grid) return;
+            let html = '';
+            for (const [id, details] of Object.entries(WASH_DETAILS)) {
+                const adjustedPrice = Math.round(details.price * currentMultiplier);
+                const isSelected = pendingTypeIds.includes(id) ? 'selected' : '';
+                html += `
+                <div class="wash-menu-card ${isSelected}" data-type="${id}" onclick="selectWash(this, '${id}')">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-title" style="font-size: 0.75rem; min-height: 2.5em; display:flex; align-items:center; justify-content:center;">${details.name}</div>
+                    <div class="wash-card-price" style="font-size: 0.9rem;">${adjustedPrice.toLocaleString('es-AR')}</div>
+                </div>
+                `;
+            }
+            grid.innerHTML = html;
+        }
+
+        function selectWash(el, id) {
+            if (pendingTypeIds.includes(id)) {
+                pendingTypeIds = pendingTypeIds.filter(i => i !== id);
+                el.classList.remove('selected');
+            } else {
+                pendingTypeIds.push(id);
+                el.classList.add('selected');
+            }
+        }
+
+        function confirmarConfiguracion() {
+            if (!pendingCats) { alert('Por favor, selecciona qué vehículo tienes.'); return; }
+            if (pendingTypeIds.length === 0) { alert('Por favor, selecciona al menos un tipo de lavado.'); return; }
+            if (!pendingPay) { alert('Por favor, selecciona una forma de pago.'); return; }
+            
+            pendingType = pendingTypeIds.join(',');
+            
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('cat', pendingCats);
+            newUrl.searchParams.set('t', pendingType);
+            newUrl.searchParams.set('pay', pendingPay);
+            window.history.pushState({}, '', newUrl);
+
+            type = pendingType;
+            payment = pendingPay;
+            
+            configView.style.display = 'none';
+            trackingView.style.display = 'block';
+            
+            document.getElementById('car-display-container').innerHTML = getCarSvg(color);
+            initTrackingView();
+        }
+
+
+        function initTrackingView() {
+            statusContainer.style.display = 'none'; // Ocultamos el viejo badge en favor del stepper
+            document.getElementById('stepper-wrapper').style.display = 'flex';
+            etaText.style.display = 'block';
+            
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const line1 = document.getElementById('line-1');
+            const line2 = document.getElementById('line-2');
+
+            const queueCard = document.getElementById('queue-position-card');
+            const progressCard = document.getElementById('progress-card');
+
+            queueCard.style.display = 'none';
+            progressCard.style.display = 'none';
+            displayContainer.classList.remove('in-wash');
+
+            // Configurar estado visual
+            if (zone === 'espera') {
+                step1.classList.add('active');
+                etaText.innerText = 'Relájate, ya casi es tu turno.';
+                
+                queueCard.style.display = 'block';
+                document.getElementById('queue-number').innerText = '#' + pos;
+                document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
+
+            } else if (zone === 'lavado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('active');
+                
+                etaText.innerText = 'Estamos dejando tu auto impecable.';
+                displayContainer.classList.add('in-wash');
+                
+                progressCard.style.display = 'block';
+                // Animación simulada de progreso
+                setTimeout(() => {
+                    document.getElementById('wash-progress').style.width = '65%';
+                    document.getElementById('progress-text').innerText = 'Aprox. 8 min restantes';
+                }, 500);
+
+            } else if (zone === 'terminado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('completed');
+                line2.classList.add('active');
+                step3.classList.add('active', 'completed');
+                
+                etaText.innerText = 'Tu vehículo ha quedado impecable. Te esperamos en la salida.';
+            }
+
+            // Cargar detalles del servicio contratado
+            const serviceCard = document.getElementById('service-card');
+            if (type) {
+                const typeIds = type.split(',');
+                let totalName = [];
+                let totalPrice = 0;
+                let allItems = [];
+                let hasKnownPackages = false;
+
+                typeIds.forEach(id => {
+                    const trimmedId = id.trim();
+                    if (WASH_DETAILS[trimmedId]) {
+                        hasKnownPackages = true;
+                        totalName.push(WASH_DETAILS[trimmedId].name);
+                        totalPrice += WASH_DETAILS[trimmedId].price;
+                        allItems = allItems.concat(WASH_DETAILS[trimmedId].items);
+                    }
+                });
+
+                if (hasKnownPackages) {
+                    document.getElementById('service-name').innerText = totalName.join(' + ');
+                    document.getElementById('service-price').innerText = `$${totalPrice.toLocaleString('es-AR')}`;
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    
+                    const itemsContainer = document.getElementById('service-items');
+                    itemsContainer.innerHTML = [...new Set(allItems)].map(item => `
+                        <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
+                            <span style="color: var(--color-lime);">âœ“</span>
+                            <span>${item}</span>
+                        </div>
+                    `).join('');
+                    
+                    serviceCard.style.display = 'block';
+                } else {
+                    // Caso en el que venga un string personalizado no catalogado
+                    document.getElementById('service-name').innerText = decodeURIComponent(type);
+                    document.getElementById('service-price').innerText = '';
+                    document.getElementById('service-items').innerHTML = '';
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+
+
+        function initTrackingView() {
+            statusContainer.style.display = 'none'; // Ocultamos el viejo badge en favor del stepper
+            document.getElementById('stepper-wrapper').style.display = 'flex';
+            etaText.style.display = 'block';
+            
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const line1 = document.getElementById('line-1');
+            const line2 = document.getElementById('line-2');
+
+            const queueCard = document.getElementById('queue-position-card');
+            const progressCard = document.getElementById('progress-card');
+
+            queueCard.style.display = 'none';
+            progressCard.style.display = 'none';
+            displayContainer.classList.remove('in-wash');
+
+            // Configurar estado visual
+            if (zone === 'espera') {
+                step1.classList.add('active');
+                etaText.innerText = 'Relájate, ya casi es tu turno.';
+                
+                queueCard.style.display = 'block';
+                document.getElementById('queue-number').innerText = '#' + pos;
+                document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
+
+            } else if (zone === 'lavado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('active');
+                
+                etaText.innerText = 'Estamos dejando tu auto impecable.';
+                displayContainer.classList.add('in-wash');
+                
+                progressCard.style.display = 'block';
+                // Animación simulada de progreso
+                setTimeout(() => {
+                    document.getElementById('wash-progress').style.width = '65%';
+                    document.getElementById('progress-text').innerText = 'Aprox. 8 min restantes';
+                }, 500);
+
+            } else if (zone === 'terminado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('completed');
+                line2.classList.add('active');
+                step3.classList.add('active', 'completed');
+                
+                etaText.innerText = 'Tu vehículo ha quedado impecable. Te esperamos en la salida.';
+            }
+
+            // Cargar detalles del servicio contratado
+            const serviceCard = document.getElementById('service-card');
+            if (type) {
+                const typeIds = type.split(',');
+                let totalName = [];
+                let totalPrice = 0;
+                let allItems = [];
+                let hasKnownPackages = false;
+
+                typeIds.forEach(id => {
+                    const trimmedId = id.trim();
+                    if (WASH_DETAILS[trimmedId]) {
+                        hasKnownPackages = true;
+                        totalName.push(WASH_DETAILS[trimmedId].name);
+                        totalPrice += WASH_DETAILS[trimmedId].price;
+                        allItems = allItems.concat(WASH_DETAILS[trimmedId].items);
+                    }
+                });
+
+                if (hasKnownPackages) {
+                    document.getElementById('service-name').innerText = totalName.join(' + ');
+                    document.getElementById('service-price').innerText = `$${totalPrice.toLocaleString('es-AR')}`;
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    
+                    const itemsContainer = document.getElementById('service-items');
+                    itemsContainer.innerHTML = [...new Set(allItems)].map(item => `
+                        <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
+                            <span style="color: var(--color-lime);">âœ“</span>
+                            <span>${item}</span>
+                        </div>
+                    `).join('');
+                    
+                    serviceCard.style.display = 'block';
+                } else {
+                    // Caso en el que venga un string personalizado no catalogado
+                    document.getElementById('service-name').innerText = decodeURIComponent(type);
+                    document.getElementById('service-price').innerText = '';
+                    document.getElementById('service-items').innerHTML = '';
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    serviceCard.style.display = 'block';
+                }
+            }
+        }
+
+        // INIT LOGIC
+        if (!type || !payment) {
+            // Entra en modo Configuración si falta algún dato
+            trackingView.style.display = 'none';
+            configView.style.display = 'block';
+            
+            // Inyectamos un auto base en la cabecera del config
+            configView.insertAdjacentHTML('afterbegin', `<div style="display:flex; justify-content:center; margin-bottom: 1.5rem; transform: scale(0.8);">${getCarSvg(color)}</div>`);
+
+            renderCatMenu();
+            renderConfigMenu();
+        } else {
+            // Ya está configurado, entra en modo Tracking Directamente
+            initTrackingView();
+        }
+    </script>
+<footer style="text-align: center; padding: 20px; font-family: sans-serif; font-size: 14px; color: #888; margin-top: 40px;">
+    &copy; 2026 Omar. Todos los derechos reservados.
+</footer>
+</body>
+</html>
+}${Math.abs(cat.surcharge || 0).toLocaleString('es-AR')}</div>
+                </div>
+                `;
+            });
+            grid.innerHTML = h;
+            
+            // Auto select URL parameter if present
+            const urlCat = urlParams.get('cat');
+            if (urlCat) {
+                const catNode = document.querySelector(`#config-cat-grid .wash-menu-card[data-cat="${urlCat}"]`);
+                if (catNode) {
+                    const found = VEHICLE_CATEGORIES.find(c => c.id === urlCat);
+                    selectCat(catNode, urlCat, found ? found.surcharge : 0);
+                    document.getElementById('config-cat-grid').parentElement.style.display = 'none'; // hide step 0 if pre-filled
+                }
+            } else if (VEHICLE_CATEGORIES.length > 0) {
+                // select first by default
+                const first = document.querySelector(`#config-cat-grid .wash-menu-card`);
+                if (first) selectCat(first, VEHICLE_CATEGORIES[0].id, VEHICLE_CATEGORIES[0].surcharge);
+            }
+        }
+
+        function selectCat(el, id, perc) {
+            document.querySelectorAll('#config-cat-grid .wash-menu-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            pendingCats = id;
+            currentMultiplier = 1 + (perc / 100);
+            renderCatMenu(); renderConfigMenu(); // re-render prices
+        }
+
+        let pendingTypeIds = [];
+
+        function renderConfigMenu() {
+            const grid = document.getElementById('config-wash-grid');
+            if(!grid) return;
+            let html = '';
+            for (const [id, details] of Object.entries(WASH_DETAILS)) {
+                const adjustedPrice = Math.round(details.price * currentMultiplier);
+                const isSelected = pendingTypeIds.includes(id) ? 'selected' : '';
+                html += `
+                <div class="wash-menu-card ${isSelected}" data-type="${id}" onclick="selectWash(this, '${id}')">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-title" style="font-size: 0.75rem; min-height: 2.5em; display:flex; align-items:center; justify-content:center;">${details.name}</div>
+                    <div class="wash-card-price" style="font-size: 0.9rem;">${adjustedPrice.toLocaleString('es-AR')}</div>
+                </div>
+                `;
+            }
+            grid.innerHTML = html;
+        }
+
+        function selectWash(el, id) {
+            if (pendingTypeIds.includes(id)) {
+                pendingTypeIds = pendingTypeIds.filter(i => i !== id);
+                el.classList.remove('selected');
+            } else {
+                pendingTypeIds.push(id);
+                el.classList.add('selected');
+            }
+        }
+
+        function confirmarConfiguracion() {
+            if (!pendingCats) { alert('Por favor, selecciona qué vehículo tienes.'); return; }
+            if (pendingTypeIds.length === 0) { alert('Por favor, selecciona al menos un tipo de lavado.'); return; }
+            if (!pendingPay) { alert('Por favor, selecciona una forma de pago.'); return; }
+            
+            pendingType = pendingTypeIds.join(',');
+            
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('cat', pendingCats);
+            newUrl.searchParams.set('t', pendingType);
+            newUrl.searchParams.set('pay', pendingPay);
+            window.history.pushState({}, '', newUrl);
+
+            type = pendingType;
+            payment = pendingPay;
+            
+            configView.style.display = 'none';
+            trackingView.style.display = 'block';
+            
+            document.getElementById('car-display-container').innerHTML = getCarSvg(color);
+            initTrackingView();
+        }
+
+
+        function initTrackingView() {
+            statusContainer.style.display = 'none'; // Ocultamos el viejo badge en favor del stepper
+            document.getElementById('stepper-wrapper').style.display = 'flex';
+            etaText.style.display = 'block';
+            
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const line1 = document.getElementById('line-1');
+            const line2 = document.getElementById('line-2');
+
+            const queueCard = document.getElementById('queue-position-card');
+            const progressCard = document.getElementById('progress-card');
+
+            queueCard.style.display = 'none';
+            progressCard.style.display = 'none';
+            displayContainer.classList.remove('in-wash');
+
+            // Configurar estado visual
+            if (zone === 'espera') {
+                step1.classList.add('active');
+                etaText.innerText = 'Relájate, ya casi es tu turno.';
+                
+                queueCard.style.display = 'block';
+                document.getElementById('queue-number').innerText = '#' + pos;
+                document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
+
+            } else if (zone === 'lavado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('active');
+                
+                etaText.innerText = 'Estamos dejando tu auto impecable.';
+                displayContainer.classList.add('in-wash');
+                
+                progressCard.style.display = 'block';
+                // Animación simulada de progreso
+                setTimeout(() => {
+                    document.getElementById('wash-progress').style.width = '65%';
+                    document.getElementById('progress-text').innerText = 'Aprox. 8 min restantes';
+                }, 500);
+
+            } else if (zone === 'terminado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('completed');
+                line2.classList.add('active');
+                step3.classList.add('active', 'completed');
+                
+                etaText.innerText = 'Tu vehículo ha quedado impecable. Te esperamos en la salida.';
+            }
+
+            // Cargar detalles del servicio contratado
+            const serviceCard = document.getElementById('service-card');
+            if (type) {
+                const typeIds = type.split(',');
+                let totalName = [];
+                let totalPrice = 0;
+                let allItems = [];
+                let hasKnownPackages = false;
+
+                typeIds.forEach(id => {
+                    const trimmedId = id.trim();
+                    if (WASH_DETAILS[trimmedId]) {
+                        hasKnownPackages = true;
+                        totalName.push(WASH_DETAILS[trimmedId].name);
+                        totalPrice += WASH_DETAILS[trimmedId].price;
+                        allItems = allItems.concat(WASH_DETAILS[trimmedId].items);
+                    }
+                });
+
+                if (hasKnownPackages) {
+                    document.getElementById('service-name').innerText = totalName.join(' + ');
+                    document.getElementById('service-price').innerText = `$${totalPrice.toLocaleString('es-AR')}`;
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    
+                    const itemsContainer = document.getElementById('service-items');
+                    itemsContainer.innerHTML = [...new Set(allItems)].map(item => `
+                        <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
+                            <span style="color: var(--color-lime);">âœ“</span>
+                            <span>${item}</span>
+                        </div>
+                    `).join('');
+                    
+                    serviceCard.style.display = 'block';
+                } else {
+                    // Caso en el que venga un string personalizado no catalogado
+                    document.getElementById('service-name').innerText = decodeURIComponent(type);
+                    document.getElementById('service-price').innerText = '';
+                    document.getElementById('service-items').innerHTML = '';
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+
+
+        function initTrackingView() {
+            statusContainer.style.display = 'none'; // Ocultamos el viejo badge en favor del stepper
+            document.getElementById('stepper-wrapper').style.display = 'flex';
+            etaText.style.display = 'block';
+            
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const line1 = document.getElementById('line-1');
+            const line2 = document.getElementById('line-2');
+
+            const queueCard = document.getElementById('queue-position-card');
+            const progressCard = document.getElementById('progress-card');
+
+            queueCard.style.display = 'none';
+            progressCard.style.display = 'none';
+            displayContainer.classList.remove('in-wash');
+
+            // Configurar estado visual
+            if (zone === 'espera') {
+                step1.classList.add('active');
+                etaText.innerText = 'Relájate, ya casi es tu turno.';
+                
+                queueCard.style.display = 'block';
+                document.getElementById('queue-number').innerText = '#' + pos;
+                document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
+
+            } else if (zone === 'lavado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('active');
+                
+                etaText.innerText = 'Estamos dejando tu auto impecable.';
+                displayContainer.classList.add('in-wash');
+                
+                progressCard.style.display = 'block';
+                // Animación simulada de progreso
+                setTimeout(() => {
+                    document.getElementById('wash-progress').style.width = '65%';
+                    document.getElementById('progress-text').innerText = 'Aprox. 8 min restantes';
+                }, 500);
+
+            } else if (zone === 'terminado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('completed');
+                line2.classList.add('active');
+                step3.classList.add('active', 'completed');
+                
+                etaText.innerText = 'Tu vehículo ha quedado impecable. Te esperamos en la salida.';
+            }
+
+            // Cargar detalles del servicio contratado
+            const serviceCard = document.getElementById('service-card');
+            if (type) {
+                const typeIds = type.split(',');
+                let totalName = [];
+                let totalPrice = 0;
+                let allItems = [];
+                let hasKnownPackages = false;
+
+                typeIds.forEach(id => {
+                    const trimmedId = id.trim();
+                    if (WASH_DETAILS[trimmedId]) {
+                        hasKnownPackages = true;
+                        totalName.push(WASH_DETAILS[trimmedId].name);
+                        totalPrice += WASH_DETAILS[trimmedId].price;
+                        allItems = allItems.concat(WASH_DETAILS[trimmedId].items);
+                    }
+                });
+
+                if (hasKnownPackages) {
+                    document.getElementById('service-name').innerText = totalName.join(' + ');
+                    document.getElementById('service-price').innerText = `$${totalPrice.toLocaleString('es-AR')}`;
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    
+                    const itemsContainer = document.getElementById('service-items');
+                    itemsContainer.innerHTML = [...new Set(allItems)].map(item => `
+                        <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
+                            <span style="color: var(--color-lime);">âœ“</span>
+                            <span>${item}</span>
+                        </div>
+                    `).join('');
+                    
+                    serviceCard.style.display = 'block';
+                } else {
+                    // Caso en el que venga un string personalizado no catalogado
+                    document.getElementById('service-name').innerText = decodeURIComponent(type);
+                    document.getElementById('service-price').innerText = '';
+                    document.getElementById('service-items').innerHTML = '';
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    serviceCard.style.display = 'block';
+                }
+            }
+        }
+
+        // INIT LOGIC
+        if (!type || !payment) {
+            // Entra en modo Configuración si falta algún dato
+            trackingView.style.display = 'none';
+            configView.style.display = 'block';
+            
+            // Inyectamos un auto base en la cabecera del config
+            configView.insertAdjacentHTML('afterbegin', `<div style="display:flex; justify-content:center; margin-bottom: 1.5rem; transform: scale(0.8);">${getCarSvg(color)}</div>`);
+
+            renderCatMenu();
+            renderConfigMenu();
+        } else {
+            // Ya está configurado, entra en modo Tracking Directamente
+            initTrackingView();
+        }
+    </script>
+<footer style="text-align: center; padding: 20px; font-family: sans-serif; font-size: 14px; color: #888; margin-top: 40px;">
+    &copy; 2026 Omar. Todos los derechos reservados.
+</footer>
+</body>
+</html>

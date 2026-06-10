@@ -1,4 +1,4 @@
-/* Variables de DiseÃ±o Premium (Glassmorphism) */
+/* Variables de Diseño Premium (Glassmorphism) */
 :root {
     --color-bg: #0a0a0f;
     --color-card-bg: rgba(25, 25, 35, 0.35);
@@ -281,7 +281,7 @@ body {
     border-radius: 0.75rem;
 }
 
-/* Indicador de simulaciÃ³n activo */
+/* Indicador de simulación activo */
 .pulse-indicator {
     display: inline-block;
     width: 8px;
@@ -401,7 +401,7 @@ body {
 .bg-cyan-dim { background-color: var(--color-cyan-dim); color: var(--color-cyan); border-color: rgba(0,240,255,0.15); }
 .bg-lime-dim { background-color: var(--color-lime-dim); color: var(--color-lime); border-color: rgba(57,255,20,0.15); }
 
-/* PISTA DE VEHÃCULOS */
+/* PISTA DE VEHÍCULOS */
 .lane-track {
     flex-grow: 1;
     display: flex;
@@ -427,7 +427,7 @@ body {
     pointer-events: none;
 }
 
-/* Placeholder cuando estÃ¡ vacÃ­a la pista */
+/* Placeholder cuando está vacía la pista */
 .empty-lane-placeholder {
     display: flex;
     flex-direction: column;
@@ -709,7 +709,7 @@ body {
     color: var(--color-text);
 }
 
-/* DiseÃ±o interno del panel */
+/* Diseño interno del panel */
 .operator-layout {
     display: grid;
     grid-template-columns: 380px 1fr;
@@ -898,7 +898,7 @@ body {
     color: var(--color-lime);
 }
 
-/* Selector/Acciones rÃ¡pidos en la tabla */
+/* Selector/Acciones rápidos en la tabla */
 .table-actions {
     display: flex;
     align-items: center;
@@ -1283,7 +1283,7 @@ input:checked + .slider:before {
    MODO CIRCUITO EN U (VISTA DE PISTA ARCADE 35 X 30)
    ========================================================================== */
 
-/* RediseÃ±o de la Grilla para formar la U en pantallas de escritorio */
+/* Rediseño de la Grilla para formar la U en pantallas de escritorio */
 @media (min-width: 769px) {
     .app-main.circuit-mode {
         display: grid !important;
@@ -1416,7 +1416,7 @@ input:checked + .slider:before {
         line-height: 1.6;
     }
 
-    /* RotaciÃ³n de autos segÃºn el carril para indicar flujo fÃ­sico de la U */
+    /* Rotación de autos según el carril para indicar flujo físico de la U */
     .circuit-mode .lane-espera .vehicle-sprite-container {
         transform: rotate(180deg) scale(0.95);
     }
@@ -1475,7 +1475,7 @@ input:checked + .slider:before {
         justify-content: flex-end; /* Los terminados se encolumnan hacia la salida superior */
     }
 
-    /* Pista y animaciÃ³n del retorno a salida */
+    /* Pista y animación del retorno a salida */
     .circuit-mode .retorno-track {
         display: flex;
         flex-direction: row;
@@ -1716,3 +1716,119 @@ input:checked + .slider:before {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==========================================================================
+   ESCÃ NER IA (MOCK)
+   ========================================================================== */
+.scanner-card {
+    border: 2px solid var(--color-cyan) !important;
+    box-shadow: 0 0 40px rgba(0, 240, 255, 0.4) !important;
+    border-radius: 1rem !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.scanner-viewport {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background: #050505;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.scanner-feed {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, #111 0%, #000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scanner-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px);
+    background-size: 30px 30px;
+    background-position: center;
+    z-index: 1;
+    opacity: 0.5;
+}
+
+.scanner-laser {
+    position: absolute;
+    top: -10%;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--color-cyan);
+    box-shadow: 0 0 15px var(--color-cyan), 0 0 30px var(--color-cyan);
+    z-index: 3;
+    animation: scanLaser 2s linear infinite;
+    opacity: 0;
+}
+
+.scanning-active .scanner-laser {
+    opacity: 1;
+}
+
+@keyframes scanLaser {
+    0% { top: -10%; }
+    50% { top: 110%; }
+    100% { top: -10%; }
+}
+
+.scanner-target {
+    position: relative;
+    width: 250px;
+    height: 150px;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.scanning-active .scanner-target {
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    background: rgba(0, 240, 255, 0.05);
+}
+
+.scanner-target .corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--color-cyan);
+    opacity: 0.5;
+}
+
+.scanning-active .scanner-target .corner {
+    opacity: 1;
+    box-shadow: 0 0 10px var(--color-cyan);
+}
+
+.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+.scanner-text {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    color: var(--color-cyan);
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-shadow: 0 0 5px var(--color-cyan);
+    white-space: nowrap;
+    letter-spacing: 0.1em;
+}
+
+/* Densidad Indicators */
+.text-lime { color: var(--color-lime) !important; }
+.text-yellow { color: var(--color-yellow) !important; }
+.text-red { color: #ff3b30 !important; }
