@@ -765,7 +765,7 @@ function renderOperatorTable() {
             <td>
                 <div class="table-actions" style="flex-wrap: wrap;">
                     <button class="btn btn-secondary btn-sm btn-qr-link" data-car-id="${car.id}" title="Copiar Link Cliente">
-                        ðŸ”— Link
+                        🔗 LINK
                     </button>
                     ${car.zone === 'terminado' ? `
                         <button class="btn btn-primary btn-sm btn-finish-car" data-car-id="${car.id}">
