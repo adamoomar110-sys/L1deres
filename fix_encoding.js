@@ -1,55 +1,79 @@
 const fs = require('fs');
+const path = require('path');
 
-const filesToFix = ['index.html', 'app.js', 'cliente.html', 'style.css'];
+function getAllFiles(dirPath, arrayOfFiles) {
+  files = fs.readdirSync(dirPath);
+
+  arrayOfFiles = arrayOfFiles || [];
+
+  files.forEach(function(file) {
+    const fullPath = path.join(dirPath, file);
+    if (fs.statSync(fullPath).isDirectory()) {
+      if (file !== 'node_modules' && file !== '.git') {
+        arrayOfFiles = getAllFiles(fullPath, arrayOfFiles);
+      }
+    } else {
+      if (file.endsWith('.html') || file.endsWith('.js') || file.endsWith('.css')) {
+        arrayOfFiles.push(fullPath);
+      }
+    }
+  });
+
+  return arrayOfFiles;
+}
+
+const filesToFix = getAllFiles(__dirname);
 
 const replacements = [
-    { bad: /Ã¡/g, good: 'á' },
-    { bad: /Ã©/g, good: 'é' },
-    { bad: /Ã­/g, good: 'í' },
-    { bad: /Ã³/g, good: 'ó' },
-    { bad: /Ãº/g, good: 'ú' },
-    { bad: /Ã±/g, good: 'ñ' },
-    { bad: /Ã‘/g, good: 'Ñ' },
-    { bad: /Ã/g, good: 'Á' },
-    { bad: /Ã‰/g, good: 'É' },
-    { bad: /Ã/g, good: 'Í' },
-    { bad: /Ã“/g, good: 'Ó' },
-    { bad: /Ãš/g, good: 'Ú' },
-    { bad: /â€œ/g, good: '“' },
-    { bad: /â€/g, good: '”' },
-    { bad: /â€˜/g, good: '‘' },
-    { bad: /â€™/g, good: '’' },
-    { bad: /Â/g, good: '' } // A veces aparece un Â fantasma antes de espacios o símbolos
+    { bad: /á/g, good: 'á' },
+    { bad: /é/g, good: 'é' },
+    { bad: /í/g, good: 'í' },
+    { bad: /ó/g, good: 'ó' },
+    { bad: /ú/g, good: 'ú' },
+    { bad: /ñ/g, good: 'ñ' },
+    { bad: /Ñ/g, good: 'Ñ' },
+    { bad: /Á/g, good: 'Á' },
+    { bad: /É/g, good: 'É' },
+    { bad: /Á/g, good: 'Í' },
+    { bad: /Ó/g, good: 'Ó' },
+    { bad: /Ú/g, good: 'Ú' },
+    { bad: /“/g, good: '“' },
+    { bad: /”/g, good: '”' },
+    { bad: /‘/g, good: '‘' },
+    { bad: /’/g, good: '’' },
+    { bad: /⚡/g, good: '⚡' },
+    { bad: /📋/g, good: '📋' },
+    { bad: /•/g, good: '•' },
+    { bad: /✓/g, good: '✓' },
+    { bad: /CÁMARA/g, good: 'CÁMARA' },
+    { bad: //g, good: '' }
 ];
 
 filesToFix.forEach(file => {
-    if (fs.existsSync(file)) {
-        let content = fs.readFileSync(file, 'utf-8');
-        let original = content;
-        replacements.forEach(r => {
-            content = content.replace(r.bad, r.good);
-        });
-        
-        // Let's also do a pass for isolated 'í' issues that might be rendered as Ã
-        // e.g., "VehÃ­culo"
-        content = content.replace(/VehÃ-culo/g, 'Vehículo');
-        content = content.replace(/VehÃculo/g, 'Vehículo');
-        content = content.replace(/EstÃ©tica/g, 'Estética');
-        content = content.replace(/ConfiguraciÃ³n/g, 'Configuración');
-        content = content.replace(/GestiÃ³n/g, 'Gestión');
-        content = content.replace(/SimulaciÃ³n/g, 'Simulación');
-        content = content.replace(/AcciÃ³n/g, 'Acción');
-        content = content.replace(/FacturaciÃ³n/g, 'Facturación');
-        content = content.replace(/RecaudaciÃ³n/g, 'Recaudación');
-        content = content.replace(/AutomÃ¡tico/g, 'Automático');
-        content = content.replace(/mÃ¡s/g, 'más');
-        content = content.replace(/VacÃo/g, 'Vacío');
-        content = content.replace(/LÃnea/g, 'Línea');
-        content = content.replace(/diseÃ±o/g, 'diseño');
+    let content = fs.readFileSync(file, 'utf-8');
+    let original = content;
+    replacements.forEach(r => {
+        content = content.replace(r.bad, r.good);
+    });
+    
+    // Additional manual overrides
+    content = content.replace(/Vehículo/g, 'Vehículo');
+    content = content.replace(/Vehículo/g, 'Vehículo');
+    content = content.replace(/Estética/g, 'Estética');
+    content = content.replace(/Configuración/g, 'Configuración');
+    content = content.replace(/Gestión/g, 'Gestión');
+    content = content.replace(/Simulación/g, 'Simulación');
+    content = content.replace(/Acción/g, 'Acción');
+    content = content.replace(/Facturación/g, 'Facturación');
+    content = content.replace(/Recaudación/g, 'Recaudación');
+    content = content.replace(/Automático/g, 'Automático');
+    content = content.replace(/más/g, 'más');
+    content = content.replace(/Vacío/g, 'Vacío');
+    content = content.replace(/Línea/g, 'Línea');
+    content = content.replace(/diseño/g, 'diseño');
 
-        if (content !== original) {
-            fs.writeFileSync(file, content, 'utf-8');
-            console.log('Fixed mojibake in', file);
-        }
+    if (content !== original) {
+        fs.writeFileSync(file, content, 'utf-8');
+        console.log('Fixed mojibake in', file);
     }
 });

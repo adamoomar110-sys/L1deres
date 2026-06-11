@@ -1062,12 +1062,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// --- L�GICA DE NAVEGACI�N (SIDEBAR) ---
+// --- L�GICA DE NAVEGACI�N (SIDEBAR) ---
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         // Remover active de todos los botones
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        // Agregar active al bot�n clickeado
+        // Agregar active al bot�n clickeado
         const targetBtn = e.currentTarget;
         targetBtn.classList.add('active');
 
@@ -1092,7 +1092,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     });
 });
 
-// --- L�GICA DE EMPLEADOS ---
+// --- L�GICA DE EMPLEADOS ---
 const formEmpleado = document.getElementById('form-empleado');
 const tbodyEmpleados = document.getElementById('empleados-tbody');
 
@@ -1138,7 +1138,7 @@ window.eliminarEmpleado = function(id) {
     renderEmpleados();
 };
 
-// --- L�GICA DE INSUMOS ---
+// --- L�GICA DE INSUMOS ---
 const formInsumo = document.getElementById('form-insumo');
 const tbodyInsumos = document.getElementById('insumos-tbody');
 
@@ -1185,13 +1185,13 @@ window.eliminarInsumo = function(id) {
     renderInsumos();
 };
 
-// --- L�GICA DE PRECIOS ---
+// --- L�GICA DE PRECIOS ---
 const tbodyPrecios = document.getElementById('precios-tbody');
 const btnResetPrecios = document.getElementById('btn-reset-precios');
 
 if (btnResetPrecios) {
     btnResetPrecios.addEventListener('click', () => {
-        if(confirm('�Restaurar precios y paquetes a sus valores por defecto?')) {
+        if(confirm('�Restaurar precios y paquetes a sus valores por defecto?')) {
             WASH_PACKAGES = JSON.parse(JSON.stringify(DEFAULT_WASH_PACKAGES));
             localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages();
@@ -1237,7 +1237,7 @@ function renderPrecios() {
             
             localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages(); // Actualizar mapeos
-            renderWashMenu(); // Refrescar men� del form
+            renderWashMenu(); // Refrescar men� del form
             showFloatingToast('Precio actualizado correctamente');
             
             e.target.innerText = '?';
@@ -1250,7 +1250,7 @@ function renderPrecios() {
     });
 }
 
-// Override de la renderizaci�n del grid de lavados inicial
+// Override de la renderizaci�n del grid de lavados inicial
 function renderWashMenu() {
     const grid = document.getElementById('wash-menu-grid');
     if (!grid) return;
@@ -1287,7 +1287,7 @@ function renderWashMenu() {
 // Llamar a renderWashMenu en el boot inicial para asegurar que cargue lo de localStorage
 setTimeout(renderWashMenu, 500);
 
-// --- LÃ“GICA DE POSTULANTES ---
+// --- LÓGICA DE POSTULANTES ---
 const tbodyPostulantes = document.getElementById('postulantes-tbody');
 
 function renderPostulantes() {
@@ -1297,7 +1297,7 @@ function renderPostulantes() {
     const applicantsStr = localStorage.getItem('lavadero_applicants');
     let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
     
-    // Solo mostrar los que estÃ©n pendientes
+    // Solo mostrar los que estén pendientes
     applicants = applicants.filter(a => a.status === 'pending');
 
     tbodyPostulantes.innerHTML = '';
@@ -1317,7 +1317,7 @@ function renderPostulantes() {
             </td>
             <td>
                 <div style="font-weight:bold; color:var(--color-cyan)">${app.full_name}</div>
-                <div style="font-size:0.85em; color:var(--color-text-dim)">DNI: ${app.dni} â€¢ ${app.age || '--'} aÃ±os</div>
+                <div style="font-size:0.85em; color:var(--color-text-dim)">DNI: ${app.dni} • ${app.age || '--'} años</div>
             </td>
             <td>
                 <div><a href="https://wa.me/${app.phone}" target="_blank" style="color:var(--color-lime); text-decoration:none;">${app.phone}</a></div>
@@ -1343,7 +1343,7 @@ function renderPostulantes() {
 }
 
 window.contratarPostulante = function(id, name) {
-    const role = prompt(`Â¿QuÃ© rol le asignarÃ¡s a ${name}? (Ej: Lavador, Detallador, Encargado)`, 'Lavador');
+    const role = prompt(`¿Qué rol le asignarás a ${name}? (Ej: Lavador, Detallador, Encargado)`, 'Lavador');
     if (role === null) return; // Cancelado
 
     // Mover a empleados
@@ -1373,7 +1373,7 @@ window.contratarPostulante = function(id, name) {
 }
 
 window.rechazarPostulante = function(id) {
-    if(!confirm('Â¿Seguro que quieres rechazar y eliminar a este postulante?')) return;
+    if(!confirm('¿Seguro que quieres rechazar y eliminar a este postulante?')) return;
     
     const applicantsStr = localStorage.getItem('lavadero_applicants');
     let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
@@ -1384,7 +1384,7 @@ window.rechazarPostulante = function(id) {
     renderPostulantes();
 }
 
-// Escuchar cambios de pestaÃ±a para renderizar postulantes
+// Escuchar cambios de pestaña para renderizar postulantes
 document.addEventListener('DOMContentLoaded', () => {
     const navBtns = document.querySelectorAll('.nav-btn');
     navBtns.forEach(btn => {

@@ -1718,7 +1718,7 @@ input:checked + .slider:before {
 }
 
 /* ==========================================================================
-   ESCÃ NER IA (MOCK)
+   ESCÁNER IA (MOCK)
    ========================================================================== */
 .scanner-card {
     border: 2px solid var(--color-cyan) !important;

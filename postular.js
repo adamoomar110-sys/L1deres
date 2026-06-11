@@ -82,13 +82,13 @@
             btnTakePhoto.style.display = 'block';
             btnRetakePhoto.style.display = 'none';
             
-            // Una vez que tenemos permiso, enumeramos las cÃ¡maras para ver si hay mÃ¡s de una
+            // Una vez que tenemos permiso, enumeramos las cámaras para ver si hay más de una
             if (videoDevices.length === 0) {
                 await getVideoDevices();
             }
         } catch (err) {
-            console.error("Error al acceder a la cÃ¡mara:", err);
-            showMessage('Error de cÃ¡mara: ' + (err.name || err.message || 'Desconocido') + '. Verifica permisos o si otra app la estÃ¡ usando.', 'error');
+            console.error("Error al acceder a la cámara:", err);
+            showMessage('Error de cámara: ' + (err.name || err.message || 'Desconocido') + '. Verifica permisos o si otra app la está usando.', 'error');
         }
     }
 
@@ -109,7 +109,7 @@
         const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
         inputSelfie.value = dataUrl;
 
-        // Detener la cÃ¡mara
+        // Detener la cámara
         stream.getTracks().forEach(track => track.stop());
         stream = null;
 
@@ -140,7 +140,7 @@
             reader.onload = (event) => {
                 const img = new Image();
                 img.onload = () => {
-                    canvas.width = 400; // Ancho fijo para mantener la proporciÃ³n
+                    canvas.width = 400; // Ancho fijo para mantener la proporción
                     canvas.height = 400 * (img.height / img.width);
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -169,7 +169,7 @@
         e.preventDefault();
 
         if (!inputSelfie.value) {
-            showMessage('Por favor, tÃ³mate una selfie antes de enviar.', 'error');
+            showMessage('Por favor, tómate una selfie antes de enviar.', 'error');
             return;
         }
 
@@ -189,8 +189,8 @@
 
         try {
             if (supabase) {
-                // Si existe conexiÃ³n a supabase, tratar de subir la selfie a Storage (opcional/avanzado)
-                // AquÃ­ por simplicidad, asumimos que selfie_url (base64 o string larga) va directo a BD 
+                // Si existe conexión a supabase, tratar de subir la selfie a Storage (opcional/avanzado)
+                // Aquí por simplicidad, asumimos que selfie_url (base64 o string larga) va directo a BD 
                 // (Ojo: Base64 en un texto largo puede ser pesado, pero es funcional para empezar)
                 
                 const { data, error } = await supabase
@@ -205,7 +205,7 @@
                 localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
             }
 
-            showMessage('Â¡PostulaciÃ³n enviada con Ã©xito! Nos pondremos en contacto contigo pronto.', 'success');
+            showMessage('¡Postulación enviada con éxito! Nos pondremos en contacto contigo pronto.', 'success');
             formPostular.reset();
             inputSelfie.value = '';
             canvas.style.display = 'none';
@@ -214,11 +214,11 @@
             btnStartCamera.style.display = 'block';
 
         } catch (error) {
-            console.error('Error al enviar postulaciÃ³n:', error);
-            showMessage('OcurriÃ³ un error al enviar tu postulaciÃ³n. IntÃ©ntalo de nuevo.', 'error');
+            console.error('Error al enviar postulación:', error);
+            showMessage('Ocurrió un error al enviar tu postulación. Inténtalo de nuevo.', 'error');
         } finally {
             btnSubmit.disabled = false;
-            btnSubmit.textContent = 'Enviar PostulaciÃ³n';
+            btnSubmit.textContent = 'Enviar Postulación';
         }
     });
 });

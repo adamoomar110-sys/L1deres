@@ -4,23 +4,29 @@ const ADJETIVOS = ["Azul", "Rojo", "Gris", "Plata", "Verde", "Negro", "Dorado", 
 const COLORES = ["#00f0ff", "#84cc16", "#ffb800", "#3b82f6", "#ef4444", "#a855f7", "#f97316", "#ec4899", "#14b8a6"];
 
 const DEFAULT_WASH_PACKAGES = [
-    { id: 'combo-limpieza-total', title: 'Limpieza Total', icon: 'ðŸŒ€', price: 18000, category: 'combos', items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clásico'] },
-    { id: 'combo-vip-gold', title: 'VIP Gold', icon: 'ðŸ†', price: 25000, category: 'combos', items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor'] },
-    { id: 'lavado-carroceria', title: 'Exterior Simple', icon: 'ðŸš—', price: 12000, category: 'lavados', items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumáticos'] },
-    { id: 'aspirado-interior', title: 'Interior Pro', icon: 'ðŸ’¨', price: 10000, category: 'lavados', items: ['Aspirado butacas y paneles', 'Desinfección de contacto', 'Acondicionado de plásticos'] },
-    { id: 'lavado-express', title: 'Express', icon: 'âš¡', price: 8000, category: 'lavados', items: ['Lavado exterior a presión', 'Secado rápido', 'Brillo básico de cubiertas'] },
-    { id: 'lavado-motor', title: 'Motor Vapor', icon: 'ðŸ”¥', price: 15000, category: 'especiales', items: ['Limpieza técnica a vapor', 'Desengrasantes biodegradables', 'Protector dieléctrico plásticos'] },
-    { id: 'encerado-acrilico', title: 'Encerado', icon: 'ðŸ›¡ï¸', price: 22000, category: 'estetica', items: ['Lavado artesanal descontaminante', 'Cera selladora acrílica manual', 'Efecto hidrofóbico extremo'] },
-    { id: 'lavado-chasis', title: 'Chasis', icon: 'ðŸ”©', price: 28000, category: 'especiales', items: ['Limpieza chasis inferior', 'Desengrasado pesado a vapor', 'Protector antioxidante metal'] },
-    { id: 'pulido-opticas', title: 'Ópticas', icon: 'ðŸ’¡', price: 16000, category: 'estetica', items: ['Lijado al agua multietapa', 'Pulido de policarbonato', 'Sellado UV de ópticas'] },
-    { id: 'tratamiento-ceramico', title: 'Cerámico 9H', icon: 'ðŸ’Ž', price: 65000, category: 'estetica', items: ['Corrección de pintura 2 etapas', 'Sellador cerámico 9H importado', 'Protección contra rayones UV'], active: true }
+    { id: 'combo-limpieza-total', title: 'Limpieza Total', icon: '🌀', price: 18000, category: 'combos', items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clásico'] },
+    { id: 'combo-vip-gold', title: 'VIP Gold', icon: '🏆', price: 25000, category: 'combos', items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor'] },
+    { id: 'lavado-carroceria', title: 'Exterior Simple', icon: '🚗', price: 12000, category: 'lavados', items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumáticos'] },
+    { id: 'aspirado-interior', title: 'Interior Pro', icon: '💨', price: 10000, category: 'lavados', items: ['Aspirado butacas y paneles', 'Desinfección de contacto', 'Acondicionado de plásticos'] },
+    { id: 'lavado-express', title: 'Express', icon: '⚡', price: 8000, category: 'lavados', items: ['Lavado exterior a presión', 'Secado rápido', 'Brillo básico de cubiertas'] },
+    { id: 'lavado-motor', title: 'Motor Vapor', icon: '🔥', price: 15000, category: 'especiales', items: ['Limpieza técnica a vapor', 'Desengrasantes biodegradables', 'Protector dieléctrico plásticos'] },
+    { id: 'encerado-acrilico', title: 'Encerado', icon: '🛡️', price: 22000, category: 'estetica', items: ['Lavado artesanal descontaminante', 'Cera selladora acrílica manual', 'Efecto hidrofóbico extremo'] },
+    { id: 'lavado-chasis', title: 'Chasis', icon: '🔩', price: 28000, category: 'especiales', items: ['Limpieza chasis inferior', 'Desengrasado pesado a vapor', 'Protector antioxidante metal'] },
+    { id: 'pulido-opticas', title: 'Ópticas', icon: '💡', price: 16000, category: 'estetica', items: ['Lijado al agua multietapa', 'Pulido de policarbonato', 'Sellado UV de ópticas'] },
+    { id: 'tratamiento-ceramico', title: 'Cerámico 9H', icon: '💎', price: 65000, category: 'estetica', items: ['Corrección de pintura 2 etapas', 'Sellador cerámico 9H importado', 'Protección contra rayones UV'], active: true }
 ];
 
 let WASH_PACKAGES = [];
 let WASH_NAMES = {};
 
 function initWashPackages() {
-    const saved = localStorage.getItem('lavadero_wash_settings');
+    let saved = localStorage.getItem('lavadero_wash_settings');
+    // Auto-fix for corrupted emojis
+    if (saved && (saved.includes('ðŸ') || saved.includes('âš'))) {
+        localStorage.removeItem('lavadero_wash_settings');
+        saved = null;
+    }
+
     if (saved) {
         WASH_PACKAGES = JSON.parse(saved);
     } else {
@@ -338,39 +344,71 @@ async function syncFromSupabase() {
     if (!config.useSupabase) return;
     
     // Cambiar visualización
-    elConnectionStatus.className = "connection-status supabase-active";
-    elConnectionStatus.querySelector('.status-label').innerText = "Supabase Sincronizado";
+    if (elConnectionStatus) {
+        elConnectionStatus.className = "connection-status supabase-active";
+        elConnectionStatus.querySelector('.status-label').innerText = "Supabase Sincronizado";
+    }
 
-    const data = await fetchSupabase(`${config.queueTable}?select=*&order=entered_at.asc`);
-    if (data && Array.isArray(data)) {
-        // Mapear los datos de Supabase a nuestro modelo local
-        activeVehicles = data.map(dbCar => {
-            let washType = 'combo-limpieza-total';
-            if (dbCar.description) {
-                for (const key in WASH_NAMES) {
-                    if (dbCar.description.toLowerCase().includes(key.toLowerCase()) || 
-                        dbCar.description.toLowerCase().includes(WASH_NAMES[key].toLowerCase())) {
-                        washType = key;
-                        break;
+    try {
+        // 1. Cargar cola de vehículos
+        const data = await fetchSupabase(`${config.queueTable}?select=*&order=entered_at.asc`);
+        if (data && Array.isArray(data)) {
+            activeVehicles = data.map(dbCar => {
+                let washType = 'combo-limpieza-total';
+                if (dbCar.description) {
+                    for (const key in WASH_NAMES) {
+                        if (dbCar.description.toLowerCase().includes(key.toLowerCase()) || 
+                            dbCar.description.toLowerCase().includes(WASH_NAMES[key].toLowerCase())) {
+                            washType = key;
+                            break;
+                        }
                     }
                 }
-            }
-            return {
-                id: dbCar.id,
-                tracking_id: dbCar.tracking_id || Math.floor(Math.random() * 100),
-                nickname: dbCar.nickname || 'Vehículo Especial',
-                plate: dbCar.plate || '',
-                color: dbCar.color || '#06b6d4',
-                zone: dbCar.zone || 'espera',
-                budget: dbCar.budget || 0,
-                wash_type: dbCar.wash_type || washType,
-                description: dbCar.description || '',
-                entered_at: dbCar.entered_at || new Date().toISOString(),
-                created_at: dbCar.created_at || new Date().toISOString()
-            };
-        });
-        saveStateLocally(false); // Guardar copia local sin re-escribir a Supabase
-        renderAll();
+                return {
+                    id: dbCar.id,
+                    tracking_id: dbCar.tracking_id || Math.floor(Math.random() * 100),
+                    nickname: dbCar.nickname || 'Vehículo Especial',
+                    plate: dbCar.plate || '',
+                    color: dbCar.color || '#06b6d4',
+                    zone: dbCar.zone || 'espera',
+                    budget: dbCar.budget || 0,
+                    wash_type: dbCar.wash_type || washType,
+                    description: dbCar.description || '',
+                    entered_at: dbCar.entered_at || new Date().toISOString(),
+                    created_at: dbCar.created_at || new Date().toISOString()
+                };
+            });
+            saveStateLocally(false);
+            if(typeof renderAll === 'function') renderAll();
+        }
+
+        // 2. Cargar Finanzas (Gastos)
+        const gastosData = await fetchSupabase('lavadero_gastos');
+        if (gastosData && Array.isArray(gastosData)) {
+            FINANZAS.gastos = gastosData.map(g => ({
+                fecha: g.fecha,
+                detalle: g.detalle,
+                monto: g.monto,
+                estado: g.estado
+            }));
+        }
+
+        // 3. Cargar Finanzas (Sueldos)
+        const sueldosData = await fetchSupabase('lavadero_sueldos');
+        if (sueldosData && Array.isArray(sueldosData)) {
+            FINANZAS.sueldos = sueldosData.map(s => ({
+                fecha: s.fecha,
+                empleado: s.empleado_nombre,
+                monto: s.monto
+            }));
+        }
+        
+        if ((gastosData && Array.isArray(gastosData)) || (sueldosData && Array.isArray(sueldosData))) {
+            saveFinanzas();
+            if(typeof renderFinanzas === 'function') renderFinanzas();
+        }
+    } catch(err) {
+        console.error("Error sincronizando todas las tablas", err);
     }
 }
 
@@ -1161,6 +1199,16 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         if (viewEl) {
             viewEl.classList.remove('hidden');
             viewEl.classList.add('active');
+        }
+        
+        // Ocultar acciones del header si no es el dashboard principal
+        const headerActions = document.querySelector('.header-actions');
+        if (headerActions) {
+            if (targetView === 'view-lavadero') {
+                headerActions.style.display = 'flex';
+            } else {
+                headerActions.style.display = 'none';
+            }
         }
 
         // Si entramos a ciertas vistas, refrescamos
@@ -2109,15 +2157,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const monto = parseFloat(document.getElementById('gasto-monto').value);
             const estado = document.getElementById('gasto-estado').value;
             
-            FINANZAS.gastos.push({
+            const newGasto = {
                 fecha: new Date().toLocaleDateString('es-AR'),
                 detalle,
                 monto,
                 estado
-            });
+            };
+            FINANZAS.gastos.push(newGasto);
             saveFinanzas();
             renderFinanzas();
             formGastos.reset();
+            
+            // Sync Supabase
+            if (config.useSupabase) {
+                fetchSupabase('lavadero_gastos', { method: 'POST', body: JSON.stringify(newGasto) });
+            }
         });
     }
     
@@ -2128,14 +2182,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const empleado = document.getElementById('sueldo-empleado').value;
             const monto = parseFloat(document.getElementById('sueldo-monto').value);
             
-            FINANZAS.sueldos.push({
+            const newSueldo = {
                 fecha: new Date().toLocaleDateString('es-AR'),
+                empleado_nombre: empleado,
+                monto
+            };
+            FINANZAS.sueldos.push({
+                fecha: newSueldo.fecha,
                 empleado,
                 monto
             });
             saveFinanzas();
             renderFinanzas();
             formSueldos.reset();
+            
+            // Sync Supabase
+            if (config.useSupabase) {
+                fetchSupabase('lavadero_sueldos', { method: 'POST', body: JSON.stringify(newSueldo) });
+            }
         });
     }
     
@@ -2144,3 +2208,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Update updateRevenueDisplay to calculate net
 const oldRev = window.updateRevenueDisplay ? window.updateRevenueDisplay.toString() : '';
+
+// --- CROSS-TAB SYNC (ECOSISTEMA MULTI-PANTALLAS) ---
+window.addEventListener('storage', (e) => {
+    if (e.key === 'lavadero_active_vehicles' || e.key === 'lavadero_completed_history') {
+        if (!config.useSupabase) {
+            const savedVehicles = localStorage.getItem('lavadero_active_vehicles');
+            if (savedVehicles) activeVehicles = JSON.parse(savedVehicles);
+            
+            const savedHistory = localStorage.getItem('lavadero_completed_history');
+            if (savedHistory) washHistory = JSON.parse(savedHistory);
+            
+            if (typeof renderAll === 'function') {
+                renderAll();
+            }
+            if (typeof renderStatusView === 'function') {
+                renderStatusView(); // Para pantallas exclusivas
+            }
+        }
+    }
+});
