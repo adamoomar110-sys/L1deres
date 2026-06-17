@@ -1947,3 +1947,20 @@ input:checked + .slider:before {
     75% { top: 45%; left: 55%; transform: scale(1.05); border-color: var(--color-cyan); }
     100% { top: 40%; left: 30%; transform: scale(1); }
 }
+
+
+/* FOOTER GLOBAL - OMAR ADAMO */
+.app-footer {
+    text-align: center;
+    padding: 2rem;
+    margin-top: auto;
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+    border-top: 1px dashed rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+.app-footer strong {
+    color: var(--color-cyan);
+    font-weight: 800;
+}

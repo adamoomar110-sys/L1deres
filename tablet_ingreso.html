@@ -362,12 +362,13 @@
             
             // Disparar evento para otras pestañas (como en el mismo window no se dispara onstorage, lo disparamos manual si hiciera falta)
             window.dispatchEvent(new Event('storage'));
+            pushVehicleToSupabase(car); // Enviar a Supabase
 
             // Ocultar modal y mostrar éxito
             cancelPayment();
             
             // Si estuviéramos conectados a una impresora térmica
-            console.log("Imprimiendo Ticket #", car.tracking_id);
+            // console.log("Imprimiendo Ticket #", car.tracking_id);
             alert(`¡Ticket #${car.tracking_id} Generado!\nEl vehículo ya entró a la cola.`);
 
             // Limpiar
@@ -375,8 +376,44 @@
             document.getElementById('in-model').value = '';
             document.getElementById('in-color').value = '#ffffff';
         }
+        
+        async function pushVehicleToSupabase(car) {
+            const config = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            if (!config.useSupabase || !config.supabaseUrl || !config.supabaseKey) return;
+            try {
+                const url = `${config.supabaseUrl}/rest/v1/${config.queueTable}`;
+                // Adapt to schema
+                const payload = {
+                    tracking_id: car.tracking_id,
+                    nickname: car.nickname,
+                    plate: car.plate,
+                    color: car.color,
+                    zone: car.zone,
+                    budget: car.budget,
+                    wash_type: car.wash_type,
+                    description: car.description
+                };
+                
+                await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': config.supabaseKey,
+                        'Authorization': `Bearer ${config.supabaseKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) { }
+        }
 
         loadServices();
     </script>
+
+    <footer class="app-footer">
+        &copy; 2026 <strong>Omar Adamo</strong>. Todos los derechos reservados. <br>
+        Lavadero Estética Vehicular • Software Independiente
+    </footer>
+
 </body>
 </html>

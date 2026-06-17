@@ -176,6 +176,39 @@
         });
 
         loadBoard();
+
+        // Fetch from Supabase for remote TV
+        async function fetchFromSupabase() {
+            const config = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            if (!config.useSupabase || !config.supabaseUrl || !config.supabaseKey) return;
+            
+            try {
+                const url = \/rest/v1/\?select=*&order=entered_at.asc\;
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': config.supabaseKey,
+                        'Authorization': \Bearer \
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('lavadero_active_vehicles', JSON.stringify(data));
+                    loadBoard();
+                }
+            } catch (err) {
+                // Silently fail or log
+            }
+        }
+        
+        setInterval(fetchFromSupabase, 5000); // Poll every 5s
+        fetchFromSupabase();
     </script>
+
+    <footer class="app-footer">
+        &copy; 2026 <strong>Omar Adamo</strong>. Todos los derechos reservados. <br>
+        Lavadero Estética Vehicular • Software Independiente
+    </footer>
+
 </body>
 </html>

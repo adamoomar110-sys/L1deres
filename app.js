@@ -157,7 +157,7 @@ async function loadRemoteConfig() {
                 config.supabaseKey = data.supabaseKey;
                 config.queueTable = data.queueTable || 'lavadero_camera_queue';
                 config.serviceTable = data.serviceTable || 'service_orders';
-                console.log("ðŸ”Œ Configuración de Supabase cargada desde Vercel Environment Variables.");
+                // console.log("ðŸ”Œ Configuración de Supabase cargada desde Vercel Environment Variables.");
                 
                 // Actualizar la interfaz para reflejar que está conectado externamente
                 if (elConnectionStatus) {
@@ -218,14 +218,36 @@ async function syncFromSupabase() {
     updateConnectionStatus("Syncing...");
 
     try {
-        // 1. Cargar cola de cámara
-        const queueData = await fetchSupabase(config.queueTable);
+        const queueData = await fetchSupabase(`${config.queueTable}?select=*&order=entered_at.asc`);
         if (queueData && Array.isArray(queueData)) {
-            activeVehicles = queueData;
-            localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
+            activeVehicles = queueData.map(dbCar => {
+                let washType = 'combo-limpieza-total';
+                if (dbCar.description) {
+                    for (const key in WASH_NAMES) {
+                        if (dbCar.description.toLowerCase().includes(key.toLowerCase()) || 
+                            dbCar.description.toLowerCase().includes(WASH_NAMES[key].toLowerCase())) {
+                            washType = key;
+                            break;
+                        }
+                    }
+                }
+                return {
+                    id: dbCar.id,
+                    tracking_id: dbCar.tracking_id || Math.floor(Math.random() * 100),
+                    nickname: dbCar.nickname || 'Vehículo Especial',
+                    plate: dbCar.plate || '',
+                    color: dbCar.color || '#06b6d4',
+                    zone: dbCar.zone || 'espera',
+                    budget: dbCar.budget || 0,
+                    wash_type: dbCar.wash_type || washType,
+                    description: dbCar.description || '',
+                    entered_at: dbCar.entered_at || new Date().toISOString(),
+                    created_at: dbCar.created_at || new Date().toISOString()
+                };
+            });
+            saveStateLocally(false);
         }
 
-        // 2. Cargar órdenes completadas (Historial)
         const historyData = await fetchSupabase(`${config.serviceTable}?status=eq.completed`);
         if (historyData && Array.isArray(historyData)) {
             const historyMap = historyData.map(h => ({
@@ -236,7 +258,6 @@ async function syncFromSupabase() {
                 completed_at: h.appointment_date || h.created_at
             }));
             
-            // Unir local con remoto sin duplicados
             const localHist = JSON.parse(localStorage.getItem('lavadero_completed_history') || '[]');
             const combined = [...historyMap, ...localHist];
             const uniqueHistory = Array.from(new Map(combined.map(item => [item.id, item])).values());
@@ -245,24 +266,49 @@ async function syncFromSupabase() {
             localStorage.setItem('lavadero_completed_history', JSON.stringify(washHistory));
         }
         
-        // 3. Cargar Empleados
         const empData = await fetchSupabase('lavadero_empleados');
         if (empData && Array.isArray(empData)) {
             empleados = empData;
             localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
         }
         
-        // 4. Cargar Insumos
         const insData = await fetchSupabase('lavadero_insumos');
         if (insData && Array.isArray(insData)) {
             insumos = insData;
             localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
         }
 
+        const gastosData = await fetchSupabase('lavadero_gastos');
+        if (gastosData && Array.isArray(gastosData)) {
+            if(typeof FINANZAS !== 'undefined') {
+                FINANZAS.gastos = gastosData.map(g => ({
+                    fecha: g.fecha,
+                    detalle: g.detalle,
+                    monto: g.monto,
+                    estado: g.estado
+                }));
+            }
+        }
+
+        const sueldosData = await fetchSupabase('lavadero_sueldos');
+        if (sueldosData && Array.isArray(sueldosData)) {
+            if(typeof FINANZAS !== 'undefined') {
+                FINANZAS.sueldos = sueldosData.map(s => ({
+                    fecha: s.fecha,
+                    empleado: s.empleado_nombre,
+                    monto: s.monto
+                }));
+            }
+        }
+        
+        if (typeof FINANZAS !== 'undefined' && ((gastosData && Array.isArray(gastosData)) || (sueldosData && Array.isArray(sueldosData)))) {
+            if(typeof saveFinanzas === 'function') saveFinanzas();
+            if(typeof renderFinanzas === 'function') renderFinanzas();
+        }
+
         updateConnectionStatus("Connected");
-        renderAll();
+        if(typeof renderAll === 'function') renderAll();
     } catch (e) {
-        console.error("Error sincronizando de Supabase:", e);
         updateConnectionStatus("Error", "bg-danger");
     } finally {
         isSyncing = false;
@@ -297,13 +343,12 @@ async function fetchSupabase(endpoint, options = {}) {
         if (response.status === 204) return true;
         return await response.json();
     } catch (err) {
-        console.error("âŒ Fallo en API Supabase:", err);
+        console.error("❌ Fallo en API Supabase:", err);
         showFloatingToast(`Error de base de datos externa. Operando en modo local.`);
         return null;
     }
 }
 
-// Mostrar avisos flotantes estilo premium
 function showFloatingToast(message) {
     const toast = document.createElement('div');
     toast.style.position = 'fixed';
@@ -339,80 +384,6 @@ function showFloatingToast(message) {
     }, 4000);
 }
 
-// Cargar estado de cola de Supabase si está activado
-async function syncFromSupabase() {
-    if (!config.useSupabase) return;
-    
-    // Cambiar visualización
-    if (elConnectionStatus) {
-        elConnectionStatus.className = "connection-status supabase-active";
-        elConnectionStatus.querySelector('.status-label').innerText = "Supabase Sincronizado";
-    }
-
-    try {
-        // 1. Cargar cola de vehículos
-        const data = await fetchSupabase(`${config.queueTable}?select=*&order=entered_at.asc`);
-        if (data && Array.isArray(data)) {
-            activeVehicles = data.map(dbCar => {
-                let washType = 'combo-limpieza-total';
-                if (dbCar.description) {
-                    for (const key in WASH_NAMES) {
-                        if (dbCar.description.toLowerCase().includes(key.toLowerCase()) || 
-                            dbCar.description.toLowerCase().includes(WASH_NAMES[key].toLowerCase())) {
-                            washType = key;
-                            break;
-                        }
-                    }
-                }
-                return {
-                    id: dbCar.id,
-                    tracking_id: dbCar.tracking_id || Math.floor(Math.random() * 100),
-                    nickname: dbCar.nickname || 'Vehículo Especial',
-                    plate: dbCar.plate || '',
-                    color: dbCar.color || '#06b6d4',
-                    zone: dbCar.zone || 'espera',
-                    budget: dbCar.budget || 0,
-                    wash_type: dbCar.wash_type || washType,
-                    description: dbCar.description || '',
-                    entered_at: dbCar.entered_at || new Date().toISOString(),
-                    created_at: dbCar.created_at || new Date().toISOString()
-                };
-            });
-            saveStateLocally(false);
-            if(typeof renderAll === 'function') renderAll();
-        }
-
-        // 2. Cargar Finanzas (Gastos)
-        const gastosData = await fetchSupabase('lavadero_gastos');
-        if (gastosData && Array.isArray(gastosData)) {
-            FINANZAS.gastos = gastosData.map(g => ({
-                fecha: g.fecha,
-                detalle: g.detalle,
-                monto: g.monto,
-                estado: g.estado
-            }));
-        }
-
-        // 3. Cargar Finanzas (Sueldos)
-        const sueldosData = await fetchSupabase('lavadero_sueldos');
-        if (sueldosData && Array.isArray(sueldosData)) {
-            FINANZAS.sueldos = sueldosData.map(s => ({
-                fecha: s.fecha,
-                empleado: s.empleado_nombre,
-                monto: s.monto
-            }));
-        }
-        
-        if ((gastosData && Array.isArray(gastosData)) || (sueldosData && Array.isArray(sueldosData))) {
-            saveFinanzas();
-            if(typeof renderFinanzas === 'function') renderFinanzas();
-        }
-    } catch(err) {
-        console.error("Error sincronizando todas las tablas", err);
-    }
-}
-
-// Guardar estados
 async function saveStateLocally(syncRemote = true) {
     localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
     localStorage.setItem('lavadero_completed_history', JSON.stringify(washHistory));
@@ -976,7 +947,7 @@ function runSimulationStep() {
         const budget = Math.floor(Math.random() * 15000) + 10000;
 
         addVehicle(nick, plate, color, budget);
-        console.log(`ðŸ¤– [SIMULADOR] Nuevo auto registrado: ${nick} (${plate})`);
+        // console.log(`ðŸ¤– [SIMULADOR] Nuevo auto registrado: ${nick} (${plate})`);
 
     } else if (rand < 0.70 && numCars > 0) {
         // Acción: Mover
@@ -987,12 +958,12 @@ function runSimulationStep() {
             // Mover de lavado a terminado
             const target = lavadoCars[Math.floor(Math.random() * lavadoCars.length)];
             updateVehicleZone(target.id, 'terminado');
-            console.log(`ðŸ¤– [SIMULADOR] Auto finalizó lavado: ${target.nickname}`);
+            // console.log(`ðŸ¤– [SIMULADOR] Auto finalizó lavado: ${target.nickname}`);
         } else if (esperaCars.length > 0) {
             // Mover de espera a lavado
             const target = esperaCars[Math.floor(Math.random() * esperaCars.length)];
             updateVehicleZone(target.id, 'lavado');
-            console.log(`ðŸ¤– [SIMULADOR] Auto entró a lavado: ${target.nickname}`);
+            // console.log(`ðŸ¤– [SIMULADOR] Auto entró a lavado: ${target.nickname}`);
         }
 
     } else if (rand < 0.90 && numCars > 0) {
@@ -1001,7 +972,7 @@ function runSimulationStep() {
         if (terminadoCars.length > 0) {
             const target = terminadoCars[Math.floor(Math.random() * terminadoCars.length)];
             finishVehicle(target.id);
-            console.log(`ðŸ¤– [SIMULADOR] Cliente retiró auto: ${target.nickname}`);
+            // console.log(`ðŸ¤– [SIMULADOR] Cliente retiró auto: ${target.nickname}`);
         }
     }
 }

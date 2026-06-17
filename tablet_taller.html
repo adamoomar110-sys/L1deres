@@ -156,6 +156,7 @@
                 car.zone = targetZone;
                 localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
                 window.dispatchEvent(new Event('storage')); // Forzar update visual
+                pushZoneToSupabase(id, targetZone); // Empujar a Supabase
                 loadCars();
             }
         }
@@ -181,7 +182,65 @@
             }
         });
 
+        // Fetch from Supabase for remote Tablet
+        async function fetchFromSupabase() {
+            const config = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            if (!config.useSupabase || !config.supabaseUrl || !config.supabaseKey) return;
+            
+            try {
+                const url = `${config.supabaseUrl}/rest/v1/${config.queueTable}?select=*&order=entered_at.asc`;
+                const response = await fetch(url, {
+                    headers: {
+                        'apikey': config.supabaseKey,
+                        'Authorization': `Bearer ${config.supabaseKey}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const activeVehicles = data.map(dbCar => ({
+                        id: dbCar.id,
+                        tracking_id: dbCar.tracking_id || Math.floor(Math.random() * 100),
+                        nickname: dbCar.nickname || 'Vehículo',
+                        plate: dbCar.plate || '',
+                        color: dbCar.color || '#06b6d4',
+                        zone: dbCar.zone || 'espera',
+                        budget: dbCar.budget || 0,
+                        description: dbCar.description || ''
+                    }));
+                    localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
+                    loadCars();
+                }
+            } catch (err) { }
+        }
+        
+        async function pushZoneToSupabase(id, zone) {
+            const config = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            if (!config.useSupabase) return;
+            try {
+                const url = `${config.supabaseUrl}/rest/v1/${config.queueTable}?id=eq.${id}`;
+                await fetch(url, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': config.supabaseKey,
+                        'Authorization': `Bearer ${config.supabaseKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ zone: zone })
+                });
+            } catch (err) { }
+        }
+        
+        setInterval(fetchFromSupabase, 8000); // Poll every 8s
+        fetchFromSupabase();
+
         loadCars();
     </script>
+
+    <footer class="app-footer">
+        &copy; 2026 <strong>Omar Adamo</strong>. Todos los derechos reservados. <br>
+        Lavadero Estética Vehicular • Software Independiente
+    </footer>
+
 </body>
 </html>
