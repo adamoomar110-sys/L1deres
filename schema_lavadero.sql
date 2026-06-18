@@ -133,3 +133,16 @@ ALTER TABLE lavadero_insumos ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Auth users full access" ON lavadero_empleados FOR ALL USING (true);
 CREATE POLICY "Auth users full access" ON lavadero_insumos FOR ALL USING (true);
+
+-- ============================================================
+-- 9. PRECIOS (Para PWA Cliente)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS lavadero_precios (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  price NUMERIC DEFAULT 0,
+  category TEXT DEFAULT 'Auto',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE lavadero_precios ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Auth users full access" ON lavadero_precios FOR ALL USING (true);

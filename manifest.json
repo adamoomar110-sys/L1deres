@@ -1,0 +1,22 @@
+{
+  "name": "Lavadero de Lujo - Cliente",
+  "short_name": "Lavadero",
+  "description": "App para clientes del Lavadero de Lujo. Consulta precios y promociones.",
+  "start_url": "./app_cliente.html",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#06b6d4",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

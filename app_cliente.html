@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lavadero de Lujo - App Cliente</title>
+    
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#06b6d4">
+    <link rel="apple-touch-icon" href="logo.png">
+    
+    <!-- Fonts & Styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Orbitron:wght@700;900&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        /* Mobile Specific Overrides */
+        body {
+            background-color: #0a0a0f;
+            color: #fff;
+            padding-bottom: 80px; /* Space for bottom nav */
+            overflow-x: hidden;
+        }
+        .mobile-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(6, 182, 212, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .mobile-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .mobile-header img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        .mobile-header h1 {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: var(--color-cyan);
+            margin: 0;
+        }
+        
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            margin: 1.5rem 1rem 1rem;
+            color: var(--color-yellow);
+        }
+
+        /* Novedades / Promociones */
+        .promo-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 1rem;
+            padding: 0 1rem 1rem;
+        }
+        .promo-slider::-webkit-scrollbar {
+            display: none;
+        }
+        .promo-card {
+            min-width: 280px;
+            scroll-snap-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .promo-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--color-lime);
+        }
+        .promo-card h3 {
+            margin-top: 0;
+            color: var(--color-lime);
+            font-family: var(--font-display);
+        }
+        .promo-card p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Lista de Precios */
+        .price-list {
+            padding: 0 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(6, 182, 212, 0.05);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .price-item .info {
+            display: flex;
+            flex-direction: column;
+        }
+        .price-item .name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .price-item .category {
+            font-size: 0.8rem;
+            color: var(--color-cyan);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+        .price-item .price {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            color: var(--color-yellow);
+        }
+
+        /* Install Banner */
+        #install-banner {
+            display: none;
+            background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(0,0,0,0.8));
+            border: 1px solid var(--color-cyan);
+            margin: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Footer Aura */
+        .aura-footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .aura-footer p {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.8rem;
+            margin: 0;
+        }
+        .aura-footer span {
+            color: var(--color-cyan);
+            font-family: var(--font-display);
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="mobile-header">
+        <div class="brand">
+            <img src="logo.png" alt="Logo">
+            <h1>LAVADERO DE LUJO</h1>
+        </div>
+    </header>
+
+    <div id="install-banner">
+        <div>
+            <strong style="display:block; margin-bottom:4px;">Instala nuestra App</strong>
+            <span style="font-size:0.8rem; color:#aaa;">Accede más rápido a precios y promos.</span>
+        </div>
+        <button id="btn-install" class="btn btn-primary btn-sm">Instalar</button>
+    </div>
+
+    <h2 class="section-title">Novedades & Promos 🔥</h2>
+    <div class="promo-slider" id="promo-container">
+        <!-- Cargando promociones por defecto -->
+        <div class="promo-card">
+            <h3>Cargando novedades...</h3>
+            <p>Conectando al servidor...</p>
+        </div>
+    </div>
+
+    <h2 class="section-title">Lista de Precios 📋</h2>
+    <div class="price-list" id="price-container">
+        <!-- Cargando precios por defecto -->
+        <div class="price-item" style="justify-content: center; color: var(--color-text-dim);">
+            Cargando precios...
+        </div>
+    </div>
+
+    <footer class="aura-footer">
+        <p>&copy; 2026 - Powered by <span>AURA</span> Startup</p>
+    </footer>
+
+    <!-- Scripts de PWA y Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // PWA Installation Logic
+        let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const installBtn = document.getElementById('btn-install');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.style.display = 'flex';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBanner.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('Service Worker registrado:', reg);
+                }).catch(err => {
+                    console.error('Error registrando Service Worker:', err);
+                });
+            });
+        }
+
+        // Default Prices (Fallback)
+        const defaultPrices = [
+            { id: "basico", name: "Lavado Básico 💦", price: 15000, category: "Auto" },
+            { id: "completo", name: "Lavado Completo 🌟", price: 22000, category: "Auto" },
+            { id: "premium", name: "Premium Detailing ✨", price: 45000, category: "Camioneta" },
+            { id: "motor", name: "Lavado de Motor 🔧", price: 18000, category: "Extra" }
+        ];
+
+        const defaultPromos = [
+            { title: "¡Bienvenido a la App!", content: "Aquí podrás ver nuestros precios actualizados y promociones exclusivas." },
+            { title: "20% OFF en Detailing", content: "Mencionando que viste esta promo en la App, te hacemos un 20% de descuento en el lavado Premium." }
+        ];
+
+        // Supabase Init (Will try to use localStorage config if available, else use defaults)
+        let supabase = null;
+        
+        async function initData() {
+            try {
+                // Try to load config from localStorage
+                const sbUrl = localStorage.getItem('LAVADERO_SB_URL');
+                const sbKey = localStorage.getItem('LAVADERO_SB_KEY');
+
+                if (sbUrl && sbKey) {
+                    supabase = window.supabase.createClient(sbUrl, sbKey);
+                    
+                    // Fetch Prices
+                    const { data: remotePrices, error: priceErr } = await supabase
+                        .from('lavadero_precios')
+                        .select('*')
+                        .order('price', { ascending: true });
+                        
+                    if (!priceErr && remotePrices && remotePrices.length > 0) {
+                        renderPrices(remotePrices);
+                    } else {
+                        // Fallback to local
+                        let storedPrices = localStorage.getItem('lavadero_wash_settings');
+                        if (storedPrices) renderPrices(JSON.parse(storedPrices));
+                        else renderPrices(defaultPrices);
+                    }
+                    
+                    // Fetch Announcements
+                    const { data: promos, error: promoErr } = await supabase
+                        .from('announcements')
+                        .select('*')
+                        .eq('is_active', true)
+                        .order('created_at', { ascending: false });
+                        
+                    if (!promoErr && promos && promos.length > 0) {
+                        renderPromos(promos);
+                    } else {
+                        renderPromos(defaultPromos);
+                    }
+                } else {
+                    let storedPromos = localStorage.getItem('lavadero_promos');
+                    if (storedPromos) renderPromos(JSON.parse(storedPromos));
+                    else renderPromos(defaultPromos);
+                }
+                
+                    let storedPrices = localStorage.getItem('lavadero_wash_settings');
+                    if (storedPrices) {
+                        renderPrices(JSON.parse(storedPrices));
+                    } else {
+                        renderPrices(defaultPrices);
+                    }
+            } catch (err) {
+                console.error("Error loading data:", err);
+                renderPromos(defaultPromos);
+                renderPrices(defaultPrices);
+            }
+        }
+
+        function renderPromos(promos) {
+            const container = document.getElementById('promo-container');
+            container.innerHTML = '';
+            promos.forEach(p => {
+                container.innerHTML += `
+                    <div class="promo-card">
+                        <h3>${p.title}</h3>
+                        <p>${p.content}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function renderPrices(prices) {
+            const container = document.getElementById('price-container');
+            container.innerHTML = '';
+            prices.forEach(p => {
+                container.innerHTML += `
+                    <div class="price-item">
+                        <div class="info">
+                            <span class="name">${p.name || p.id}</span>
+                            <span class="category">${p.category || 'General'}</span>
+                        </div>
+                        <div class="price">$${p.price.toLocaleString('es-AR')}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', initData);
+
+    </script>
+</body>
+</html>

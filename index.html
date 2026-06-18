@@ -510,6 +510,38 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- SECCION PROMOS -->
+                <div class="operator-queue-list">
+                    <h4 class="form-title" style="color: var(--color-cyan)">App Cliente - Novedades y Promociones</h4>
+                    <form id="form-promo" class="operator-form" style="margin-bottom: 1rem;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Título de la Promo</label>
+                                <input type="text" id="promo-title" placeholder="Ej: 20% OFF en Detailing" required>
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Descripción / Contenido</label>
+                                <textarea id="promo-content" rows="2" placeholder="Ej: Válido los martes abonando en efectivo..." required style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(6, 182, 212, 0.3); color: #fff; padding: 0.5rem; border-radius: 8px;"></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-secondary w-full" style="color: var(--color-cyan); border-color: var(--color-cyan);">+ Publicar en App Cliente</button>
+                    </form>
+                    <div class="table-container">
+                        <table class="operator-table">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Contenido</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="promos-tbody">
+                                <!-- Las promos se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 

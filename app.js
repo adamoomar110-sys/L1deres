@@ -1545,7 +1545,21 @@ function renderPrecios() {
             
             localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages(); // Actualizar mapeos
-            renderWashMenu(); // Refrescar menï¿½ del form
+            renderWashMenu(); // Refrescar menu del form
+            
+            if (config.useSupabase) {
+                fetchSupabase('lavadero_precios', {
+                    method: 'POST',
+                    headers: { 'Prefer': 'resolution=merge-duplicates' },
+                    body: JSON.stringify({
+                        id: WASH_PACKAGES[idx].id,
+                        name: newTitle,
+                        price: parseInt(newPrice),
+                        category: 'Auto'
+                    })
+                });
+            }
+            
             showFloatingToast('Precio actualizado correctamente');
             
             e.target.innerText = '?';
@@ -2237,6 +2251,80 @@ document.addEventListener('DOMContentLoaded', () => {
 const oldRev = window.updateRevenueDisplay ? window.updateRevenueDisplay.toString() : '';
 
 // --- CROSS-TAB SYNC (ECOSISTEMA MULTI-PANTALLAS) ---
+
+// --- GESTIÓN DE PROMOS (APP CLIENTE) ---
+let APP_PROMOS = [];
+
+function loadPromos() {
+    const saved = localStorage.getItem('lavadero_promos');
+    if (saved) APP_PROMOS = JSON.parse(saved);
+    renderAdminPromos();
+}
+
+function renderAdminPromos() {
+    const tbody = document.getElementById('promos-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    if (APP_PROMOS.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--color-text-dim);">No hay promos publicadas.</td></tr>';
+        return;
+    }
+    
+    APP_PROMOS.forEach(promo => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${promo.title}</strong></td>
+            <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${promo.content}">${promo.content}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="eliminarPromo('${promo.id}')">Eliminar</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+const formPromo = document.getElementById('form-promo');
+if (formPromo) {
+    formPromo.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = document.getElementById('promo-title').value;
+        const content = document.getElementById('promo-content').value;
+        
+        const newPromo = {
+            id: Date.now().toString(),
+            title: title,
+            content: content,
+            is_active: true
+        };
+        
+        APP_PROMOS.push(newPromo);
+        localStorage.setItem('lavadero_promos', JSON.stringify(APP_PROMOS));
+        
+        if (config.useSupabase) {
+            await fetchSupabase('announcements', {
+                method: 'POST',
+                body: JSON.stringify(newPromo)
+            });
+        }
+        
+        renderAdminPromos();
+        formPromo.reset();
+        showFloatingToast('Promo publicada en la App Cliente');
+    });
+}
+
+window.eliminarPromo = async function(id) {
+    APP_PROMOS = APP_PROMOS.filter(p => p.id !== id);
+    localStorage.setItem('lavadero_promos', JSON.stringify(APP_PROMOS));
+    
+    if (config.useSupabase) {
+        await fetchSupabase(`announcements?id=eq.${id}`, { method: 'DELETE' });
+    }
+    renderAdminPromos();
+    showFloatingToast('Promo eliminada');
+};
+
+document.addEventListener('DOMContentLoaded', loadPromos);
+
 window.addEventListener('storage', (e) => {
     if (e.key === 'lavadero_active_vehicles' || e.key === 'lavadero_completed_history') {
         if (!config.useSupabase) {
