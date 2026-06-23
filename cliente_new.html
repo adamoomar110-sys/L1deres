@@ -808,7 +808,14 @@
         // INIT LOGIC
         if (!type || !payment) {
             // Entra en modo Configuración si falta algún dato
-            window.location.replace('app_cliente_v2.html');
+            trackingView.style.display = 'none';
+            configView.style.display = 'block';
+            
+            // Inyectamos un auto base en la cabecera del config
+            configView.insertAdjacentHTML('afterbegin', `<div style="display:flex; justify-content:center; margin-bottom: 1.5rem; transform: scale(0.8);">${getCarSvg(color)}</div>`);
+
+            renderCatMenu();
+            renderConfigMenu();
         } else {
             // Ya está configurado, entra en modo Tracking Directamente
             initTrackingView();

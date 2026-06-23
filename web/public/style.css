@@ -1,20 +1,20 @@
 /* Variables de Diseño Premium (Glassmorphism) */
 :root {
-    --color-bg: #0a0a0f;
-    --color-card-bg: rgba(25, 25, 35, 0.35);
-    --color-card-border: rgba(255, 255, 255, 0.08);
+    --color-bg: #050505;
+    --color-card-bg: rgba(20, 20, 20, 0.5);
+    --color-card-border: rgba(212, 175, 55, 0.15);
     
-    --color-cyan: #00d4ff;
-    --color-cyan-glow: rgba(0, 212, 255, 0.2);
-    --color-cyan-dim: rgba(0, 212, 255, 0.1);
+    --color-cyan: #D4AF37;
+    --color-cyan-glow: rgba(212, 175, 55, 0.2);
+    --color-cyan-dim: rgba(212, 175, 55, 0.1);
 
-    --color-yellow: #ffb347;
-    --color-yellow-glow: rgba(255, 179, 71, 0.2);
-    --color-yellow-dim: rgba(255, 179, 71, 0.1);
+    --color-yellow: #C5B358;
+    --color-yellow-glow: rgba(197, 179, 88, 0.2);
+    --color-yellow-dim: rgba(197, 179, 88, 0.1);
 
-    --color-lime: #00fa9a;
-    --color-lime-glow: rgba(0, 250, 154, 0.2);
-    --color-lime-dim: rgba(0, 250, 154, 0.1);
+    --color-lime: #E5E4E2;
+    --color-lime-glow: rgba(229, 228, 226, 0.2);
+    --color-lime-dim: rgba(229, 228, 226, 0.1);
 
     --color-red: #ff4b4b;
     --color-red-glow: rgba(255, 75, 75, 0.2);
@@ -60,8 +60,8 @@ body {
 .neon-grid {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at 50% 0%, rgba(0, 212, 255, 0.05), transparent 70%),
-                radial-gradient(circle at 80% 80%, rgba(0, 250, 154, 0.03), transparent 50%);
+    background: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.05), transparent 70%),
+                radial-gradient(circle at 80% 80%, rgba(229, 228, 226, 0.03), transparent 50%);
     z-index: 0;
     pointer-events: none;
 }
@@ -125,7 +125,7 @@ body {
 .brand-logo {
     width: 3.5rem;
     height: 3.5rem;
-    background: linear-gradient(135deg, var(--color-cyan) 0%, #0055ff 100%);
+    background: linear-gradient(135deg, var(--color-cyan) 0%, #AA6C39 100%);
     border-radius: 1.25rem;
     display: flex;
     align-items: center;
@@ -233,16 +233,17 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--color-cyan), #0077ff);
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+    background: linear-gradient(135deg, var(--color-cyan), #AA6C39);
+    color: #000;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
     border: none;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #33e1ff, #0088ff);
+    background: linear-gradient(135deg, #F3E5AB, #D4AF37);
+    color: #000;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.5);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
 }
 
 .btn-secondary {
@@ -303,12 +304,83 @@ body {
     100% { transform: scale(1); opacity: 1; }
 }
 
-/* CORE: VISUALIZADOR - 3 COLUMNAS */
+/* CORE: VISUALIZADOR - MAPA 2D */
 .app-main {
+    /* Mantenemos grid como fallback, pero app-map-view lo sobreescribirá */
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
     min-height: 550px;
+}
+
+/* =========================================================================
+   NUEVO LAYOUT: MAPA 2D SOBRE PLANO
+   ========================================================================= */
+.app-map-view {
+    position: relative;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 35 / 30; /* Proporción matemática física: 35m x 30m */
+    background: url('plano.svg') no-repeat center center;
+    background-size: 100% 100%;
+    border: 2px solid var(--color-card-border);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    display: block !important;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    margin: 0 auto;
+    max-width: 90vw;
+    max-height: 85vh;
+}
+
+.map-zone {
+    position: absolute;
+    background: transparent !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.map-zone .lane-header {
+    display: none !important;
+}
+
+/* CAPAS DE ZONA (100% PARA POSICIONAMIENTO ABSOLUTO LIBRE DE LA PISTA F1) */
+.zone-espera, .zone-lavado, .zone-terminado {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* No bloquea clicks hacia capas inferiores */
+    background: transparent !important;
+    border: none !important;
+}
+
+.zone-espera .lane-track, 
+.zone-lavado .lane-track, 
+.zone-terminado .lane-track {
+    width: 100%;
+    height: 100%;
+    position: relative; /* Para posicionamiento absoluto hijo */
+    background: transparent !important;
+}
+
+/* Reactivar eventos de click solo en el auto flotante */
+.vehicle-sprite-container {
+    pointer-events: auto;
+}
+
+/* Orientación de los autos en el mapa 2D */
+.zone-espera .car-sprite {
+    transform: rotate(0deg); /* Apuntan hacia arriba */
+}
+.zone-lavado .car-sprite {
+    transform: rotate(-90deg); /* Apuntan hacia la izquierda */
+}
+.zone-terminado .car-sprite {
+    transform: rotate(180deg); /* Apuntan hacia abajo */
 }
 
 .lane-card {
@@ -517,6 +589,79 @@ body {
     0% { transform: scale(1); opacity: 1; }
     50% { transform: scale(1.05); opacity: 0.8; }
     100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* =========================================================================
+   12. ESTILOS DE IMPRESIÓN (PRINT)
+   ========================================================================= */
+@media print {
+    /* Ocultar elementos no deseados */
+    .sidebar,
+    .topbar,
+    .modal-overlay,
+    .scanlines,
+    .neon-grid,
+    .bg-orb,
+    button:not(.print-visible),
+    .history-actions,
+    .tab-content:not(.active),
+    .tabs,
+    .form-grid,
+    .operator-form {
+        display: none !important;
+    }
+
+    /* Ajustar layout para impresión */
+    body, html {
+        background: #fff !important;
+        color: #000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 1rem !important;
+        background: #fff !important;
+    }
+
+    .view-section {
+        display: block !important;
+    }
+
+    .view-section.hidden {
+        display: none !important;
+    }
+
+    /* Convertir tablas oscuras en tablas de papel */
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        border: 1px solid #000 !important;
+    }
+    table th, table td {
+        border: 1px solid #ccc !important;
+        color: #000 !important;
+        padding: 8px !important;
+        background: transparent !important;
+    }
+    table th {
+        background: #eee !important;
+        font-weight: bold !important;
+        -webkit-print-color-adjust: exact;
+    }
+    .badge {
+        border: 1px solid #000 !important;
+        color: #000 !important;
+        background: transparent !important;
+    }
 }
 
 /* Barra de progreso de lavado */
@@ -1345,16 +1490,35 @@ input:checked + .slider:before {
 
     /* Rotación de autos según el carril para indicar flujo físico de la U */
     .circuit-mode .lane-espera .vehicle-sprite-container {
-        transform: rotate(180deg) scale(0.95);
+        transform: rotate(0deg) scale(0.95) !important;
     }
     .circuit-mode .lane-espera .vehicle-sprite-container:hover {
-        transform: rotate(180deg) scale(1.05);
+        transform: rotate(0deg) scale(1.05) !important;
     }
-    /* Invertir texto para que se lee derecho */
+    
+    /* Etiquetas a los costados para que no se superpongan verticalmente */
     .circuit-mode .lane-espera .vehicle-label {
-        transform: rotate(180deg);
-        margin-top: 0;
-        margin-bottom: 0.5rem;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 100px;
+        margin: 0;
+    }
+    
+    /* Fila Izquierda: Etiqueta a la izquierda del auto */
+    .circuit-mode .lane-espera .pos-left .vehicle-label {
+        right: 100%;
+        margin-right: 15px;
+        text-align: right;
+        align-items: flex-end;
+    }
+    
+    /* Fila Derecha: Etiqueta a la derecha del auto */
+    .circuit-mode .lane-espera .pos-right .vehicle-label {
+        left: 100%;
+        margin-left: 15px;
+        text-align: left;
+        align-items: flex-start;
     }
 
     .circuit-mode .lane-lavado .lane-track {
@@ -1445,3 +1609,664 @@ input:checked + .slider:before {
         }
     }
 }
+
+ 
+ /* ==========================================================================
+   MENÚ INTERACTIVO TIPO MCDONALDS (FORMULARIO DE REGISTRO)
+   ========================================================================== */
+
+.wash-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.wash-menu-card {
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    padding: 0.85rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efecto hover general */
+.wash-menu-card:hover {
+    transform: translateY(-3px) scale(1.02);
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Card Seleccionada */
+.wash-menu-card.selected {
+    border-color: var(--color-lime);
+    background: rgba(0, 250, 154, 0.1);
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 250, 154, 0.25);
+    z-index: 10;
+}
+
+/* Badge del checkmark para la opción elegida */
+.wash-menu-card .check-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--color-lime);
+    color: #000;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 900;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.wash-menu-card.selected .check-badge {
+    opacity: 1;
+    transform: scale(1);
+    top: 5px;
+    right: 5px;
+}
+
+.wash-card-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.wash-card-title {
+    font-size: 0.6rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--color-text);
+    line-height: 1.2;
+    margin-bottom: 0.3rem;
+}
+
+.wash-card-price {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--color-lime);
+}
+
+/* Separadores de Categoría para el menú */
+.wash-menu-category-title {
+    grid-column: 1 / -1;
+    font-size: 0.65rem;
+    font-weight: 900;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.5rem;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    padding-bottom: 0.25rem;
+}
+/* --- LAYOUT WRAPPER & SIDEBAR --- */
+.layout-wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.sidebar {
+    width: 80px;
+    background: rgba(9, 9, 11, 0.95);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 0;
+    z-index: 20;
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-brand {
+    margin-bottom: 3rem;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--color-text-dim);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0.5rem;
+    position: relative;
+}
+
+.nav-btn span {
+    font-size: 0.65rem;
+    font-weight: 700;
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+}
+
+.nav-btn:hover {
+    color: var(--color-cyan);
+}
+
+.nav-btn.active {
+    color: var(--color-cyan);
+}
+
+.nav-btn.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 70%;
+    background: var(--color-cyan);
+    box-shadow: 0 0 10px var(--color-cyan);
+    border-radius: 0 4px 4px 0;
+}
+
+/* --- VIEW SECTIONS --- */
+.view-section {
+    display: none;
+    width: 100%;
+    animation: fadeIn 0.3s ease;
+}
+
+.view-section.active {
+    display: block;
+}
+
+.view-section.hidden {
+    display: none !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   ESCÁNER IA (MOCK)
+   ========================================================================== */
+.scanner-card {
+    border: 2px solid var(--color-cyan) !important;
+    box-shadow: 0 0 40px rgba(0, 240, 255, 0.4) !important;
+    border-radius: 1rem !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.scanner-viewport {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    background: #050505;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.scanner-feed {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, #111 0%, #000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scanner-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px);
+    background-size: 30px 30px;
+    background-position: center;
+    z-index: 1;
+    opacity: 0.5;
+}
+
+.scanner-laser {
+    position: absolute;
+    top: -10%;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--color-cyan);
+    box-shadow: 0 0 15px var(--color-cyan), 0 0 30px var(--color-cyan);
+    z-index: 3;
+    animation: scanLaser 2s linear infinite;
+    opacity: 0;
+}
+
+.scanning-active .scanner-laser {
+    opacity: 1;
+}
+
+@keyframes scanLaser {
+    0% { top: -10%; }
+    50% { top: 110%; }
+    100% { top: -10%; }
+}
+
+.scanner-target {
+    position: relative;
+    width: 250px;
+    height: 150px;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.scanning-active .scanner-target {
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    background: rgba(0, 240, 255, 0.05);
+}
+
+.scanner-target .corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--color-cyan);
+    opacity: 0.5;
+}
+
+.scanning-active .scanner-target .corner {
+    opacity: 1;
+    box-shadow: 0 0 10px var(--color-cyan);
+}
+
+.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+.scanner-text {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    color: var(--color-cyan);
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-shadow: 0 0 5px var(--color-cyan);
+    white-space: nowrap;
+    letter-spacing: 0.1em;
+}
+
+/* Densidad Indicators */
+.text-lime { color: var(--color-lime) !important; }
+.text-yellow { color: var(--color-yellow) !important; }
+.text-red { color: #ff3b30 !important; }
+
+
+/* ================= CCTV MODULE ================= */
+.cctv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1rem;
+    width: 100%;
+    height: 100%;
+}
+
+.cctv-camera {
+    background-color: #000;
+    border: 2px solid #27272a;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cctv-camera:hover {
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+}
+
+.cctv-camera.fullscreen {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 9999;
+    border-radius: 0;
+    border: none;
+}
+
+.cctv-feed {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-size: cover;
+    background-position: center;
+    filter: sepia(0.2) contrast(1.1) brightness(0.8);
+}
+
+/* Backgrounds of feeds - Using simple CSS gradients to simulate spaces for now */
+.entrada-feed { background: radial-gradient(circle at center, #1a202c, #000); }
+.taller-feed { background: radial-gradient(circle at center, #111827, #000); }
+.secado-feed { background: radial-gradient(circle at center, #18181b, #000); }
+.cafe-feed { background: radial-gradient(circle at center, #27272a, #000); }
+
+.cctv-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.cctv-label {
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-family: monospace;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.rec-dot {
+    width: 12px;
+    height: 12px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    animation: blink-rec 1s infinite;
+}
+
+@keyframes blink-rec {
+    0% { opacity: 1; box-shadow: 0 0 10px #ef4444; }
+    50% { opacity: 0.2; box-shadow: none; }
+    100% { opacity: 1; box-shadow: 0 0 10px #ef4444; }
+}
+
+/* IA Box Animation */
+.cctv-ai-box {
+    position: absolute;
+    top: 40%; left: 30%; width: 25%; height: 25%;
+    border: 2px solid var(--color-cyan);
+    box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.3);
+    pointer-events: none;
+    z-index: 15;
+    animation: ai-scan-move 8s infinite alternate ease-in-out;
+}
+
+.cctv-ai-label {
+    position: absolute;
+    top: -25px; left: -2px;
+    background: var(--color-cyan);
+    color: #000;
+    font-weight: bold;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    font-family: var(--font-display);
+    white-space: nowrap;
+}
+
+@keyframes ai-scan-move {
+    0% { top: 40%; left: 30%; transform: scale(1); }
+    25% { top: 35%; left: 45%; transform: scale(1.1); border-color: var(--color-lime); }
+    50% { top: 50%; left: 40%; transform: scale(0.9); border-color: var(--color-yellow); }
+    75% { top: 45%; left: 55%; transform: scale(1.05); border-color: var(--color-cyan); }
+    100% { top: 40%; left: 30%; transform: scale(1); }
+}
+
+
+/* FOOTER GLOBAL - OMAR ADAMO */
+.app-footer {
+    text-align: center;
+    padding: 2rem;
+    margin-top: auto;
+    font-size: 0.8rem;
+
+
+/* ================= CCTV MODULE ================= */
+.cctv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1rem;
+    width: 100%;
+    height: 100%;
+}
+
+.cctv-camera {
+    background-color: #000;
+    border: 2px solid #27272a;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cctv-camera:hover {
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+}
+
+.cctv-camera.fullscreen {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 9999;
+    border-radius: 0;
+    border: none;
+}
+
+.cctv-feed {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background-size: cover;
+    background-position: center;
+    filter: sepia(0.2) contrast(1.1) brightness(0.8);
+}
+
+/* Backgrounds of feeds - Using simple CSS gradients to simulate spaces for now */
+.entrada-feed { background: radial-gradient(circle at center, #1a202c, #000); }
+.taller-feed { background: radial-gradient(circle at center, #111827, #000); }
+.secado-feed { background: radial-gradient(circle at center, #18181b, #000); }
+.cafe-feed { background: radial-gradient(circle at center, #27272a, #000); }
+
+.cctv-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.cctv-label {
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-family: monospace;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.rec-dot {
+    width: 12px;
+    height: 12px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    animation: blink-rec 1s infinite;
+}
+
+@keyframes blink-rec {
+    0% { opacity: 1; box-shadow: 0 0 10px #ef4444; }
+    50% { opacity: 0.2; box-shadow: none; }
+    100% { opacity: 1; box-shadow: 0 0 10px #ef4444; }
+}
+
+/* IA Box Animation */
+.cctv-ai-box {
+    position: absolute;
+    top: 40%; left: 30%; width: 25%; height: 25%;
+    border: 2px solid var(--color-cyan);
+    box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.3);
+    pointer-events: none;
+    z-index: 15;
+    animation: ai-scan-move 8s infinite alternate ease-in-out;
+}
+
+.cctv-ai-label {
+    position: absolute;
+    top: -25px; left: -2px;
+    background: var(--color-cyan);
+    color: #000;
+    font-weight: bold;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    font-family: var(--font-display);
+    white-space: nowrap;
+}
+
+@keyframes ai-scan-move {
+    0% { top: 40%; left: 30%; transform: scale(1); }
+    25% { top: 35%; left: 45%; transform: scale(1.1); border-color: var(--color-lime); }
+    50% { top: 50%; left: 40%; transform: scale(0.9); border-color: var(--color-yellow); }
+    75% { top: 45%; left: 55%; transform: scale(1.05); border-color: var(--color-cyan); }
+    100% { top: 40%; left: 30%; transform: scale(1); }
+}
+
+
+/* FOOTER GLOBAL - OMAR ADAMO */
+.app-footer {
+    text-align: center;
+    padding: 2rem;
+    margin-top: auto;
+    font-size: 0.8rem;
+    color: var(--color-text-dim);
+    border-top: 1px dashed rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+}
+.app-footer strong {
+    color: var(--color-cyan);
+    font-weight: 800;
+}
+
+/* -------------------------------------
+   F1 OVERLAYS Y PIT BOXES
+   ------------------------------------- */
+
+/* Demarcación visual de la máquina de lavado */
+.zone-lavado::before {
+    content: 'WASH TUNNEL';
+    position: absolute;
+    left: 50%;
+    top: 15%;
+    transform: translate(-50%, -50%);
+    width: 140px;
+    height: 140px;
+    border: 3px solid rgba(0, 240, 255, 0.6);
+    background: rgba(0, 240, 255, 0.1);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.3) inset;
+    border-radius: 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    color: rgba(0, 240, 255, 0.8);
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding-bottom: 10px;
+    letter-spacing: 2px;
+    z-index: 1;
+}
+
+/* Cajones vacíos estilo F1 Pit Lane */
+.empty-pit-box {
+    width: 5.7%;
+    height: 18.3%;
+    border: 2px dashed rgba(255, 215, 0, 0.3);
+    border-top: 4px solid rgba(255, 215, 0, 0.8); /* Línea de meta/pit */
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    z-index: 5;
+    transition: all 0.3s ease;
+}
+.pit-box-text {
+    color: rgba(255, 215, 0, 0.5);
+    font-size: 0.7rem;
+    font-weight: 900;
+    transform: rotate(-90deg);
+    letter-spacing: 2px;
+}
+
+/* -------------------------------------
+   ESCALA MATEMÁTICA F1 (35m x 30m)
+   ------------------------------------- */
+.app-map-view .vehicle-sprite-container {
+    width: 5.7% !important;
+    height: 18.3% !important;
+}
+
+.app-map-view .vehicle-sprite-container svg.car-sprite {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+}
+
+/* Bot�n Flotante WhatsApp */
+.whatsapp-float {
+    position: fixed;
+    width: 60px;
+    height: 60px;
+    bottom: 20px;
+    right: 20px;
+    background-color: #25d366;
+    color: #FFF;
+    border-radius: 50px;
+    text-align: center;
+    font-size: 30px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease;
+    text-decoration: none;
+}
+
+.whatsapp-float:hover {
+    transform: scale(1.1);
+    color: #FFF;
+    box-shadow: 0px 6px 15px rgba(37, 211, 102, 0.4);
+}
+

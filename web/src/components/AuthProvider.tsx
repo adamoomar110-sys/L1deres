@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-const PUBLIC_ROUTES = ['/login'];
+const PUBLIC_ROUTES = ['/login', '/lavadero/pantalla'];
 
 function isPublicPath(path: string): boolean {
   return PUBLIC_ROUTES.some(route => path === route || path.startsWith(route + '/'));

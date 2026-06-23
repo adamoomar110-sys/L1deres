@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -82,6 +82,23 @@
             color: var(--color-red);
             border: 1px solid var(--color-red);
         }
+
+        @media (max-width: 600px) {
+            .postular-container {
+                margin: 0;
+                padding: 1.5rem;
+                border-radius: 1.5rem;
+            }
+            .layout-wrapper {
+                padding: 1rem !important;
+            }
+            .postular-header h1 {
+                font-size: 1.5rem;
+            }
+            .form-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -104,9 +121,14 @@
                         <canvas id="canvas-preview"></canvas>
                         <div class="camera-btns">
                             <button type="button" id="btn-start-camera" class="btn btn-secondary">Abrir Cámara</button>
+                            <button type="button" id="btn-switch-camera" class="btn btn-secondary" style="display: none;" title="Cambiar Cámara">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21v-5h5"/></svg>
+                            </button>
                             <button type="button" id="btn-take-photo" class="btn btn-primary" style="display: none;">Tomar Foto</button>
                             <button type="button" id="btn-retake-photo" class="btn btn-secondary" style="display: none;">Reintentar</button>
                         </div>
+                        <input type="file" id="fallback-camera-input" accept="image/*" capture="user" style="display: none;">
+                        <button type="button" id="btn-upload-photo" class="btn btn-secondary" style="margin-top: 0.5rem; width: 100%;">Subir Foto / Tomar Manualmente</button>
                         <input type="hidden" id="selfie_base64" required>
                     </div>
                 </div>
@@ -156,13 +178,17 @@
             </form>
         </div>
 
-        <footer style="text-align: center; padding: 20px; font-family: sans-serif; font-size: 14px; color: #888; margin-top: 40px;">
-            &copy; 2026 Omar Adamo. Todos los derechos reservados.
-        </footer>
+        
     </div>
 
     <!-- Supabase JS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="postular.js"></script>
+    <script src="postular.js?v=3"></script>
+
+    <footer class="app-footer" style="text-align: center; padding: 20px; font-size: 0.8em; color: rgba(255, 255, 255, 0.5); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 40px;">
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. <br>
+        Lavadero Estética Vehicular
+    </footer>
+
 </body>
 </html>

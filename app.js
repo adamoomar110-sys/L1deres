@@ -50,8 +50,8 @@ let empleados = [];
 let insumos = [];
 let config = {
     useSupabase: true,
-    supabaseUrl: 'https://actxvqczpnbstlatrvto.supabase.co',
-    supabaseKey: '', // Configurá tu clave secreta desde el panel de ajustes en la app
+    supabaseUrl: 'https://hacmhlyvyyysnvekvhya.supabase.co',
+    supabaseKey: 'sb_publishable_oEB1MoOee7lM99mvHCu_aA_T98vg3NA',
     queueTable: 'lavadero_camera_queue',
     serviceTable: 'service_orders'
 };
@@ -122,6 +122,9 @@ const elConnectionStatus = document.getElementById('connection-status-pill');
 const elFormRegister = document.getElementById('form-register-car');
 const elInputNickname = document.getElementById('input-nickname');
 const elInputPlate = document.getElementById('input-plate');
+const elInputPhone = document.getElementById('input-phone');
+const elInputClientType = document.getElementById('input-client-type');
+const elInputPaymentMethod = document.getElementById('input-payment-method');
 const elInputColor = document.getElementById('input-color');
 const elInputCategory = document.getElementById('input-category');
 const elInputBudget = document.getElementById('input-budget');
@@ -175,6 +178,42 @@ async function loadRemoteConfig() {
 }
 
 // --- CARGAR DATOS LOCALES ---
+
+// --- SUPABASE CLIENT INSTANCE FOR REALTIME ---
+let supabaseClient = null;
+
+function initSupabaseClient() {
+    if (config.useSupabase && config.supabaseUrl && config.supabaseKey && window.supabase) {
+        if (!supabaseClient) {
+            supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
+            setupRealtimeSubscriptions();
+        }
+    }
+}
+
+function setupRealtimeSubscriptions() {
+    if (!supabaseClient) return;
+    
+    // Suscripción a la tabla de cola
+    supabaseClient
+      .channel('public:lavadero_camera_queue')
+      .on('postgres_changes', { event: '*', schema: 'public', table: config.queueTable || 'lavadero_camera_queue' }, payload => {
+          console.log('Realtime change in queue:', payload);
+          // Llamar a sync manual por simplicidad para asegurar estado consistente
+          syncFromSupabase();
+      })
+      .subscribe();
+
+    // Suscripción a la tabla de servicios
+    supabaseClient
+      .channel('public:service_orders')
+      .on('postgres_changes', { event: '*', schema: 'public', table: config.serviceTable || 'service_orders' }, payload => {
+          console.log('Realtime change in services:', payload);
+          syncFromSupabase();
+      })
+      .subscribe();
+}
+
 function loadLocalData() {
     // Config
     const savedConfig = localStorage.getItem('lavadero_config');
@@ -310,6 +349,7 @@ async function syncFromSupabase() {
         }
 
         updateConnectionStatus("Connected");
+        initSupabaseClient();
         if(typeof renderAll === 'function') renderAll();
     } catch (e) {
         updateConnectionStatus("Error", "bg-danger");
@@ -401,15 +441,34 @@ async function saveStateLocally(syncRemote = true) {
 // --- OPERACIONES DE VEHÃCULOS ---
 
 // Agregar VehÃ­culo
-async function addVehicle(nickname, plate, color, budgetStr, washType) {
+async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '', clientType = 'normal', paymentMethod = 'efectivo') {
     const budget = budgetStr ? parseFloat(budgetStr) : 0;
     const wType = washType || 'combo-limpieza-total';
     const washName = WASH_NAMES[wType] || 'Combo Limpieza Total';
+    const uppercasePlate = plate.toUpperCase();
+    
+    if (config.useSupabase && uppercasePlate) {
+        // Upsert client data
+        fetchSupabase('lavadero_clientes', {
+            method: 'POST',
+            headers: { 'Prefer': 'resolution=merge-duplicates' },
+            body: JSON.stringify({
+                patente: uppercasePlate,
+                telefono: phone,
+                color_auto: color,
+                tipo_cliente: clientType
+            })
+        });
+    }
+
     const newCar = {
         id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
         tracking_id: Math.floor(Math.random() * 900) + 100,
         nickname,
-        plate: plate.toUpperCase(),
+        plate: uppercasePlate,
+        phone,
+        clientType,
+        paymentMethod,
         color,
         zone: 'espera',
         budget,
@@ -506,6 +565,39 @@ async function finishVehicle(id) {
         budget: car.budget || 0,
         completed_at: new Date().toISOString()
     };
+
+    if (config.useSupabase && car.plate && car.plate !== 'SIN PATENTE') {
+        const clients = await fetchSupabase(`lavadero_clientes?patente=eq.${car.plate}`);
+        if (clients && clients.length > 0) {
+            const client = clients[0];
+            const promoAplica = client.visitas_totales > 0 && (client.visitas_totales + 1) % 4 === 0;
+            
+            await fetchSupabase(`lavadero_clientes?id=eq.${client.id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    visitas_totales: client.visitas_totales + 1,
+                    lavados_realizados: client.lavados_realizados + 1,
+                    ultima_visita: new Date().toISOString()
+                })
+            });
+
+            await fetchSupabase(`lavadero_historial_servicios`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    cliente_id: client.id,
+                    patente: car.plate,
+                    tipo_servicio: car.wash_type,
+                    forma_pago: car.paymentMethod || 'efectivo',
+                    monto: car.budget,
+                    promo_aplicada: promoAplica
+                })
+            });
+            
+            if (promoAplica) {
+                showFloatingToast(`¡Atención! Lavado nro ${client.visitas_totales + 1} de ${car.plate}. ¡Aplica Promoción!`);
+            }
+        }
+    }
 
     washHistory.unshift(historyItem); // Insertar al inicio
     activeVehicles.splice(index, 1);  // Remover de activos
@@ -642,14 +734,45 @@ function renderAll() {
 
 // Calcular Demora Estimada
 function calculateETA() {
-    const esperaCount = activeVehicles.filter(v => v.zone === 'espera').length;
-    const lavadoCount = activeVehicles.filter(v => v.zone === 'lavado').length;
+    let etaMinutos = 0;
+    const currentTime = Date.now();
     
-    // 7 min por auto en espera + 7 min si hay alguno lavÃ¡ndose
-    const etaMinutos = (esperaCount * 7) + (lavadoCount > 0 ? 7 : 0);
+    const esperaCount = activeVehicles.filter(v => v.zone === 'espera').length;
+    const lavadoCars = activeVehicles.filter(v => v.zone === 'lavado');
+    
+    if (lavadoCars.length > 0) {
+        let elapsedMins = (currentTime - new Date(lavadoCars[0].entered_at).getTime()) / 60000;
+        let remainingLavado = Math.max(0, 7 - Math.floor(elapsedMins));
+        etaMinutos = remainingLavado + (esperaCount * 7);
+    } else {
+        etaMinutos = esperaCount * 7;
+    }
+
+    
+    // Calculate Densidad Cola
+    const densidadDisplay = document.getElementById('densidad-display');
+    const densidadIcon = document.getElementById('densidad-icon');
+    if (densidadDisplay && densidadIcon) {
+        if (esperaCount <= 4) {
+            densidadDisplay.innerText = "Baja";
+            densidadDisplay.className = "eta-value text-lime";
+            densidadDisplay.style.color = "var(--color-lime)";
+            densidadIcon.className = "text-lime";
+        } else if (esperaCount <= 7) {
+            densidadDisplay.innerText = "Media";
+            densidadDisplay.className = "eta-value text-yellow";
+            densidadDisplay.style.color = "var(--color-yellow)";
+            densidadIcon.className = "text-yellow";
+        } else {
+            densidadDisplay.innerText = "Alta";
+            densidadDisplay.className = "eta-value text-red";
+            densidadDisplay.style.color = "var(--color-red)";
+            densidadIcon.className = "text-red";
+        }
+    }
 
     if (etaMinutos === 0) {
-        elEtaDisplay.innerText = "Sin Demoras Ã°Å¸Å½â€°";
+        elEtaDisplay.innerText = "Sin Demoras ⚡";
         elEtaDisplay.className = "eta-value text-cyan";
     } else {
         elEtaDisplay.innerText = `~ ${etaMinutos} MINUTOS`;
@@ -709,7 +832,8 @@ function renderOperatorTable() {
                 <select class="select-zone-dropdown" data-car-id="${car.id}">
                     <option value="espera" ${car.zone === 'espera' ? 'selected' : ''}>1. Espera</option>
                     <option value="lavado" ${car.zone === 'lavado' ? 'selected' : ''}>2. Lavando</option>
-                    <option value="terminado" ${car.zone === 'terminado' ? 'selected' : ''}>3. Terminado</option>
+                    <option value="aspirado" ${car.zone === 'aspirado' ? 'selected' : ''}>3. Aspirado</option>
+                    <option value="terminado" ${car.zone === 'terminado' ? 'selected' : ''}>4. Terminado</option>
                 </select>
             </td>
             <td>
@@ -744,7 +868,20 @@ function renderOperatorTable() {
         const advanceBtn = tr.querySelector('.btn-advance-car');
         if (advanceBtn) {
             advanceBtn.addEventListener('click', () => {
-                const nextZone = car.zone === 'espera' ? 'lavado' : 'terminado';
+                let nextZone = 'terminado';
+                if (car.zone === 'espera') {
+                    nextZone = 'lavado';
+                } else if (car.zone === 'lavado') {
+                    // Si el servicio incluye aspirado, pasar a aspirado. Si no, terminado.
+                    const serviciosConAspirado = ['combo-limpieza-total', 'combo-vip-gold', 'aspirado-interior'];
+                    if (serviciosConAspirado.includes(car.wash_type)) {
+                        nextZone = 'aspirado';
+                    } else {
+                        nextZone = 'terminado';
+                    }
+                } else if (car.zone === 'aspirado') {
+                    nextZone = 'terminado';
+                }
                 updateVehicleZone(car.id, nextZone);
             });
         }
@@ -847,40 +984,40 @@ function startRealtimeTicker() {
 
     realtimeTickerId = setInterval(() => {
         const now = new Date().getTime();
-        const SPEED_MULTIPLIER = 10; // RelaciÃ³n 10:1
+        const WASH_DURATION_SECS = 15 * 60; // 15 minutos en segundos
 
+        // Calcular cuánto tiempo restante le queda al auto que se está lavando
         let remainingWashingSecs = 0;
-        const washingEl = document.querySelector('[data-timer-type="washing"]');
-        if (washingEl) {
-            const startStr = washingEl.getAttribute('data-start');
+        const washingEls = document.querySelectorAll('[data-timer-type="washing"]');
+        if (washingEls.length > 0) {
+            // Tomamos el primero que se está lavando
+            const startStr = washingEls[0].getAttribute('data-start');
             if (startStr) {
                 const start = new Date(startStr).getTime();
-                const elapsedSecs = Math.max(0, Math.floor(((now - start) * SPEED_MULTIPLIER) / 1000));
-                const totalWashingSecs = 7 * 60; // 7 minutos
-                remainingWashingSecs = Math.max(0, totalWashingSecs - elapsedSecs);
+                const elapsedSecs = Math.max(0, Math.floor((now - start) / 1000));
+                remainingWashingSecs = Math.max(0, WASH_DURATION_SECS - elapsedSecs);
             }
         }
 
-        // 1. Relojes en espera (Calculando ETA en base a posiciÃ³n)
+        // 1. Relojes en espera (Calculando ETA real acumulada)
         document.querySelectorAll('[data-timer-type="waiting"]').forEach((el, index) => {
-            // El delay es el tiempo restante del vehiculo en lavado + (7 min por cada auto delante suyo)
-            const waitTotalSecs = remainingWashingSecs + (index * 7 * 60);
+            // El delay es el tiempo restante del vehiculo en lavado + (15 min por cada auto delante suyo)
+            const waitTotalSecs = remainingWashingSecs + (index * WASH_DURATION_SECS);
             
             const mins = Math.floor(waitTotalSecs / 60);
             const secs = waitTotalSecs % 60;
             
-            // Mostrar formato de reloj en retroceso
-            el.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            // Mostrar ETA
+            el.innerText = `~${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         });
 
-        // 2. Relojes y barra en lavado (cuenta regresiva de 7 minutos)
+        // 2. Relojes en lavado (cuenta regresiva real)
         document.querySelectorAll('[data-timer-type="washing"]').forEach(el => {
             const startStr = el.getAttribute('data-start');
             if (startStr) {
                 const start = new Date(startStr).getTime();
-                const elapsedSecs = Math.max(0, Math.floor(((now - start) * SPEED_MULTIPLIER) / 1000));
-                const totalWashingSecs = 7 * 60; // 7 minutos
-                const remainingSecs = Math.max(0, totalWashingSecs - elapsedSecs);
+                const elapsedSecs = Math.max(0, Math.floor((now - start) / 1000));
+                const remainingSecs = Math.max(0, WASH_DURATION_SECS - elapsedSecs);
 
                 const mins = Math.floor(remainingSecs / 60);
                 const secs = remainingSecs % 60;
@@ -888,13 +1025,13 @@ function startRealtimeTicker() {
             }
         });
 
+        // 3. Barra de progreso asumiendo un lavado real promedio de 15 minutos (900 seg)
         document.querySelectorAll('[data-progress-fill]').forEach(el => {
             const startStr = el.getAttribute('data-progress-fill');
             if (startStr) {
                 const start = new Date(startStr).getTime();
-                const elapsedSecs = Math.max(0, Math.floor(((now - start) * SPEED_MULTIPLIER) / 1000));
-                const totalWashingSecs = 7 * 60;
-                const percent = Math.min(100, Math.floor((elapsedSecs / totalWashingSecs) * 100));
+                const elapsedSecs = Math.max(0, Math.floor((now - start) / 1000));
+                const percent = Math.min(100, Math.floor((elapsedSecs / WASH_DURATION_SECS) * 100));
                 el.style.width = `${percent}%`;
             }
         });
@@ -1051,16 +1188,43 @@ function renderWashMenu() {
     });
 }
 
+// Auto-fill logic for plates
+if (elInputPlate) {
+    let debounceTimer;
+    elInputPlate.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        const plate = e.target.value.trim().toUpperCase();
+        if (plate.length >= 6 && config.useSupabase) {
+            debounceTimer = setTimeout(async () => {
+                const clients = await fetchSupabase(`lavadero_clientes?patente=eq.${plate}`);
+                if (clients && clients.length > 0) {
+                    const client = clients[0];
+                    if (client.telefono && elInputPhone) elInputPhone.value = client.telefono;
+                    if (client.color_auto && elInputColor) {
+                        elInputColor.value = client.color_auto;
+                        if (elColorHexLabel) elColorHexLabel.innerText = client.color_auto;
+                    }
+                    if (client.tipo_cliente && elInputClientType) elInputClientType.value = client.tipo_cliente;
+                    showFloatingToast(`Cliente recurrente encontrado: ${plate}. Visitas previas: ${client.visitas_totales}`);
+                }
+            }, 800);
+        }
+    });
+}
+
 // Formulario de Registro
 elFormRegister.addEventListener('submit', (e) => {
     e.preventDefault();
     const nickname = elInputNickname.value.trim();
     const plate = elInputPlate.value.trim();
+    const phone = elInputPhone ? elInputPhone.value.trim() : '';
+    const clientType = elInputClientType ? elInputClientType.value : 'normal';
+    const paymentMethod = elInputPaymentMethod ? elInputPaymentMethod.value : 'efectivo';
     const color = elInputColor.value;
     const budget = elInputBudget.value;
     const washType = selectedWashTypes.join(',');
 
-    addVehicle(nickname, plate, color, budget, washType);
+    addVehicle(nickname, plate, color, budget, washType, phone, clientType, paymentMethod);
 
     // Resetear formulario
     elInputNickname.value = '';
@@ -1660,7 +1824,10 @@ function showQrModal(car) {
 
     // Usar API de QR pÃºblica para generar la imagen
     qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&color=00f0ff&bgcolor=18181b`;
-    qrLinkText.innerText = url;
+    // Make link clickable and QR image clickable
+    qrLinkText.innerHTML = `<a href="${url}" target="_blank" style="color: var(--color-cyan); text-decoration: underline; word-break: break-all;">${url}</a>`;
+    qrImage.style.cursor = 'pointer';
+    qrImage.onclick = () => window.open(url, '_blank');
     
     btnCopy.onclick = () => {
         navigator.clipboard.writeText(url).then(() => {
@@ -2256,3 +2423,45 @@ setInterval(updateCCTVClock, 1000);
 function toggleFullscreen(cameraElement) {
     cameraElement.classList.toggle('fullscreen');
 }
+
+// --- AUTOMATIZACION DE COLA Y LAVADO ---
+setInterval(() => {
+    try {
+        if (!activeVehicles) return;
+        
+        const currentTime = Date.now();
+        const SERVICIOS_CON_ASPIRADO = ['combo-limpieza-total', 'combo-vip-gold', 'aspirado-interior'];
+        
+        let lavadoCars = activeVehicles.filter(v => v.zone === 'lavado');
+        let aspiradoCars = activeVehicles.filter(v => v.zone === 'aspirado');
+        
+        for (let car of lavadoCars) {
+            let elapsedMins = (currentTime - new Date(car.entered_at).getTime()) / 60000;
+            if (elapsedMins >= 7) {
+                if (SERVICIOS_CON_ASPIRADO.includes(car.wash_type)) {
+                    updateVehicleZone(car.id, 'aspirado');
+                } else {
+                    updateVehicleZone(car.id, 'terminado');
+                }
+            }
+        }
+        
+        for (let car of aspiradoCars) {
+            let elapsedMins = (currentTime - new Date(car.entered_at).getTime()) / 60000;
+            if (elapsedMins >= 7) {
+                updateVehicleZone(car.id, 'terminado');
+            }
+        }
+        
+        lavadoCars = activeVehicles.filter(v => v.zone === 'lavado');
+        if (lavadoCars.length === 0) {
+            let esperaCars = activeVehicles.filter(v => v.zone === 'espera');
+            if (esperaCars.length > 0) {
+                esperaCars.sort((a, b) => new Date(a.entered_at) - new Date(b.entered_at));
+                updateVehicleZone(esperaCars[0].id, 'lavado');
+            }
+        }
+    } catch (e) {
+        console.error('Error en automatización:', e);
+    }
+}, 5000);

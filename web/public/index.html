@@ -135,20 +135,8 @@
 
             <!-- Panel de Demora y Controles Rápidos -->
             <div class="header-actions">
-                <div class="eta-card">
-                    <svg class="icon-money text-lime" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    <div class="eta-info">
-                        <span class="eta-label">Recaudación Real</span>
-                        <span id="revenue-real-display" class="eta-value" style="color: var(--color-lime)">$0</span>
-                    </div>
-                </div>
-                <div class="eta-card">
-                    <svg class="icon-money text-yellow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    <div class="eta-info">
-                        <span class="eta-label">Facturación Pendiente</span>
-                        <span id="revenue-proj-display" class="eta-value" style="color: var(--color-yellow)">$0</span>
-                    </div>
-                </div>
+
+                
                 <div class="eta-card">
                     <svg class="icon-clock text-cyan animate-slow-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     <div class="eta-info">
@@ -224,8 +212,28 @@
                             <input type="text" id="input-nickname" placeholder="Auto">
                         </div>
                         <div class="form-group">
-                            <label for="input-plate">Patente (Opcional)</label>
-                            <input type="text" id="input-plate" placeholder="Ej: AE554FG">
+                            <label for="input-plate">Patente</label>
+                            <input type="text" id="input-plate" placeholder="Ej: AE554FG" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-phone">Celular (WhatsApp)</label>
+                            <input type="text" id="input-phone" placeholder="Ej: 1123456789">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-client-type">Tipo de Cliente</label>
+                            <select id="input-client-type">
+                                <option value="normal">Normal</option>
+                                <option value="flota">Flota / Empresa</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="input-payment-method">Forma de Pago</label>
+                            <select id="input-payment-method">
+                                <option value="efectivo">Efectivo</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="tarjeta">Tarjeta / Posnet</option>
+                                <option value="cuenta_corriente">Cuenta Corriente (Flota)</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="input-color">Color del Vehículo</label>
@@ -292,31 +300,25 @@
                 <div class="operator-queue-list" style="text-align: center; padding: 3rem 2rem;">
                     <h2 style="color: var(--color-lime); font-family: var(--font-display); margin-bottom: 1rem;">1. Cartelería de Precios</h2>
                     <p style="color: var(--color-text-dim); margin-bottom: 2rem;">Pantalla pública sugerida para la entrada exterior. Muestra lista de precios actualizados.</p>
-                    <a href="tv_precios.html" target="_blank" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; display: inline-block; text-decoration: none;">Abrir en TV ðŸ–¥ï¸</a>
+                    <a href="tv_precios.html" target="_blank" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; display: inline-block; text-decoration: none;">Abrir en TV 🖥️</a>
                 </div>
                 
                 <div class="operator-queue-list" style="text-align: center; padding: 3rem 2rem;">
-                    <h2 style="color: var(--color-cyan); font-family: var(--font-display); margin-bottom: 1rem;">2. Tablet Recepción</h2>
-                    <p style="color: var(--color-text-dim); margin-bottom: 2rem;">Punto de ingreso y cobro. Con escáner IA y selector de métodos de pago.</p>
-                    <a href="tablet_ingreso.html" target="_blank" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; display: inline-block; text-decoration: none;">Abrir en Tablet ðŸ“±</a>
-                </div>
-                
-                <div class="operator-queue-list" style="text-align: center; padding: 3rem 2rem;">
-                    <h2 style="color: var(--color-yellow); font-family: var(--font-display); margin-bottom: 1rem;">3. Tablet Taller Operativo</h2>
-                    <p style="color: var(--color-text-dim); margin-bottom: 2rem;">Estación de trabajo para operarios. Permite avanzar los autos y marcar extras.</p>
-                    <a href="tablet_taller.html" target="_blank" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; display: inline-block; text-decoration: none;">Abrir en Tablet ðŸ“±</a>
+                    <h2 style="color: var(--color-purple); font-family: var(--font-display); margin-bottom: 1rem;">2. Ingreso Tablet (Recepción)</h2>
+                    <p style="color: var(--color-text-dim); margin-bottom: 2rem;">Interfaz ultra-rápida y táctil para que el recepcionista ingrese autos al sistema.</p>
+                    <a href="tablet_ingreso.html" target="_blank" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; display: inline-block; text-decoration: none;">Abrir Tablet 📱</a>
                 </div>
                 
                 <div class="operator-queue-list" style="text-align: center; padding: 3rem 2rem;">
                     <h2 style="color: #fff; font-family: var(--font-display); margin-bottom: 1rem;">4. TV Sala de Espera (Café)</h2>
                     <p style="color: var(--color-text-dim); margin-bottom: 2rem;">Monitor público tipo aeropuerto para que los clientes sigan el estado de su turno.</p>
-                    <a href="tv_espera.html" target="_blank" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; display: inline-block; text-decoration: none;">Abrir en TV ðŸ–¥ï¸</a>
+                    <a href="tv_espera.html" target="_blank" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; display: inline-block; text-decoration: none;">Abrir en TV 🖥️</a>
                 </div>
 
                 <div class="operator-queue-list" style="text-align: center; padding: 3rem 2rem;">
-                    <h2 style="color: #00bcd4; font-family: var(--font-display); margin-bottom: 1rem;">5. Pantalla Mapa Top-Down</h2>
+                    <h2 style="color: #00f0ff; font-family: var(--font-display); margin-bottom: 1rem;">5. Radar 2D de Operaciones (TV Box)</h2>
                     <p style="color: var(--color-text-dim); margin-bottom: 2rem;">Radar en tiempo real con la simulación de movimiento físico de los vehículos.</p>
-                    <a href="pantalla_lavado/index.html" target="_blank" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; display: inline-block; text-decoration: none;">Abrir en TV ðŸ–¥ï¸</a>
+                    <a href="pantalla_lavado/index.html" target="_blank" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem; display: inline-block; text-decoration: none;">Abrir en TV 🖥️</a>
                 </div>
             </div>
         </div>
@@ -329,6 +331,23 @@
                     <h3>Administración y Finanzas</h3>
                 </div>
             </div>
+            <div class="dashboard-eta-bar" style="margin-bottom: 2rem; justify-content: flex-start; gap: 1rem;">
+                <div class="eta-card">
+                    <svg class="icon-money text-lime" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <div class="eta-info">
+                        <span class="eta-label">Recaudación Real</span>
+                        <span id="revenue-real-display" class="eta-value" style="color: var(--color-lime)">$0</span>
+                    </div>
+                </div>
+                <div class="eta-card">
+                    <svg class="icon-money text-yellow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <div class="eta-info">
+                        <span class="eta-label">Facturación Pendiente</span>
+                        <span id="revenue-proj-display" class="eta-value" style="color: var(--color-yellow)">$0</span>
+                    </div>
+                </div>
+            </div>
+
 
             <div class="operator-layout" style="grid-template-columns: 1fr 1fr;">
                 <!-- SECCION GASTOS -->
@@ -790,16 +809,20 @@
     </div>
 
     <!-- Lógica de la aplicación -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
 
-    <footer class="app-footer" style="text-align: center; padding: 1rem; color: var(--color-text-dim);">
-        &copy; 2026 <strong>Omar | Aura</strong>. Todos los derechos reservados. <br>
-        Lavadero L1deres â€” Software Independiente
-    </footer>
+    
 
     <!-- Botón Flotante de WhatsApp -->
     <a href="https://wa.me/5491100000000?text=Hola,%20necesito%20soporte%20del%20sistema..." class="whatsapp-float" target="_blank" rel="noopener noreferrer">
         <i class="fa-brands fa-whatsapp"></i>
     </a>
+
+    <footer class="app-footer" style="text-align: center; padding: 20px; font-size: 0.8em; color: rgba(255, 255, 255, 0.5); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 40px;">
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. <br>
+        Lavadero Estética Vehicular
+    </footer>
+
 </body>
 </html>

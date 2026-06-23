@@ -8,7 +8,7 @@ interface QueueVehicle {
   id: string;
   tracking_id: number;
   nickname: string;
-  zone: 'espera' | 'lavado' | 'terminado';
+  zone: 'espera' | 'lavado' | 'aspirado' | 'terminado';
   color: string;
   entered_at: string;
   created_at: string;
@@ -59,8 +59,7 @@ function RetroCar({ color }: { color: string }) {
   );
 }
 
-// Temporizador reactivo para cada vehículo
-function VehicleTimer({ enteredAt, zone }: { enteredAt: string; zone: 'espera' | 'lavado' | 'terminado' }) {
+function VehicleTimer({ enteredAt, zone }: { enteredAt: string; zone: 'espera' | 'lavado' | 'aspirado' | 'terminado' }) {
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
@@ -90,28 +89,31 @@ function VehicleTimer({ enteredAt, zone }: { enteredAt: string; zone: 'espera' |
     );
   }
 
-  // Estimar lavado de 15 minutos en cuenta regresiva
   if (zone === 'lavado') {
-    const totalWashingSecs = 15 * 60;
-    const remaining = Math.max(0, totalWashingSecs - seconds);
-    const percent = Math.min(100, Math.floor((seconds / totalWashingSecs) * 100));
-
     return (
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] font-black text-orange-600 tracking-wider">
-          {formatTime(remaining)}
+      <div className="flex items-center gap-1.5 mt-1 bg-orange-400/20 px-2 py-0.5 rounded text-orange-600 border border-orange-400/30">
+        <Clock size={10} className={seconds >= 15 * 60 ? "animate-ping text-red-500" : ""} />
+        <span className="font-mono text-[10px] font-black tracking-widest tabular-nums">
+          {formatTime(seconds)}
         </span>
-        <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden border border-orange-200">
-          <div className="h-full bg-orange-400 transition-all duration-1000" style={{ width: `${percent}%` }} />
-        </div>
       </div>
     );
   }
 
-  // Tiempo en fila
+  if (zone === 'aspirado') {
+    return (
+      <div className="flex items-center gap-1.5 mt-1 bg-purple-500/20 px-2 py-0.5 rounded text-purple-400 border border-purple-500/30">
+        <Clock size={10} className={seconds >= 15 * 60 ? "animate-ping text-red-500" : ""} />
+        <span className="font-mono text-[10px] font-black tracking-widest tabular-nums">
+          {formatTime(seconds)}
+        </span>
+      </div>
+    );
+  }
+
   return (
     <span className="text-[10px] font-black text-green-600 tracking-wider bg-green-400/10 px-2 py-0.5 rounded-full border border-green-400/20">
-      {formatTime(seconds)}
+      {formatTime(seconds)} MIN
     </span>
   );
 }
@@ -121,7 +123,6 @@ export default function PantallaLavadero() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Fetch inicial de la cola
     const fetchQueue = async () => {
       setLoading(true);
       const { data, error } = await supabase
@@ -137,14 +138,12 @@ export default function PantallaLavadero() {
 
     fetchQueue();
 
-    // 2. Suscribirse a Supabase Realtime
     const channel = supabase
       .channel('lavadero-camera-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'lavadero_camera_queue' },
         (payload) => {
-          console.log('Cambio detectado en cola:', payload);
           if (payload.eventType === 'INSERT') {
             const newCar = payload.new as QueueVehicle;
             setVehicles((prev) => [...prev.filter(v => v.id !== newCar.id), newCar]);
@@ -164,25 +163,21 @@ export default function PantallaLavadero() {
     };
   }, []);
 
-  // Calcular tiempos de espera agregados
   const waitQueueCount = vehicles.filter(v => v.zone === 'espera').length;
   const washingCount = vehicles.filter(v => v.zone === 'lavado').length;
+  const aspiradoCount = vehicles.filter(v => v.zone === 'aspirado').length;
   
-  // Fórmula simple: 15 minutos por auto en fila + 10 minutos promedio si ya está en lavado
   const estimatedTime = (waitQueueCount * 15) + (washingCount > 0 ? 8 : 0);
 
   return (
     <div className="min-h-screen bg-[#020202] text-black font-sans overflow-hidden p-6 md:p-10 relative flex flex-col justify-between selection:bg-orange-400 selection:text-black">
       
-      {/* Efecto Scanline y Grilla Neon */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,_rgba(0,0,0,0.25)_50%),_linear-gradient(90deg,_rgba(255,0,0,0.06),_rgba(0,255,0,0.02),_rgba(0,0,255,0.06))] bg-[size:100%_4px,_6px_100%] pointer-events-none z-10" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_40%,_black_100%)] pointer-events-none z-10" />
       
-      {/* Fondo de Orbes de Neon */}
       <div className="absolute top-1/4 left-1/4 w-[40vw] h-[40vw] bg-orange-400/5 rounded-full blur-[130px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-[40vw] h-[40vw] bg-lime-500/5 rounded-full blur-[130px] pointer-events-none" />
 
-      {/* HEADER DE PANTALLA */}
       <header className="relative z-20 flex flex-col md:flex-row items-center justify-between border-b-2 border-dashed border-zinc-800 pb-6 mb-6 gap-4">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-gradient-to-br from-orange-300 to-blue-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.3)] animate-pulse">
@@ -196,7 +191,6 @@ export default function PantallaLavadero() {
           </div>
         </div>
 
-        {/* Panel de Tiempo Estimado */}
         <div className="flex items-center gap-4 bg-orange-100/50 border border-orange-200 rounded-2xl px-6 py-3.5 backdrop-blur-md">
           <Clock className="text-orange-600 animate-spin" style={{ animationDuration: '6s' }} size={20} />
           <div>
@@ -208,47 +202,23 @@ export default function PantallaLavadero() {
         </div>
       </header>
 
-      {/* CORE: ZONAS DEL VIDEOJUEGO (VISTA EN CIRCUITO U 35x30) */}
-      <div className="relative z-20 flex-1 my-8 mx-auto w-full max-w-[1050px] flex items-center justify-center">
+      <div className="relative z-20 flex-1 my-8 mx-auto w-full max-w-[1200px] flex items-center justify-center">
         
-        {/* REGLA FISICA: LARGO (35m) a la izquierda */}
-        <div className="absolute left-[-2.5rem] top-0 bottom-0 w-8 flex flex-col items-center justify-between pointer-events-none select-none">
-          <div className="w-4 h-0.5 bg-zinc-700/80 shadow-[0_0_8px_rgba(255,255,255,0.1)]" />
-          <div className="h-full w-0.5 bg-zinc-700/40 relative flex items-center justify-center">
-            <span className="absolute bg-[#020202] py-3 px-1 text-[9px] font-mono font-black text-zinc-600 uppercase tracking-[0.25em] origin-center -rotate-90 whitespace-nowrap">
-              35m (LARGO / PROFUNDIDAD)
-            </span>
-          </div>
-          <div className="w-4 h-0.5 bg-zinc-700/80 shadow-[0_0_8px_rgba(255,255,255,0.1)]" />
-        </div>
-
-        {/* REGLA FISICA: ANCHO (30m) abajo */}
-        <div className="absolute bottom-[-2.5rem] left-0 right-0 h-8 flex items-center justify-between pointer-events-none select-none">
-          <div className="w-0.5 h-4 bg-zinc-700/80 shadow-[0_0_8px_rgba(255,255,255,0.1)]" />
-          <div className="w-full h-0.5 bg-zinc-700/40 relative flex items-center justify-center">
-            <span className="absolute bg-[#020202] px-4 text-[9px] font-mono font-black text-zinc-600 uppercase tracking-[0.25em] whitespace-nowrap">
-              30m (ANCHO / FRENTE)
-            </span>
-          </div>
-          <div className="w-0.5 h-4 bg-zinc-700/80 shadow-[0_0_8px_rgba(255,255,255,0.1)]" />
-        </div>
-
         <main 
           className="w-full h-full gap-6"
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1.2fr 1fr',
+            gridTemplateColumns: '1fr 1.2fr 1.2fr 1fr',
             gridTemplateRows: '60px 180px 320px',
             gridTemplateAreas: `
-              "retorno retorno retorno"
-              "espera central terminado"
-              "espera lavado terminado"
+              "retorno retorno retorno retorno"
+              "espera central central terminado"
+              "espera lavado aspirado terminado"
             `,
-            aspectRatio: '30 / 35'
+            aspectRatio: '40 / 35'
           }}
         >
           
-          {/* CALLE DE RETORNO (DE DERECHA A IZQUIERDA PARTE SUPERIOR) */}
           <div 
             className="bg-zinc-950/95 border-2 border-zinc-800/80 rounded-[1.5rem] px-6 flex items-center justify-between relative overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.8)]"
             style={{ gridArea: 'retorno', height: '100%' }}
@@ -409,6 +379,51 @@ export default function PantallaLavadero() {
                       <div className="text-center z-10">
                         <p className="text-[11px] font-black tracking-tight text-black uppercase">{v.nickname}</p>
                         <VehicleTimer enteredAt={v.entered_at} zone="lavado" />
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* ZONA 2.5: ASPIRADO (LADO CENTRAL DERECHO - DIRECCIÓN HACIA ARRIBA/DERECHA) */}
+          <div 
+            className="bg-zinc-950/90 border-2 border-zinc-800/80 rounded-[2.5rem] p-6 flex flex-col items-center relative overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.8)]"
+            style={{ gridArea: 'aspirado', height: '100%' }}
+          >
+            {/* Indicador de Línea Neon */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.8)]" />
+            
+            <h2 className="text-sm font-black tracking-widest text-purple-400 uppercase mb-4 flex items-center gap-2 z-10">
+              2.5 ASPIRADO <span className="bg-purple-500/10 text-purple-400 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-purple-500/20">{aspiradoCount}</span>
+            </h2>
+
+            <div className="flex-1 flex flex-row justify-center items-center gap-8 w-full z-10">
+              <AnimatePresence mode="popLayout">
+                {vehicles.filter(v => v.zone === 'aspirado').length === 0 ? (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} className="h-full flex flex-col items-center justify-center text-center py-10 text-zinc-600">
+                    <Waves size={32} className="mb-2 animate-pulse" />
+                    <p className="text-xs font-black uppercase tracking-wider">Box de Aspirado Vacío</p>
+                  </motion.div>
+                ) : (
+                  vehicles.filter(v => v.zone === 'aspirado').map((v) => (
+                    <motion.div
+                      key={v.id}
+                      layoutId={v.id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                      className="flex flex-col items-center gap-3 relative"
+                    >
+                      <div className="absolute top-0 w-24 h-24 bg-purple-500/10 rounded-full blur-xl animate-pulse pointer-events-none" />
+                      <div className="transform rotate-0 my-2">
+                        <RetroCar color={v.color} />
+                      </div>
+                      <div className="text-center z-10">
+                        <p className="text-[11px] font-black tracking-tight text-white uppercase">{v.nickname}</p>
+                        <VehicleTimer enteredAt={v.entered_at} zone="aspirado" />
                       </div>
                     </motion.div>
                   ))
