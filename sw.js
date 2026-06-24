@@ -4,7 +4,7 @@
 // para API, Background Sync para requests offline + Offline Page
 // ============================================================
 
-const CACHE_VERSION = 'v6';
+const CACHE_VERSION = 'v7';
 const CACHE_NAME = `lavadero-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `lavadero-dynamic-${CACHE_VERSION}`;
 const SYNC_STORE_NAME = 'sync-store';
@@ -14,7 +14,7 @@ const OFFLINE_URL = './offline.html';
 // Assets críticos que se cachean en la instalación
 const STATIC_ASSETS = [
   './app_cliente.html',
-  './style.css',
+  './estilos.css',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
