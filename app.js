@@ -1080,8 +1080,8 @@ function startRealtimeTicker() {
 
         // 1. Relojes en espera (Calculando ETA real acumulada)
         document.querySelectorAll('[data-timer-type="waiting"]').forEach((el, index) => {
-            // El delay es el tiempo restante del vehiculo en lavado + (15 min por cada auto delante suyo)
-            const waitTotalSecs = remainingWashingSecs + (index * WASH_DURATION_SECS);
+            // El delay es el tiempo restante del vehiculo en lavado + (7 min por cada auto delante suyo) + 7 minutos para el auto mismo
+            const waitTotalSecs = remainingWashingSecs + ((index + 1) * WASH_DURATION_SECS);
             
             const mins = Math.floor(waitTotalSecs / 60);
             const secs = waitTotalSecs % 60;
