@@ -5,7 +5,7 @@ const DB_NAME = 'lavadero-offline-db';
 
 // Assets estáticos críticos para PWA (Cache-First)
 const staticAssets = [
-  './app_cliente.html',
+  './kiosko.html',
   './style.css',
   './logo.png',
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Orbitron:wght@700;900&family=Outfit:wght@400;600;800&display=swap'
@@ -177,7 +177,7 @@ self.addEventListener('push', event => {
     body: data.body,
     icon: 'logo.png',
     vibrate: [100, 50, 100],
-    data: { url: './app_cliente.html' }
+    data: { url: './kiosko.html' }
   };
   event.waitUntil(
     self.registration.showNotification(data.title, options)

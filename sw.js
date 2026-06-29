@@ -13,7 +13,7 @@ const OFFLINE_URL = './offline.html';
 
 // Assets críticos que se cachean en la instalación
 const STATIC_ASSETS = [
-  './app_cliente.html',
+  './kiosko.html',
   './kiosko.html',
   './estilos.css',
   './manifest.json',
@@ -227,7 +227,7 @@ self.addEventListener('push', event => {
     vibrate: [200, 100, 200],
     tag: 'lavadero-notif',
     renotify: true,
-    data: { url: data.url || './app_cliente.html' },
+    data: { url: data.url || './kiosko.html' },
     actions: [
       { action: 'ver', title: 'Ver estado 🚗' },
       { action: 'cerrar', title: 'Cerrar' }
@@ -243,7 +243,7 @@ self.addEventListener('notificationclick', event => {
   event.notification.close();
   if (event.action === 'cerrar') return;
 
-  const targetUrl = event.notification.data?.url || './app_cliente.html';
+  const targetUrl = event.notification.data?.url || './kiosko.html';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
