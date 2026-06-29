@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mi Auto - Lavadero Estética Vehicular</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="estilos.css">
+    <style>
+        :root {
+            --glass-bg: rgba(15, 15, 20, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --neon-glow: 0 0 20px rgba(6, 182, 212, 0.3);
+            --card-radius: 24px;
+        }
+        
+        body {
+            background: radial-gradient(circle at top, #1a1a24 0%, #050505 100%);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            overflow-x: hidden;
+        }
+
+        /* Fondo Animado sutil */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxyZWN0IHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgZmlsbD0idHJhbnNwYXJlbnQiLz4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjA1KSIvPgo8L3N2Zz4=');
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .premium-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .client-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        /* Luz detrás del header */
+        .client-header::before {
+            content: '';
+            position: absolute;
+            top: -50px; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 150px;
+            background: var(--color-cyan);
+            filter: blur(100px);
+            opacity: 0.15;
+            z-index: -1;
+        }
+
+        .client-header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+            background: linear-gradient(to right, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .client-plate {
+            display: inline-block;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.4rem 1.2rem;
+            border-radius: 8px;
+            color: #ccc;
+            letter-spacing: 2px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .car-display {
+            margin: 2.5rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 220px;
+            position: relative;
+        }
+        
+        /* Plataforma del auto */
+        .car-display::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 180px; height: 20px;
+            background: radial-gradient(ellipse, rgba(6,182,212,0.4) 0%, transparent 70%);
+            filter: blur(5px);
+        }
+
+        /* Scanning effect in wash */
+        .in-wash .svg-car-large {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .in-wash::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            width: 120px; height: 2px;
+            background: var(--color-cyan);
+            box-shadow: 0 0 15px 5px rgba(6,182,212,0.5);
+            transform: translateX(-50%);
+            animation: scan 2s linear infinite alternate;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% { top: 10px; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 200px; opacity: 0; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Stepper Moderno */
+        .stepper-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0;
+            position: relative;
+            padding: 0 10px;
+        }
+        .step-line-bg {
+            position: absolute;
+            top: 18px; left: 10%; right: 10%;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            z-index: 0;
+        }
+        .step-line-fill {
+            position: absolute;
+            top: 18px; left: 10%;
+            height: 2px;
+            background: var(--color-cyan);
+            box-shadow: 0 0 10px var(--color-cyan);
+            z-index: 1;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            opacity: 0.4;
+            transition: all 0.4s;
+            position: relative;
+        }
+        .step.active { opacity: 1; }
+        .step.completed { opacity: 1; }
+        
+        .step-circle {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: #111;
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex; justify-content: center; align-items: center;
+            font-weight: 700; font-family: 'Orbitron', sans-serif;
+            margin-bottom: 0.8rem;
+            transition: all 0.4s;
+            color: #666;
+        }
+        
+        .step.active .step-circle {
+            border-color: var(--color-yellow);
+            color: var(--color-yellow);
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.4);
+            background: rgba(234, 179, 8, 0.1);
+        }
+        
+        .step.completed .step-circle {
+            border-color: var(--color-cyan);
+            color: var(--color-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+        }
+
+        .step-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+        }
+
+        /* Tarjetas de Info */
+        .info-card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        
+        .info-card h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 2px;
+            margin: 0 0 1rem 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .queue-number {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--color-yellow);
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 30px rgba(234, 179, 8, 0.4);
+            line-height: 1;
+            margin: 0;
+        }
+
+        .progress-bar-bg {
+            width: 100%; height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1.5rem 0 1rem;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-cyan), #3b82f6);
+            width: 0%;
+            border-radius: 4px;
+            transition: width 1s linear;
+            box-shadow: 0 0 15px var(--color-cyan);
+            position: relative;
+        }
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        #eta-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.03);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Service Card (Glass Credit Card Style) */
+        #service-card {
+            margin-top: 2rem;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #service-card::before {
+            content: ''; position: absolute; top: 0; right: 0;
+            width: 150px; height: 150px;
+            background: radial-gradient(circle, rgba(234, 179, 8, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        #service-name { font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 700; color: #fff; margin: 0 0 0.5rem 0; }
+        #service-price { font-family: 'Orbitron', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--color-lime); text-shadow: 0 0 10px rgba(132,204,22,0.3); }
+        
+        .service-item-line {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.75rem; color: rgba(255,255,255,0.6);
+            margin-bottom: 6px; font-family: 'Inter', sans-serif;
+        }
+        .service-item-line i { color: var(--color-cyan); font-size: 0.6rem; }
+
+        #payment-status {
+            margin-top: 1.5rem; padding-top: 1rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.8rem; font-family: 'Outfit', sans-serif;
+        }
+
+        .client-footer {
+            margin-top: 3rem;
+            text-align: center;
+            font-family: 'Outfit', sans-serif;
+        }
+        .client-footer p { color: rgba(255,255,255,0.3); font-size: 0.8rem; margin: 0; }
+        .client-footer span { color: var(--color-cyan); font-weight: 700; font-family: 'Orbitron', sans-serif; letter-spacing: 1px; }
+
+        /* Config View overrides */
+        .wash-menu-card {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 1rem; cursor: pointer; transition: 0.3s;
+            text-align: center; position: relative;
+        }
+        .wash-menu-card.selected { border-color: var(--color-cyan); background: rgba(6,182,212,0.1); box-shadow: 0 0 15px rgba(6,182,212,0.2); }
+        .check-badge { display: none; position: absolute; top: -8px; right: -8px; background: var(--color-cyan); color: #000; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; font-weight: bold; line-height: 20px; text-align: center; box-shadow: 0 0 10px var(--color-cyan); }
+        .selected .check-badge { display: block; }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #06b6d4, #3b82f6);
+            color: #fff; border: none; padding: 1rem; font-family: 'Outfit', sans-serif;
+            font-weight: 700; font-size: 1rem; border-radius: 12px; width: 100%; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(6,182,212,0.3); transition: 0.3s;
+        }
+        .btn-primary:active { transform: scale(0.98); }
+
+        .ticker-wrap {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid var(--color-cyan);
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 8px 0;
+            z-index: 1000;
+        }
+        .ticker-content {
+            display: inline-block;
+            white-space: nowrap;
+            padding-left: 100%;
+            animation: ticker 30s linear infinite;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            color: var(--color-cyan);
+            font-weight: 600;
+        }
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+        .ticker-item {
+            display: inline-block;
+            padding: 0 2rem;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body style="padding-top: 40px;">
+
+    <!-- Marquesina de Precios -->
+    <div class="ticker-wrap">
+        <div class="ticker-content" id="price-ticker">
+            <!-- Cargando precios... -->
+        </div>
+    </div>
+
+    <div class="premium-card">
+        <div class="client-header">
+            <!-- Botón de WhatsApp Top Right -->
+            <a href="https://wa.me/5491100000000?text=Hola,%20tengo%20una%20consulta%20sobre%20mi%20vehículo" target="_blank" style="position: absolute; top: -10px; right: -10px; background: #25D366; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); z-index: 10; transition: transform 0.2s ease;">
+                <i class="fa-brands fa-whatsapp" style="font-size: 1.5rem;"></i>
+            </a>
+
+            <h1 id="car-nickname">Cargando...</h1>
+            <div class="client-plate" id="car-plate">--</div>
+        </div>
+
+        <div id="tracking-view">
+            <div id="status-container" class="status-badge" style="display: none;"></div>
+
+            <!-- STEPPER TIMELINE -->
+            <div class="stepper-wrapper" id="stepper-wrapper" style="display: none;">
+                <div class="step-line-bg"></div>
+                <div class="step-line-fill" id="step-fill"></div>
+                
+                <div class="step" id="step-1">
+                    <div class="step-circle">1</div>
+                    <div class="step-title">En Fila</div>
+                </div>
+                <div class="step" id="step-2">
+                    <div class="step-circle">2</div>
+                    <div class="step-title">Lavado</div>
+                </div>
+                <div class="step" id="step-3">
+                    <div class="step-circle">3</div>
+                    <div class="step-title">Listo</div>
+                </div>
+            </div>
+
+            <!-- TARJETA DE ESPERA -->
+            <div id="queue-position-card" class="info-card" style="display: none;">
+                <h3>Turno en Espera</h3>
+                <div class="queue-number" id="queue-number">#--</div>
+                <p id="queue-subtitle" style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 10px;">Autos delante tuyo</p>
+            </div>
+
+            <!-- TARJETA DE PROGRESO DE LAVADO -->
+            <div id="progress-card" class="info-card" style="display: none;">
+                <h3>Lavado en Curso</h3>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="wash-progress"></div>
+                </div>
+                <p id="progress-text" style="font-size: 0.85rem; color: var(--color-cyan); font-weight: 700; margin: 0;">Calculando tiempo restante...</p>
+            </div>
+
+            <div class="car-display" id="car-display-container">
+                <!-- SVG se inyecta via JS -->
+            </div>
+
+            <div id="eta-text" style="text-align: center; display: none;"></div>
+
+            <!-- Tarjeta de Servicio Premium Contratado -->
+            <div id="service-card" style="display: none;">
+                <div style="font-size: 0.65rem; text-transform: uppercase; color: rgba(255,255,255,0.5); font-weight: 800; letter-spacing: 1px; margin-bottom: 0.8rem;">Detalle del Servicio</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                    <h4 id="service-name">-</h4>
+                    <span id="service-price">-</span>
+                </div>
+                <div id="service-items">
+                    <!-- items se inyectan dinámicamente -->
+                </div>
+                <div id="payment-status">
+                    <span style="color: rgba(255,255,255,0.5);">Forma de Pago</span>
+                    <strong id="payment-method-display" style="color: #fff; letter-spacing: 1px;">PENDIENTE</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENEDOR DE CONFIGURACIÓN (Visible si no hay tipo seleccionado) -->
+        <div id="config-view" style="display: none; margin-top: 1.5rem;">
+            
+            <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">0. Tipo de Vehículo</p>
+            <div id="config-cat-grid" class="wash-menu-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 2rem;">
+                <!-- Dinámico -->
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">1. Elegir Servicio</p>
+            <div id="config-wash-grid" class="wash-menu-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <!-- Dinámico -->
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">2. Forma de Pago</p>
+            <div id="config-pay-grid" class="wash-menu-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
+                <div class="wash-menu-card" data-pay="efectivo" onclick="selectPayment(this, 'efectivo')">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-icon" style="font-size: 1.5rem; margin-bottom: 5px;">💵</div>
+                    <div class="wash-card-title" style="font-size: 0.7rem;">Efectivo</div>
+                </div>
+                <div class="wash-menu-card" data-pay="tarjeta" onclick="selectPayment(this, 'tarjeta')">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-icon" style="font-size: 1.5rem; margin-bottom: 5px;">💳</div>
+                    <div class="wash-card-title" style="font-size: 0.7rem;">Tarjeta</div>
+                </div>
+                <div class="wash-menu-card" data-pay="transferencia" onclick="selectPayment(this, 'transferencia')">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-icon" style="font-size: 1.5rem; margin-bottom: 5px;">📱</div>
+                    <div class="wash-card-title" style="font-size: 0.7rem;">MercadoPago</div>
+                </div>
+            </div>
+
+            <button onclick="confirmarConfiguracion()" class="btn-primary" style="margin-top: 2rem;">Confirmar y Comenzar</button>
+        </div>
+    </div>
+
+    <div class="client-footer">
+        <p>&copy; 2026 <span>Aura</span>. Todos los derechos reservados.</p>
+        <p style="margin-top: 4px;">Lavadero Estética Vehicular</p>
+    </div>
+
+    <script>
+        // Cargar configuración de localStorage si existe (modo compartido en el mismo dispositivo)
+        let WASH_DETAILS = {};
+        let savedSettings = localStorage.getItem('lavadero_wash_settings');
+        if (savedSettings && (savedSettings.includes('\u00c3\u00b0') || savedSettings.includes('ðŸ') || savedSettings.includes('Ã°') || savedSettings.includes('â\u0082¬'))) {
+            localStorage.removeItem('lavadero_wash_settings');
+            savedSettings = null;
+        }
+
+        if (savedSettings) {
+            const packages = JSON.parse(savedSettings);
+            packages.forEach(pkg => {
+                WASH_DETAILS[pkg.id] = {
+                    name: `${pkg.title} ${pkg.icon}`,
+                    price: pkg.price,
+                    items: pkg.items || ['Servicio premium garantizado']
+                };
+            });
+        } else {
+            // Fallback por defecto si no hay localStorage
+            WASH_DETAILS = {
+                'combo-limpieza-total': { name: 'Limpieza Total 🌀', price: 18000, items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clásico'] },
+                'combo-vip-gold': { name: 'VIP Gold 🏆', price: 25000, items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor'] },
+                'lavado-carroceria': { name: 'Exterior Simple 🚗', price: 12000, items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumáticos'] },
+                'aspirado-interior': { name: 'Interior Pro 💨', price: 10000, items: ['Aspirado butacas y paneles', 'Desinfección de contacto', 'Acondicionado de plásticos'] },
+                'lavado-express': { name: 'Express ⚡', price: 8000, items: ['Lavado exterior a presión', 'Secado rápido', 'Brillo básico de cubiertas'] },
+                'lavado-motor': { name: 'Motor Vapor 🔥', price: 15000, items: ['Limpieza técnica a vapor', 'Desengrasantes biodegradables'] },
+                'encerado-acrilico': { name: 'Encerado 🛡️', price: 22000, items: ['Lavado artesanal descontaminante', 'Cera selladora acrílica manual'] },
+                'lavado-chasis': { name: 'Chasis 🔩', price: 28000, items: ['Limpieza chasis inferior', 'Desengrasado pesado a vapor'] },
+                'pulido-opticas': { name: 'Ópticas 💡', price: 16000, items: ['Lijado al agua multietapa', 'Pulido de policarbonato'] },
+                'tratamiento-ceramico': { name: 'Cerámico 9H 💎', price: 65000, items: ['Corrección de pintura 2 etapas', 'Sellador cerámico 9H importado'] }
+            };
+        }
+
+        // --- Renderizar Marquesina de Precios ---
+        function renderTicker() {
+            const ticker = document.getElementById('price-ticker');
+            if(!ticker) return;
+            let htmlStr = '';
+            for (const [id, details] of Object.entries(WASH_DETAILS)) {
+                htmlStr += `<span class="ticker-item">🔹 ${details.name}: $${details.price.toLocaleString('es-AR')}</span>`;
+            }
+            htmlStr += `<span class="ticker-item" style="color: #fff">💳 Aceptamos Efectivo, Transferencia y Tarjetas</span>`;
+            
+            // Duplicar para que el loop sea más fluido
+            ticker.innerHTML = htmlStr + htmlStr;
+        }
+        renderTicker();
+
+        // Dibujo de Auto SVG adaptado
+        
+        function getCarSvg(color) {
+            return `
+            <svg class="svg-car-large" width="100" height="200" viewBox="0 0 60 110" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 15px ${color});">
+                <!-- Hologram Grid lines -->
+                <rect x="6" y="8" width="48" height="88" rx="14" fill="transparent" stroke="${color}" stroke-width="1.5" stroke-dasharray="2 2" />
+                <rect x="10" y="20" width="40" height="30" rx="4" fill="transparent" stroke="${color}" stroke-width="1" />
+                <rect x="10" y="60" width="40" height="25" rx="4" fill="transparent" stroke="${color}" stroke-width="1" />
+                
+                <!-- Glowing Body -->
+                <rect x="6" y="8" width="48" height="88" rx="14" fill="${color}" fill-opacity="0.15" />
+                
+                <!-- Headlights -->
+                <rect x="12" y="6" width="8" height="4" rx="2" fill="#fff" style="filter: drop-shadow(0 -5px 10px #fff);" />
+                <rect x="40" y="6" width="8" height="4" rx="2" fill="#fff" style="filter: drop-shadow(0 -5px 10px #fff);" />
+                
+                <!-- Taillights -->
+                <rect x="10" y="94" width="8" height="3" rx="1" fill="#f00" style="filter: drop-shadow(0 5px 10px #f00);" />
+                <rect x="42" y="94" width="8" height="3" rx="1" fill="#f00" style="filter: drop-shadow(0 5px 10px #f00);" />
+            </svg>
+            `;
+        }
+    
+
+        // Parsear URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const nick = urlParams.get('n') || 'Tu Vehículo';
+        const color = urlParams.get('c') ? '#' + urlParams.get('c') : '#06b6d4';
+        const plate = urlParams.get('p') || 'SIN PATENTE';
+        let zone = urlParams.get('z') || 'espera';
+        let pos = parseInt(urlParams.get('pos') || '1'); // Posición en cola
+        let type = urlParams.get('t') || '';
+        let payment = urlParams.get('pay') || '';
+        const carId = urlParams.get('id') || null;
+
+        document.getElementById('car-nickname').innerText = nick;
+        document.getElementById('car-plate').innerText = plate;
+        document.getElementById('car-display-container').innerHTML = getCarSvg(color);
+
+        const trackingView = document.getElementById('tracking-view');
+        const configView = document.getElementById('config-view');
+        const statusContainer = document.getElementById('status-container');
+        const etaText = document.getElementById('eta-text');
+        const displayContainer = document.getElementById('car-display-container');
+
+        let pendingType = '';
+        let pendingPay = '';
+
+        // Lógica de Selección de Configuración
+        
+        let VEHICLE_CATEGORIES = [];
+        let savedCatSettings = localStorage.getItem('lavadero_vehicle_categories');
+        if (savedCatSettings && (savedCatSettings.includes('\u00c3\u00b0') || savedCatSettings.includes('ðŸ') || savedCatSettings.includes('Ã°') || savedCatSettings.includes('â\u0082¬'))) {
+            localStorage.removeItem('lavadero_vehicle_categories');
+            savedCatSettings = null;
+        }
+
+        if (savedCatSettings) {
+            VEHICLE_CATEGORIES = JSON.parse(savedCatSettings);
+        } else {
+            VEHICLE_CATEGORIES = [
+                { id: 'Auto', surcharge: 0, icon: '🚗' },
+                { id: 'SUV', surcharge: 20, icon: '🚙' },
+                { id: 'Camioneta', surcharge: 50, icon: '🚐' }
+            ];
+        }
+
+        let pendingCats = '';
+        let currentSurcharge = 0;
+
+        function renderCatMenu() {
+            const grid = document.getElementById('config-cat-grid');
+            if(!grid) return;
+            let h = '';
+            VEHICLE_CATEGORIES.forEach(cat => {
+                h += `
+                <div class="cat-menu-card" data-cat="${cat.id}" onclick="selectCat(this, '${cat.id}', ${cat.surcharge})">
+                    <div class="check-badge">✓</div>
+                    <div class="cat-card-icon">${cat.icon}</div>
+                    <div class="cat-card-title">${cat.id}</div>
+                    ${cat.surcharge > 0 ? `<div class="cat-card-subtitle">+${cat.surcharge}%</div>` : ''}
+                </div>
+                `;
+            });
+            grid.innerHTML = h;
+            
+            // Auto select URL parameter if present
+            const urlCat = urlParams.get('cat');
+            if (urlCat) {
+                const catNode = document.querySelector(`#config-cat-grid .cat-menu-card[data-cat="${urlCat}"]`);
+                if (catNode) {
+                    const found = VEHICLE_CATEGORIES.find(c => c.id === urlCat);
+                    selectCat(catNode, urlCat, found ? found.surcharge : 0);
+                    document.getElementById('config-cat-grid').parentElement.style.display = 'none'; // hide step 0 if pre-filled
+                }
+            } else if (VEHICLE_CATEGORIES.length > 0) {
+                // select first by default
+                const first = document.querySelector(`#config-cat-grid .cat-menu-card`);
+                if (first) selectCat(first, VEHICLE_CATEGORIES[0].id, VEHICLE_CATEGORIES[0].surcharge);
+            }
+        }
+
+        function selectCat(el, id, perc) {
+            document.querySelectorAll('#config-cat-grid .cat-menu-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            pendingCats = id;
+            currentSurcharge = perc;
+            renderConfigMenu(); // re-render prices
+        }
+
+        let pendingTypeIds = [];
+
+        function renderConfigMenu() {
+            const grid = document.getElementById('config-wash-grid');
+            if(!grid) return;
+            let html = '';
+            for (const [id, details] of Object.entries(WASH_DETAILS)) {
+                // currentSurcharge is a percentage (e.g., 20 for SUV)
+                const adjustedPrice = details.price * (1 + (currentSurcharge / 100));
+                const isSelected = pendingTypeIds.includes(id) ? 'selected' : '';
+                html += `
+                <div class="wash-menu-card ${isSelected}" data-type="${id}" onclick="selectWash(this, '${id}')">
+                    <div class="check-badge">✓</div>
+                    <div class="wash-card-title" style="font-size: 0.75rem; min-height: 2.5em; display:flex; align-items:center; justify-content:center;">${details.name}</div>
+                    <div class="wash-card-price" style="font-size: 0.9rem;">$${adjustedPrice.toLocaleString('es-AR')}</div>
+                </div>
+                `;
+            }
+            grid.innerHTML = html;
+        }
+
+        function selectWash(el, id) {
+            if (pendingTypeIds.includes(id)) {
+                pendingTypeIds = pendingTypeIds.filter(i => i !== id);
+                el.classList.remove('selected');
+            } else {
+                pendingTypeIds.push(id);
+                el.classList.add('selected');
+            }
+        }
+
+        function confirmarConfiguracion() {
+            if (!pendingCats) { alert('Por favor, selecciona qué vehículo tienes.'); return; }
+            if (pendingTypeIds.length === 0) { alert('Por favor, selecciona al menos un tipo de lavado.'); return; }
+            if (!pendingPay) { alert('Por favor, selecciona una forma de pago.'); return; }
+            
+            pendingType = pendingTypeIds.join(',');
+            
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('cat', pendingCats);
+            newUrl.searchParams.set('t', pendingType);
+            newUrl.searchParams.set('pay', pendingPay);
+            window.history.pushState({}, '', newUrl);
+
+            type = pendingType;
+            payment = pendingPay;
+            
+            configView.style.display = 'none';
+            trackingView.style.display = 'block';
+            
+            document.getElementById('car-display-container').innerHTML = getCarSvg(color);
+            initTrackingView();
+        }
+
+
+        // ── Config Supabase (mismo proyecto que el panel) ──
+        const SB_URL  = 'https://hacmhlyvyyysnvekvhya.supabase.co';
+        const SB_KEY  = 'sb_publishable_oEB1MoOee7lM99mvHCu_aA_T98vg3NA';
+        const SB_TABLE = 'lavadero_camera_queue';
+
+        let activeTimer = null;
+        
+        // Setup timer to update realtime si tenemos ID
+        if (carId) {
+            setInterval(async () => {
+                try {
+                    // Obtener todos los autos para calcular posición en cola
+                    const allRes = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?select=id,zone,entered_at,wash_type,nickname&order=entered_at.asc`, {
+                        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+                    });
+                    
+                    if (allRes.ok) {
+                        const vehicles = await allRes.json();
+                        const myCar = vehicles.find(v => v.id == carId);
+                        
+                        if (myCar) {
+                            zone = myCar.zone || zone;
+
+                            let extra = {};
+                            try { if (myCar.nickname && myCar.nickname.startsWith('{')) extra = JSON.parse(myCar.nickname); } catch(e) {}
+                            const washType = extra.wash_type || myCar.wash_type || type;
+
+                            const esperaCars = vehicles.filter(v => v.zone === 'espera');
+                            pos = esperaCars.findIndex(v => v.id == carId) + 1;
+                            if (pos <= 0) pos = 1;
+
+                            updateVisualStatus(vehicles, myCar);
+                        }
+                    }
+                } catch(e) {
+                    console.log("Offline or error fetching from DB, keeping last state", e);
+                }
+            }, 5000);
+        }
+
+        function updateVisualStatus(allVehicles, myCar) {
+            const SPEED_MULTIPLIER = 10;
+            const now = new Date().getTime();
+            
+            let remainingWashingSecs = 0;
+            const washingCar = allVehicles.find(v => v.zone === 'lavado');
+            if (washingCar && washingCar.entered_at) {
+                const start = new Date(washingCar.entered_at).getTime();
+                const elapsedSecs = Math.max(0, Math.floor(((now - start) * SPEED_MULTIPLIER) / 1000));
+                const totalWashingSecs = 7 * 60;
+                remainingWashingSecs = Math.max(0, totalWashingSecs - elapsedSecs);
+            }
+
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const step3 = document.getElementById('step-3');
+            const line1 = document.getElementById('line-1');
+            const line2 = document.getElementById('line-2');
+            const queueCard = document.getElementById('queue-position-card');
+            const progressCard = document.getElementById('progress-card');
+
+            // Reset classes
+            [step1, step2, step3, line1, line2].forEach(el => {
+                el.classList.remove('active', 'completed');
+            });
+
+            if (zone === 'espera') {
+                step1.classList.add('active');
+                queueCard.style.display = 'block';
+                progressCard.style.display = 'none';
+                displayContainer.classList.remove('in-wash');
+
+                document.getElementById('queue-number').innerText = '#' + pos;
+                document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
+
+                const waitTotalSecs = remainingWashingSecs + (pos * 7 * 60);
+                const mins = Math.floor(waitTotalSecs / 60);
+                const secs = waitTotalSecs % 60;
+                etaText.innerHTML = `Demora estimada: <strong style="color:var(--color-yellow); font-size:1.1em;">${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}</strong> min`;
+
+            } else if (zone === 'lavado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('active');
+                queueCard.style.display = 'none';
+                progressCard.style.display = 'block';
+                displayContainer.classList.add('in-wash');
+
+                let progressRemainingSecs = 0;
+                let percent = 0;
+                if (myCar.entered_at) {
+                    const start = new Date(myCar.entered_at).getTime();
+                    const elapsedSecs = Math.max(0, Math.floor(((now - start) * SPEED_MULTIPLIER) / 1000));
+                    const totalWashingSecs = 7 * 60;
+                    progressRemainingSecs = Math.max(0, totalWashingSecs - elapsedSecs);
+                    percent = Math.min(100, Math.floor((elapsedSecs / totalWashingSecs) * 100));
+                }
+
+                const mins = Math.floor(progressRemainingSecs / 60);
+                const secs = progressRemainingSecs % 60;
+                
+                etaText.innerHTML = `Lavando... <strong style="color:var(--color-cyan)">${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}</strong> min restantes`;
+                document.getElementById('wash-progress').style.width = `${percent}%`;
+                document.getElementById('progress-text').innerText = `${Math.ceil(progressRemainingSecs / 60)} min aprox.`;
+
+            } else if (zone === 'terminado') {
+                step1.classList.add('completed');
+                line1.classList.add('active');
+                step2.classList.add('completed');
+                line2.classList.add('active');
+                step3.classList.add('active', 'completed');
+                queueCard.style.display = 'none';
+                progressCard.style.display = 'none';
+                displayContainer.classList.remove('in-wash');
+                etaText.innerHTML = '<strong style="color:var(--color-lime); font-size:1.1em;">¡Impecable!</strong><br>Te esperamos en la salida.';
+            }
+        }
+
+        function initTrackingView() {
+            statusContainer.style.display = 'none';
+            document.getElementById('stepper-wrapper').style.display = 'flex';
+            etaText.style.display = 'block';
+            
+            // Primera carga manual
+            updateVisualStatus([], { entered_at: new Date().toISOString() });
+
+
+            // Cargar detalles del servicio contratado
+            const serviceCard = document.getElementById('service-card');
+            if (type) {
+                const typeIds = type.split(',');
+                let totalName = [];
+                let totalPrice = 0;
+                let allItems = [];
+                let hasKnownPackages = false;
+
+                typeIds.forEach(id => {
+                    const trimmedId = id.trim();
+                    if (WASH_DETAILS[trimmedId]) {
+                        hasKnownPackages = true;
+                        totalName.push(WASH_DETAILS[trimmedId].name);
+                        totalPrice += WASH_DETAILS[trimmedId].price;
+                        allItems = allItems.concat(WASH_DETAILS[trimmedId].items);
+                    }
+                });
+
+                if (hasKnownPackages) {
+                    document.getElementById('service-name').innerText = totalName.join(' + ');
+                    document.getElementById('service-price').innerText = `$${totalPrice.toLocaleString('es-AR')}`;
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    
+                    const itemsContainer = document.getElementById('service-items');
+                    itemsContainer.innerHTML = [...new Set(allItems)].map(item => `
+                        <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
+                            <span style="color: var(--color-lime);">✓</span>
+                            <span>${item}</span>
+                        </div>
+                    `).join('');
+                    
+                    serviceCard.style.display = 'block';
+                } else {
+                    // Caso en el que venga un string personalizado no catalogado
+                    document.getElementById('service-name').innerText = decodeURIComponent(type);
+                    document.getElementById('service-price').innerText = '';
+                    document.getElementById('service-items').innerHTML = '';
+                    document.getElementById('payment-method-display').innerText = payment ? payment.toUpperCase() : 'PENDIENTE';
+                    serviceCard.style.display = 'block';
+                }
+            }
+        }
+
+        // INIT LOGIC
+        if (!type || !payment) {
+            // Entra en modo Configuración si falta algún dato
+            document.getElementById('config-view').style.display = 'block';
+            document.getElementById('status-container').style.display = 'none';
+            const stepper = document.getElementById('stepper-wrapper');
+            if (stepper) stepper.style.display = 'none';
+            if (etaText) etaText.style.display = 'none';
+            
+            // Si las funciones existen en este script, renderizamos
+            if (typeof renderCatMenu === 'function') renderCatMenu();
+            if (typeof renderWashMenu === 'function') renderWashMenu();
+        } else {
+            // Ya está configurado, entra en modo Tracking Directamente
+            initTrackingView();
+        }
+    
+        // Patch updateVisualStatus line fill
+        const originalUpdateVisualStatus = updateVisualStatus;
+        updateVisualStatus = function(allVehicles, myCar) {
+            originalUpdateVisualStatus(allVehicles, myCar);
+            
+            // Manage step-fill width based on zone
+            const fill = document.getElementById('step-fill');
+            if (zone === 'espera') {
+                fill.style.width = '0%';
+            } else if (zone === 'lavado') {
+                fill.style.width = '50%';
+                // make step 2 active style
+                document.getElementById('step-2').classList.add('active');
+            } else if (zone === 'terminado') {
+                fill.style.width = '100%';
+            }
+        };
+
+        // Override service items rendering to match new styles
+        const originalInitTrackingView = initTrackingView;
+        initTrackingView = function() {
+            originalInitTrackingView();
+            // Re-render items with new icon style
+            const itemsContainer = document.getElementById('service-items');
+            if(itemsContainer && itemsContainer.innerHTML !== '') {
+                const items = Array.from(itemsContainer.querySelectorAll('span:last-child')).map(el => el.innerText);
+                itemsContainer.innerHTML = items.map(item => `
+                    <div class="service-item-line">
+                        <i class="fa-solid fa-check"></i>
+                        <span>${item}</span>
+                    </div>
+                `).join('');
+            }
+        };
+    </script>
+</body>
+</html>

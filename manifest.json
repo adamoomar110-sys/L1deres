@@ -3,7 +3,7 @@
   "name": "L1DERES Car Wash - Cliente",
   "short_name": "L1DERES",
   "description": "Seguí el estado de tu auto en tiempo real. Turnos, precios y novedades del Lavadero L1DERES.",
-  "start_url": "./kiosko.html?pwa=true",
+  "start_url": "./cliente.html?pwa=true",
   "scope": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
@@ -37,7 +37,7 @@
       "name": "Ver mis turnos",
       "short_name": "Turnos",
       "description": "Chequeá el estado de tu auto en el lavadero",
-      "url": "./kiosko.html?section=turnos&pwa=true",
+      "url": "./cliente.html?section=turnos&pwa=true",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     },
     {

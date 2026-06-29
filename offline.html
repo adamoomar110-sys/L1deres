@@ -160,7 +160,7 @@
     <script>
         function intentarReconectar() {
             if (navigator.onLine) {
-                window.location.href = './kiosko.html';
+                window.location.href = './cliente.html';
             } else {
                 const btn = document.querySelector('.btn-retry');
                 btn.textContent = '❌ Sin señal aún...';
@@ -170,7 +170,7 @@
 
         // Redirigir automáticamente cuando vuelva la conexión
         window.addEventListener('online', () => {
-            window.location.href = './kiosko.html';
+            window.location.href = './cliente.html';
         });
     </script>
 </body>
