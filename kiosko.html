@@ -3,1015 +3,662 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kiosco Autogestión - L1DERES</title>
-    
-    <link rel="manifest" href="manifest-kiosko.json">
-    <meta name="theme-color" content="#c8960c">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+    <title>Recepción - Lavadero Estética</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <style>
-        :root {
-            --color-cyan: #06b6d4;
-            --color-yellow: #eab308;
-            --color-lime: #84cc16;
-            --glass-bg: rgba(15, 15, 20, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.05);
-            --card-radius: 20px;
-        }
-        
         body {
-            background: radial-gradient(circle at top, #1a1a24 0%, #050505 100%);
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0; padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            font-family: var(--font-sans);
+        }
+        .header {
+            padding: 1rem 2rem;
+            background: rgba(9, 9, 11, 0.9);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-family: var(--font-display);
             margin: 0;
+            font-size: 1.5rem;
+            color: var(--color-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .main-container {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            gap: 2rem;
+            overflow-y: auto;
+        }
+        .panel {
+            background: var(--color-panel-bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+            flex: 1;
             display: flex;
             flex-direction: column;
         }
-
-        /* Persistent Header */
-        .kiosk-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.2rem 3rem;
+        .scanner-placeholder {
+            flex: 1;
             background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .kiosk-logo {
-            margin: 0;
-            display: flex;
-            align-items: center;
-            height: 60px;
-        }
-
-        .kiosk-logo-img {
-            height: 100%;
-            max-height: 60px;
-            object-fit: contain;
-            filter: drop-shadow(0 0 10px rgba(200, 150, 12, 0.4));
-            transition: transform 0.3s ease;
-        }
-
-        .kiosk-logo-img:hover {
-            transform: scale(1.05);
-        }
-
-        .header-info {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .info-pill {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 0.5rem 1rem;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.9rem;
-        }
-        .info-pill i { color: var(--color-cyan); }
-        .queue-eta { color: var(--color-yellow); font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 1.1rem;}
-
-        .whatsapp-btn {
-            background: #25D366;
-            color: white;
-            padding: 0.5rem 1.2rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 0 15px rgba(37,211,102,0.4);
-            transition: 0.3s;
-        }
-
-
-        /* Main Content - contenedor principal ahora es .kiosk-layout */
-
-        .wizard-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--card-radius);
-            padding: 3rem;
-            width: 100%;
-            max-width: 800px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .step-indicator {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 2.5rem;
-            position: relative;
-        }
-        .step-indicator::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 0; right: 0;
-            height: 2px;
-            background: rgba(255,255,255,0.1);
-            z-index: 0;
-        }
-        .step-dot {
-            width: 40px; height: 40px;
-            background: #111;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            z-index: 1;
-            color: #666;
-            transition: 0.3s;
-        }
-        .step-dot.active {
-            border-color: var(--color-cyan);
-            color: var(--color-cyan);
-            box-shadow: 0 0 15px rgba(6,182,212,0.4);
-        }
-        .step-dot.done {
-            background: var(--color-cyan);
-            color: #000;
-            border-color: var(--color-cyan);
-        }
-
-        .step-content {
-            display: none;
-            animation: fadeIn 0.4s ease;
-        }
-        .step-content.active { display: block; }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .step-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            color: var(--color-cyan);
-        }
-
-        /* Grids and Cards */
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-        }
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-        }
-
-        .select-card {
-            background: rgba(0,0,0,0.4);
-            border: 2px solid rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-            position: relative;
-            min-height: 250px;
+            border: 2px dashed var(--color-cyan);
+            border-radius: 1rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 15px;
-            box-sizing: border-box;
-        }
-        .select-card:hover { background: rgba(255,255,255,0.05); }
-        .select-card.selected {
-            border-color: var(--color-cyan);
-            background: rgba(6,182,212,0.1);
-            box-shadow: 0 0 20px rgba(6,182,212,0.3);
-        }
-        .select-card i { font-size: 3rem; margin-bottom: 1rem; color: #fff; }
-        .select-card h3 { margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.2rem; }
-
-        /* Input Patente */
-        .plate-input-container {
-            text-align: center;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .plate-input {
-            width: 100%;
-            background: rgba(0,0,0,0.6);
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 1.5rem;
-            font-size: 2.5rem;
-            font-family: 'Orbitron', monospace;
-            color: #fff;
-            text-align: center;
-            text-transform: uppercase;
-            outline: none;
-            letter-spacing: 5px;
-            transition: 0.3s;
-            box-sizing: border-box;
-        }
-        .plate-input:focus {
-            border-color: var(--color-cyan);
-            box-shadow: 0 0 15px rgba(6,182,212,0.3);
-        }
-
-        .promo-alert {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            border-radius: 12px;
-            font-family: 'Outfit', sans-serif;
-            display: none;
-        }
-        .promo-success {
-            background: rgba(132, 204, 22, 0.15);
-            border: 1px solid var(--color-lime);
-            color: var(--color-lime);
-        }
-
-        /* Buttons */
-        .wizard-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 3rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 2rem;
-        }
-
-        .btn {
-            padding: 1rem 2.5rem;
-            border-radius: 12px;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            font-size: 1.1rem;
             cursor: pointer;
-            border: none;
-            transition: 0.3s;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
-        .btn-prev {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
+        .scanner-placeholder:hover {
+            background: rgba(0, 240, 255, 0.05);
         }
-        .btn-next {
-            background: linear-gradient(90deg, #06b6d4, #3b82f6);
-            color: #fff;
-            box-shadow: 0 10px 20px rgba(6,182,212,0.3);
-        }
-        .btn:disabled {
-            opacity: 0.5; cursor: not-allowed;
-            background: rgba(255,255,255,0.05); box-shadow: none;
-        }
-
-        /* Resumen Price */
-        .price-display {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--color-lime);
-            font-size: 1.5rem;
-            font-weight: 900;
-            margin-top: 10px;
-        }
-        .old-price {
-            text-decoration: line-through;
-            color: #666;
-            font-size: 1rem;
-            margin-right: 10px;
-        }
-
-        /* ── STATUS BAR ── */
-        .status-bar {
-            display: flex;
-            gap: 1rem;
+        .form-group {
             margin-bottom: 1.5rem;
         }
-        .status-pill {
-            flex: 1;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 14px;
-            padding: 0.9rem 1.4rem;
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-dim);
+            font-weight: 600;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+        }
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .pay-method {
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .pay-method.active {
+            border-color: var(--color-lime);
+            background: rgba(20, 255, 0, 0.1);
+            color: var(--color-lime);
+        }
+        .btn-large {
+            padding: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            width: 100%;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            border: none;
+            background: var(--color-cyan);
+            color: #fff;
+            transition: all 0.3s;
+        }
+        .btn-large:hover {
+            background: #00c0cc;
+        }
+        /* Scanner Anim */
+        .scan-line {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--color-cyan);
+            box-shadow: 0 0 15px var(--color-cyan);
+            animation: scan 2s infinite linear;
+            display: none;
+        }
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+
+        /* Overlay de pago */
+        .payment-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .qr-mock {
+            width: 300px; height: 300px;
+            background: white;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin: 1rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .qr-mock img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(132, 204, 22, 0.95);
+            border: 1px solid var(--color-lime);
+            color: #000;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 1000;
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 10px;
+            animation: slideIn 0.3s forwards, fadeOut 0.3s 3.7s forwards;
+            font-family: var(--font-sans);
         }
-        .status-pill i {
-            font-size: 1.3rem;
-            color: rgba(255,255,255,0.4);
+        @keyframes slideIn {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-        .status-pill-label {
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.45);
-            margin-bottom: 2px;
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
         }
-        .status-pill-value {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #fff;
-        }
-        .status-pill-value.yellow { color: var(--color-yellow); }
-        .status-pill-value.cyan   { color: var(--color-cyan); }
-        .status-pill-value.lime   { color: var(--color-lime); }
-        .status-pill-value.red    { color: #ef4444; }
-
-        /* ── ZONA DE ESPERA PANEL ── */
-        .kiosk-layout {
-            display: flex;
-            gap: 2rem;
-            align-items: flex-start;
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-            box-sizing: border-box;
-        }
-        .kiosk-left {
-            flex: 1;
-            min-width: 0;
-        }
-        .kiosk-right {
-            width: 320px;
-            flex-shrink: 0;
-        }
-        .zona-espera-panel {
-            background: rgba(0,0,0,0.45);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 20px;
-            padding: 1.5rem;
-            position: sticky;
-            top: 100px;
-        }
-        .zona-espera-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.4);
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-            padding-bottom: 0.8rem;
-            margin-bottom: 1rem;
-        }
-        .queue-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-        }
-        .queue-car-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            padding: 0.9rem 0.8rem;
-            text-align: center;
-            position: relative;
-        }
-        .queue-car-card.slot-empty {
-            opacity: 0.2;
-            border-style: dashed;
-        }
-        .queue-car-name {
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 3px;
-            line-height: 1.2;
-        }
-        .queue-car-plate {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.65rem;
-            margin-bottom: 6px;
-        }
-        .queue-car-time {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #fff;
-            background: rgba(0,0,0,0.4);
-            border-radius: 6px;
-            padding: 3px 8px;
-            display: inline-block;
-        }
-        .queue-empty-msg {
-            text-align: center;
-            color: rgba(255,255,255,0.3);
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.85rem;
-            padding: 2rem 0;
-        }
-
-        /* Responsive: stack en pantallas pequeñas */
-        @media (max-width: 900px) {
-            .kiosk-layout { flex-direction: column; padding: 1rem; }
-            .kiosk-right { width: 100%; }
-            .zona-espera-panel { position: static; }
-        }
-
-        /* Adaptación específica para Teléfonos y Pantallas Medianas/Pequeñas */
-        @media (max-width: 650px) {
-            .kiosk-header {
-                flex-direction: column;
-                gap: 15px;
-                padding: 1rem 1.5rem;
-                align-items: center;
-                text-align: center;
-            }
-            .header-info {
-                flex-direction: column;
-                gap: 8px;
-                width: 100%;
-            }
-            .info-pill, .whatsapp-btn {
-                width: 100%;
-                justify-content: center;
-                box-sizing: border-box;
-            }
-            .kiosk-logo {
-                height: 50px;
-            }
-            .kiosk-logo-img {
-                max-height: 50px;
-            }
-            
-            .wizard-card {
-                padding: 1.5rem 1rem;
-                border-radius: 16px;
-            }
-            .step-indicator {
-                margin-bottom: 1.5rem;
-            }
-            .step-title {
-                font-size: 1.3rem;
-                margin-bottom: 1rem;
-            }
-
-            /* Apilar las opciones de la grilla verticalmente para teléfonos */
-            .grid-3, .grid-2 {
-                grid-template-columns: 1fr;
-                gap: 0.8rem;
-            }
-
-            .select-card {
-                min-height: 130px !important; /* Altura más cómoda para móviles en 1 columna */
-                padding: 1.2rem;
-                flex-direction: row; /* Diseño horizontal en móvil */
-                justify-content: flex-start;
-                align-items: center;
-                gap: 20px;
-                text-align: left;
-            }
-            .select-card i {
-                font-size: 2.2rem;
-                margin-bottom: 0;
-            }
-            .select-card h3 {
-                font-size: 1.1rem;
-            }
-            .select-card .price-display {
-                margin-top: 0;
-                margin-left: auto;
-                font-size: 1.2rem;
-            }
-            .select-card .old-price {
-                font-size: 0.85rem;
-            }
-
-            .wizard-actions {
-                margin-top: 2rem;
-                padding-top: 1.5rem;
-            }
-            .btn {
-                padding: 0.8rem 1.5rem;
-                font-size: 1rem;
-                flex: 1;
-                text-align: center;
-            }
-            .btn-prev {
-                margin-right: 0.5rem;
-            }
-            
-            .plate-input {
-                font-size: 1.8rem;
-                padding: 1rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .queue-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
     </style>
 </head>
 <body>
-
-    <header class="kiosk-header">
-        <div class="kiosk-logo">
-            <img src="logo.png" alt="L1DERES Automatic Car Wash" class="kiosk-logo-img">
-        </div>
-        
-        <div class="header-info">
-            <button id="install-pwa-btn" class="info-pill install-btn" style="display: none; cursor: pointer; background: linear-gradient(135deg, #c8960c, #f5d061); border: 1px solid rgba(255,255,255,0.1); color: #000; font-weight: 800; font-family: 'Outfit', sans-serif; box-shadow: 0 0 15px rgba(200, 150, 12, 0.4);">
-                <i class="fa-solid fa-download" style="color: #000;"></i> Instalar Kiosco
-            </button>
-            <div class="info-pill">
-                <i class="fa-regular fa-clock"></i>
-                Lunes a Sábados 08:00 a 20:00
-            </div>
-            <div class="info-pill">
-                <i class="fa-solid fa-hourglass-half"></i>
-                Espera: <span class="queue-eta" id="global-eta">Calculando...</span>
-            </div>
-            <a href="https://wa.me/123456789" class="whatsapp-btn" target="_blank">
-                <i class="fa-brands fa-whatsapp"></i> Consultas
-            </a>
-        </div>
+    <header class="header">
+        <h1>Recepción - Ingreso</h1>
+        <div id="clock">--:--</div>
     </header>
 
-    <div class="kiosk-layout">
+    <div class="main-container">
+        <!-- Panel Izquierdo: Escáner y Datos -->
+        <div class="panel">
+            <h2 style="margin-top:0; color: var(--color-lime);">1. Datos del Vehículo</h2>
+            <div class="datos-vehiculo-flex" style="display: flex; gap: 1.5rem; flex: 1; align-items: stretch;">
+                <div class="scanner-placeholder" id="btn-scan" onclick="startScan()" style="flex: 1; max-width: 220px; height: 100%;">
+                    <div class="scan-line" id="scan-line"></div>
+                    <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">📷</div>
+                    <h3 style="font-size: 1.1rem; text-align: center; padding: 0 10px; margin: 0.5rem 0;">Escanear Patente</h3>
+                    <p style="color: var(--color-text-dim); font-size: 0.8rem; text-align: center; padding: 0 10px; margin: 0;">Autocompletará Modelo y Color</p>
+                </div>
 
-        <!-- COLUMNA IZQUIERDA: wizard -->
-        <div class="kiosk-left">
-
-            <!-- BARRA DE ESTADO -->
-            <div class="status-bar">
-                <div class="status-pill">
-                    <i class="fa-regular fa-clock"></i>
-                    <div>
-                        <div class="status-pill-label">Demora de Ingreso</div>
-                        <div class="status-pill-value yellow" id="status-demora">~ -- MIN</div>
+                <div style="flex: 2; display: flex; flex-direction: column; justify-content: center; gap: 1.5rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Patente</label>
+                        <input type="text" id="in-plate" placeholder="Ej: AA123ZZ">
                     </div>
-                </div>
-                <div class="status-pill">
-                    <i class="fa-solid fa-signal"></i>
-                    <div>
-                        <div class="status-pill-label">Densidad Cola</div>
-                        <div class="status-pill-value" id="status-densidad">--</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="wizard-card">
-                
-                <!-- Indicador de pasos -->
-                <div class="step-indicator">
-                    <div class="step-dot active" id="dot-1">1</div>
-                    <div class="step-dot" id="dot-2">2</div>
-                    <div class="step-dot" id="dot-3">3</div>
-                    <div class="step-dot" id="dot-4">4</div>
-                </div>
-
-                <!-- PASO 1: Tipo Vehiculo -->
-                <div class="step-content active" id="step-1">
-                    <h2 class="step-title">¿Qué vehículo vas a lavar?</h2>
-                    <div class="grid-3">
-                        <div class="select-card" data-cat="Auto" onclick="selectCat('Auto', 0)">
-                            <i class="fa-solid fa-car"></i>
-                            <h3>Auto</h3>
+                    <div style="display:flex; gap:1rem;">
+                        <div class="form-group" style="flex:1; margin-bottom: 0;">
+                            <label>Modelo / Apodo</label>
+                            <input type="text" id="in-model" placeholder="Ej: Toyota Hilux">
                         </div>
-                        <div class="select-card" data-cat="SUV" onclick="selectCat('SUV', 20)">
-                            <i class="fa-solid fa-car-side"></i>
-                            <h3>SUV</h3>
-                        </div>
-                        <div class="select-card" data-cat="Camioneta" onclick="selectCat('Camioneta', 50)">
-                            <i class="fa-solid fa-truck-pickup"></i>
-                            <h3>Camioneta</h3>
+                        <div class="form-group" style="width: 100px; margin-bottom: 0;">
+                            <label>Color</label>
+                            <input type="color" id="in-color" value="#ffffff" style="padding:0; height: 3.5rem; cursor:pointer;">
                         </div>
                     </div>
-                </div>
-
-                <!-- PASO 2: Patente -->
-                <div class="step-content" id="step-2">
-                    <h2 class="step-title">Ingresa tu Patente</h2>
-                    <div class="plate-input-container">
-                        <input type="text" id="plate-input" class="plate-input" placeholder="AA123BB" maxlength="7">
-                        <button class="btn btn-next" style="width:100%; margin-top:1rem;" onclick="checkPromo()">Verificar Promociones</button>
-                        <div id="promo-alert" class="promo-alert"></div>
-                    </div>
-                </div>
-
-                <!-- PASO 3: Lavado -->
-                <div class="step-content" id="step-3">
-                    <h2 class="step-title">Selecciona el Servicio</h2>
-                    <div class="grid-2" id="wash-grid"></div>
-                </div>
-
-                <!-- PASO 4: Pago -->
-                <div class="step-content" id="step-4">
-                    <h2 class="step-title">Forma de Pago</h2>
-                    <div class="grid-3">
-                        <div class="select-card" data-pay="efectivo" onclick="selectPay('efectivo')">
-                            <i class="fa-solid fa-money-bill-wave"></i>
-                            <h3>Efectivo</h3>
-                        </div>
-                        <div class="select-card" data-pay="tarjeta" onclick="selectPay('tarjeta')">
-                            <i class="fa-solid fa-credit-card"></i>
-                            <h3>Tarjeta</h3>
-                        </div>
-                        <div class="select-card" data-pay="transferencia" onclick="selectPay('transferencia')">
-                            <i class="fa-solid fa-mobile-screen-button"></i>
-                            <h3>MercadoPago</h3>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Controles -->
-                <div class="wizard-actions">
-                    <button class="btn btn-prev" id="btn-prev" onclick="prevStep()" style="visibility: hidden;">Atrás</button>
-                    <button class="btn btn-next" id="btn-next" onclick="nextStep()" disabled>Siguiente</button>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- COLUMNA DERECHA: zona de espera -->
-        <div class="kiosk-right">
-            <div class="zona-espera-panel">
-                <div class="zona-espera-title">Zona de Espera</div>
-                <div class="queue-grid" id="queue-grid">
-                    <!-- Dinámico -->
                 </div>
             </div>
         </div>
 
+        <!-- Panel Derecho: Servicios y Pago -->
+        <div class="panel">
+            <h2 style="margin-top:0; color: var(--color-lime);">2. Servicio y Pago</h2>
+            
+            <div class="form-group">
+                <label>Seleccionar Servicio</label>
+                <select id="in-service" onchange="updatePrice()">
+                    <!-- Cargar dinámicamente -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Precio Final</label>
+                <input type="text" id="in-price" readonly style="font-family: var(--font-display); font-size: 2rem; color: var(--color-cyan); font-weight: bold;">
+            </div>
+
+            <label style="display:block; margin-bottom:0.5rem; color: var(--color-text-dim); font-weight:600;">Medio de Pago</label>
+            <div class="payment-methods">
+                <div class="pay-method active" onclick="selectPay('efectivo')" id="pay-efectivo">💵 Efectivo</div>
+                <div class="pay-method" onclick="selectPay('qr')" id="pay-qr">📱 Código QR</div>
+                <div class="pay-method" onclick="selectPay('tarjeta')" id="pay-tarjeta">💳 Tarjeta</div>
+            </div>
+
+            <button class="btn-large" onclick="processPayment()">IMPRIMIR TICKET E INGRESAR</button>
+        </div>
     </div>
 
+    <!-- Overlay de Procesamiento de Pago -->
+    <div class="payment-overlay" id="pay-overlay">
+        <h2 style="color:var(--color-cyan); font-family: var(--font-display);" id="pay-title">Procesando Pago...</h2>
+        <div id="pay-content">
+            <!-- Loader o QR -->
+        </div>
+        <p style="margin-top: 2rem; color: var(--color-text-dim);">Por favor, siga las instrucciones.</p>
+        <button class="btn btn-secondary" onclick="cancelPayment()" style="margin-top: 2rem;">Cancelar</button>
+    </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // Reloj
+        setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleTimeString('es-AR'), 1000);
 
-            // --- Config ---
-            const sbUrl = localStorage.getItem('LAVADERO_SB_URL') || 'https://hacmhlyvyyysnvekvhya.supabase.co';
-            const sbKey = localStorage.getItem('LAVADERO_SB_KEY') || 'sb_publishable_oEB1MoOee7lM99mvHCu_aA_T98vg3NA';
-            let supabase = null;
+        let selectedPayment = 'efectivo';
+        let currentPrice = 0;
+        let washPackages = [];
+
+        function loadServices() {
+            let saved = localStorage.getItem('lavadero_wash_settings');
+            // Limpiar si hay emojis corruptos
+            if (saved && (saved.includes('ðŸ') || saved.includes('Í') || saved.includes('â\x80'))) {
+                localStorage.removeItem('lavadero_wash_settings');
+                saved = null;
+            }
+            if (saved) {
+                washPackages = JSON.parse(saved);
+            } else {
+                // Fallback completo con emojis correctos
+                washPackages = [
+                    { id: 'combo-limpieza-total', title: 'Limpieza Total', icon: '🌀', price: 18000 },
+                    { id: 'combo-vip-gold',       title: 'VIP Gold',       icon: '🏆', price: 25000 },
+                    { id: 'lavado-carroceria',    title: 'Exterior Simple', icon: '🚗', price: 12000 },
+                    { id: 'aspirado-interior',    title: 'Interior Pro',    icon: '💨', price: 10000 },
+                    { id: 'lavado-express',       title: 'Express',        icon: '⚡', price: 8000  },
+                    { id: 'lavado-motor',         title: 'Motor Vapor',    icon: '🔥', price: 15000 },
+                    { id: 'encerado-acrilico',    title: 'Encerado',       icon: '🛡️', price: 22000 },
+                    { id: 'lavado-chasis',        title: 'Chasis',         icon: '🔩', price: 28000 },
+                    { id: 'pulido-opticas',       title: 'Ópticas',        icon: '💡', price: 16000 },
+                    { id: 'tratamiento-ceramico', title: 'Cerámico 9H',    icon: '💎', price: 65000 }
+                ];
+            }
+
+            const select = document.getElementById('in-service');
+            select.innerHTML = '';
+            washPackages.forEach(p => {
+                select.innerHTML += `<option value="${p.id}" data-price="${p.price}">${p.icon} ${p.title} ($${p.price.toLocaleString('es-AR')})</option>`;
+            });
+            updatePrice();
+        }
+
+
+        function updatePrice() {
+            const select = document.getElementById('in-service');
+            const opt = select.options[select.selectedIndex];
+            currentPrice = parseInt(opt.getAttribute('data-price'));
+            document.getElementById('in-price').value = `$${currentPrice.toLocaleString('es-AR')}`;
+        }
+
+        function selectPay(method) {
+            selectedPayment = method;
+            document.querySelectorAll('.pay-method').forEach(el => el.classList.remove('active'));
+            document.getElementById(`pay-${method}`).classList.add('active');
+        }
+
+        let detectedOnlineId = null;
+
+        function showToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            if (type === 'error') {
+                toast.style.background = 'rgba(239, 68, 68, 0.95)';
+                toast.style.borderColor = '#ef4444';
+                toast.style.color = '#fff';
+            }
+            toast.innerHTML = `<span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3700);
+        }
+
+        async function checkOnlinePreRegistration(plate) {
+            if (!plate || plate.trim().length < 6) {
+                detectedOnlineId = null;
+                return;
+            }
+            
+            const cleanPlate = plate.trim().toUpperCase();
+            const localConfig = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            const url_base = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseUrl : PANEL_CONFIG.supabaseUrl;
+            const key = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseKey : PANEL_CONFIG.supabaseKey;
+            const table = localConfig.queueTable || PANEL_CONFIG.queueTable;
+
             try {
-                if (window.supabase) {
-                    supabase = window.supabase.createClient(sbUrl, sbKey);
-                }
-            } catch (e) {
-                console.warn('Supabase init error:', e);
-            }
+                const res = await fetch(`${url_base}/rest/v1/${table}?plate=eq.${cleanPlate}&status=eq.waiting&order=entered_at.desc&limit=1`, {
+                    method: 'GET',
+                    headers: { 
+                        'apikey': key, 
+                        'Authorization': `Bearer ${key}`, 
+                        'Content-Type': 'application/json' 
+                    }
+                });
 
-            let currentStep = 1;
-            const totalSteps = 4;
+                if (!res.ok) throw new Error("Error en la consulta");
 
-            let order = {
-                category: null, surcharge: 0, plate: '', hasPromo: false,
-                promoDiscount: 0, washType: null, washName: '', basePrice: 0,
-                finalPrice: 0, payment: null
-            };
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    const onlineReg = data[0];
+                    detectedOnlineId = onlineReg.id;
 
-            const WASH_OPTIONS = {
-                'combo-limpieza-total': { name: 'Combo Limpieza Total', icon: 'fa-star', price: 18000 },
-                'combo-vip-gold':       { name: 'Combo VIP Gold',        icon: 'fa-crown', price: 25000 },
-                'lavado-carroceria':    { name: 'Exterior Simple',        icon: 'fa-droplet', price: 12000 },
-                'lavado-express':       { name: 'Lavado Express',         icon: 'fa-bolt', price: 8000 }
-            };
+                    // Autocompletar campos
+                    document.getElementById('in-model').value = onlineReg.model || `Vehículo ${onlineReg.plate}`;
+                    
+                    // Seleccionar servicio
+                    if (onlineReg.wash_type) {
+                        const selectService = document.getElementById('in-service');
+                        selectService.value = onlineReg.wash_type;
+                        updatePrice();
+                    }
 
-            // --- Zona de Espera ---
-            const SLOT_COUNT = 8;
-            const MINS_PER_CAR = 7;
-
-            function updateGlobalETA() {
-                const vehiclesStr = localStorage.getItem('lavadero_active_vehicles');
-                let count = 0;
-                let vehicles = [];
-                if (vehiclesStr) {
-                    try {
-                        const vs = JSON.parse(vehiclesStr);
-                        if (Array.isArray(vs)) {
-                            vehicles = vs;
-                            count = vs.filter(v => v.zone === 'espera').length;
+                    // Seleccionar método de pago
+                    if (onlineReg.payment_method) {
+                        let mappedPay = 'efectivo';
+                        if (onlineReg.payment_method === 'transferencia' || onlineReg.payment_method === 'qr') {
+                            mappedPay = 'qr';
+                        } else if (onlineReg.payment_method === 'tarjeta') {
+                            mappedPay = 'tarjeta';
                         }
-                    } catch(e) {}
-                }
-                const el = document.getElementById('global-eta');
-                if (el) el.innerText = `Aprox. ${(count + 1) * 7} min`;
-
-                renderQueuePanel(vehicles);
-                renderStatusBar(vehicles);
-            }
-            updateGlobalETA();
-            setInterval(updateGlobalETA, 5000);
-
-            // --- Zona de Espera ---
-
-            function renderQueuePanel(vehicles) {
-                const grid = document.getElementById('queue-grid');
-                if (!grid) return;
-
-                const waiting = vehicles.filter(v => v.zone === 'espera')
-                    .sort((a, b) => new Date(a.entered_at) - new Date(b.entered_at));
-
-                if (waiting.length === 0) {
-                    grid.innerHTML = `<div class="queue-empty-msg" style="grid-column:span 2">
-                        <i class="fa-solid fa-car" style="font-size:2rem;display:block;margin-bottom:8px;opacity:0.3"></i>
-                        Sin autos en espera
-                    </div>`;
-                    return;
-                }
-
-                let html = '';
-                for (let i = 0; i < SLOT_COUNT; i++) {
-                    if (i < waiting.length) {
-                        const car = waiting[i];
-                        const mins = (i + 1) * MINS_PER_CAR;
-                        const colorHex = car.color || '#06b6d4';
-                        const name = car.nickname || car.plate || `Auto ${i+1}`;
-                        const plate = car.plate || '';
-                        html += `
-                        <div class="queue-car-card">
-                            <div class="queue-car-name">${name}</div>
-                            <div class="queue-car-plate" style="color:${colorHex}">${plate}</div>
-                            <div class="queue-car-time">${mins} min</div>
-                        </div>`;
-                    } else {
-                        html += `<div class="queue-car-card slot-empty"><div style="font-size:1.4rem;opacity:0.4">${i + 1}</div></div>`;
+                        selectPay(mappedPay);
                     }
-                }
-                grid.innerHTML = html;
-            }
 
-            function renderStatusBar(vehicles) {
-                const waiting = vehicles.filter(v => v.zone === 'espera').length;
-                const totalMins = (waiting + 1) * MINS_PER_CAR;
-
-                // Demora
-                const demoraEl = document.getElementById('status-demora');
-                if (demoraEl) demoraEl.innerText = `~ ${totalMins} MINUTOS`;
-
-                // Densidad
-                const densEl = document.getElementById('status-densidad');
-                if (densEl) {
-                    let label, cls;
-                    if (waiting === 0)      { label = 'Libre';  cls = 'lime'; }
-                    else if (waiting <= 2)  { label = 'Baja';   cls = 'cyan'; }
-                    else if (waiting <= 5)  { label = 'Media';  cls = 'yellow'; }
-                    else                    { label = 'Alta';   cls = 'red'; }
-                    densEl.textContent = label;
-                    densEl.className = `status-pill-value ${cls}`;
-                }
-            }
-
-            // Actualizar panel si otra pestaña escribe en localStorage
-            window.addEventListener('storage', (e) => {
-                if (e.key === 'lavadero_active_vehicles') updateGlobalETA();
-            });
-
-            // --- Wizard UI ---
-            function updateUI() {
-                for (let i = 1; i <= totalSteps; i++) {
-                    const dot = document.getElementById('dot-' + i);
-                    if (!dot) continue;
-                    if (i < currentStep) {
-                        dot.className = 'step-dot done';
-                        dot.innerHTML = '<i class="fa-solid fa-check"></i>';
-                    } else if (i === currentStep) {
-                        dot.className = 'step-dot active';
-                        dot.innerHTML = i;
-                    } else {
-                        dot.className = 'step-dot';
-                        dot.innerHTML = i;
-                    }
-                }
-                document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
-                const stepEl = document.getElementById('step-' + currentStep);
-                if (stepEl) stepEl.classList.add('active');
-
-                const btnPrev = document.getElementById('btn-prev');
-                if (btnPrev) btnPrev.style.visibility = currentStep > 1 ? 'visible' : 'hidden';
-
-                const btnNext = document.getElementById('btn-next');
-                if (btnNext) btnNext.innerText = currentStep === totalSteps ? 'Confirmar y Finalizar' : 'Siguiente';
-
-                validateStep();
-                if (currentStep === 3) renderWashGrid();
-            }
-
-            function validateStep() {
-                let isValid = false;
-                if (currentStep === 1) isValid = order.category !== null;
-                if (currentStep === 2) isValid = order.plate.length >= 6;
-                if (currentStep === 3) isValid = order.washType !== null;
-                if (currentStep === 4) isValid = order.payment !== null;
-                const btn = document.getElementById('btn-next');
-                if (btn) btn.disabled = !isValid;
-            }
-
-            // Expose to HTML onclick attributes
-            window.nextStep = function() {
-                if (currentStep === 2 && !order.hasPromo) {
-                    const pi = document.getElementById('plate-input');
-                    if (pi) order.plate = pi.value.trim().toUpperCase();
-                }
-                if (currentStep === totalSteps) {
-                    finishOrder();
+                    showToast(`✅ ¡Pre-registro Online Detectado para la patente ${cleanPlate}! Datos cargados.`, 'success');
                 } else {
-                    currentStep++;
-                    updateUI();
+                    detectedOnlineId = null;
                 }
+            } catch (err) {
+                console.warn('[Tablet] Error verificando pre-registro:', err);
+                detectedOnlineId = null;
+            }
+        }
+
+        function startScan() {
+            document.getElementById('scan-line').style.display = 'block';
+            
+            setTimeout(() => {
+                document.getElementById('scan-line').style.display = 'none';
+                
+                const plates = ["AF452ZZ", "AD123BC", "AB987CD", "AC333EE"];
+                const models = ["VW Amarok", "Toyota Corolla", "Ford Ranger", "Peugeot 208"];
+                const colors = ["#ffffff", "#000000", "#1e3a8a", "#dc2626"];
+                
+                const r = Math.floor(Math.random() * plates.length);
+                document.getElementById('in-plate').value = plates[r];
+                document.getElementById('in-model').value = models[r];
+                document.getElementById('in-color').value = colors[r];
+                
+                showToast("Escáner IA: Vehículo identificado con 98% de confianza.");
+                
+                // Disparar validación de pre-registro
+                checkOnlinePreRegistration(plates[r]);
+            }, 2000);
+        }
+
+        function processPayment() {
+            const plate = document.getElementById('in-plate').value;
+            const model = document.getElementById('in-model').value;
+            if(!plate || !model) {
+                alert("Por favor escanea o ingresa la patente y modelo primero.");
+                return;
+            }
+
+            const overlay = document.getElementById('pay-overlay');
+            const title = document.getElementById('pay-title');
+            const content = document.getElementById('pay-content');
+            
+            overlay.style.display = 'flex';
+
+            if(selectedPayment === 'efectivo') {
+                title.innerText = "Abonar en Caja";
+                content.innerHTML = `<h1 style="font-size: 4rem; margin:0;">$${currentPrice.toLocaleString('es-AR')}</h1><p>Reciba el dinero y presione Confirmar.</p><button class="btn btn-primary" style="padding:1rem 2rem; font-size:1.2rem; margin-top:1rem;" onclick="finishIngreso()">CONFIRMAR EFECTIVO</button>`;
+            } 
+            else if (selectedPayment === 'qr') {
+                title.innerText = "Escanea el código QR";
+                content.innerHTML = `
+                    <div class="qr-mock">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=lavadero_pago_${currentPrice}" alt="QR Code">
+                    </div>
+                    <button class="btn btn-primary" style="padding:1rem 2rem; font-size:1.2rem;" onclick="finishIngreso()">SIMULAR PAGO RECIBIDO</button>
+                `;
+            }
+            else {
+                title.innerText = "Acerque la Tarjeta al Posnet";
+                content.innerHTML = `<div style="font-size: 5rem; animation: pulse 1s infinite;">💳</div>`;
+                // Auto aprobar a los 3 segundos
+                setTimeout(() => {
+                    if(overlay.style.display === 'flex') finishIngreso();
+                }, 3000);
+            }
+        }
+
+        function cancelPayment() {
+            document.getElementById('pay-overlay').style.display = 'none';
+        }
+
+        function finishIngreso() {
+            // Guardar auto en LocalStorage
+            const car = {
+                id: detectedOnlineId || Math.random().toString(36).substr(2, 9),
+                tracking_id: Math.floor(Math.random() * 900) + 100,
+                nickname: document.getElementById('in-model').value,
+                plate: document.getElementById('in-plate').value.toUpperCase(),
+                color: document.getElementById('in-color').value,
+                zone: 'espera',
+                budget: currentPrice,
+                wash_type: document.getElementById('in-service').value,
+                description: `Pago vía: ${selectedPayment.toUpperCase()}`,
+                entered_at: new Date().toISOString()
             };
 
-            window.prevStep = function() {
-                if (currentStep > 1) { currentStep--; updateUI(); }
-            };
+            const saved = localStorage.getItem('lavadero_active_vehicles');
+            const activeVehicles = saved ? JSON.parse(saved) : [];
+            activeVehicles.push(car);
+            
+            localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
+            
+            // Disparar evento para otras pestañas (como en el mismo window no se dispara onstorage, lo disparamos manual si hiciera falta)
+            window.dispatchEvent(new Event('storage'));
+            pushVehicleToSupabase(car, detectedOnlineId); // Enviar a Supabase
 
-            window.selectCat = function(cat, surcharge) {
-                order.category = cat;
-                order.surcharge = surcharge;
-                document.querySelectorAll('#step-1 .select-card').forEach(el => el.classList.remove('selected'));
-                const card = document.querySelector(`#step-1 .select-card[data-cat="${cat}"]`);
-                if (card) card.classList.add('selected');
-                validateStep();
-                setTimeout(window.nextStep, 400);
-            };
+            // Ocultar modal y mostrar éxito
+            cancelPayment();
+            
+            // Si estuviéramos conectados a una impresora térmica
+            // console.log("Imprimiendo Ticket #", car.tracking_id);
+            alert(`¡Ticket #${car.tracking_id} Generado!\nEl vehículo ya entró a la cola.`);
 
-            window.checkPromo = async function() {
-                const plateInput = document.getElementById('plate-input');
-                const alertBox = document.getElementById('promo-alert');
-                if (!plateInput || !alertBox) return;
-                const plate = plateInput.value.trim().toUpperCase();
-                if (plate.length < 6) return;
+            // Limpiar
+            document.getElementById('in-plate').value = '';
+            document.getElementById('in-model').value = '';
+            document.getElementById('in-color').value = '#ffffff';
+            detectedOnlineId = null; // Limpiar después de procesar
+        }
+        
+        // Configuración Supabase fija — mismo proyecto que el Panel principal
+        const PANEL_CONFIG = {
+            supabaseUrl: 'https://hacmhlyvyyysnvekvhya.supabase.co',
+            supabaseKey: 'sb_publishable_oEB1MoOee7lM99mvHCu_aA_T98vg3NA',
+            queueTable: 'lavadero_camera_queue'
+        };
 
+        // --- SISTEMA OFFLINE & COLA DE SINCRONIZACIÓN ---
+        function queueForSync(payload) {
+            const queue = JSON.parse(localStorage.getItem('lavadero_offline_queue') || '[]');
+            queue.push(payload);
+            localStorage.setItem('lavadero_offline_queue', JSON.stringify(queue));
+            console.log('[Tablet] 💾 Guardado en cola offline. Pendientes:', queue.length);
+        }
+
+        async function processOfflineQueue() {
+            if (!navigator.onLine) return;
+            const queue = JSON.parse(localStorage.getItem('lavadero_offline_queue') || '[]');
+            if (queue.length === 0) return;
+
+            console.log('[Tablet] 🔄 Sincronizando', queue.length, 'registros offline...');
+            const localConfig = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            const url_base = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseUrl : PANEL_CONFIG.supabaseUrl;
+            const key = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseKey : PANEL_CONFIG.supabaseKey;
+            const table = localConfig.queueTable || PANEL_CONFIG.queueTable;
+
+            const pending = [];
+            for (const payload of queue) {
                 try {
-                    if (!supabase) throw new Error('offline');
-                    const { data, error } = await supabase.from('lavadero_clientes').select('*').eq('patente', plate);
-                    if (!error && data && data.length > 0) {
-                        order.hasPromo = true;
-                        order.promoDiscount = 15;
-                        alertBox.className = 'promo-alert promo-success';
-                        alertBox.innerHTML = '<i class="fa-solid fa-gift"></i> ¡Cliente Registrado! Tienes un 15% de descuento hoy.';
-                    } else {
-                        order.hasPromo = false; order.promoDiscount = 0;
-                        alertBox.className = 'promo-alert';
-                        alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
-                        alertBox.innerHTML = 'Patente ingresada. Continuá para elegir el lavado.';
-                    }
+                    const res = await fetch(`${url_base}/rest/v1/${table}`, {
+                        method: 'POST',
+                        headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!res.ok) throw new Error("Fallo sync de registro");
+                    console.log('[Tablet] ✅ Sincronizado ticket', payload.tracking_id);
                 } catch(err) {
-                    order.hasPromo = false; order.promoDiscount = 0;
-                    alertBox.className = 'promo-alert';
-                    alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
-                    alertBox.innerHTML = 'Patente guardada. Continuá para elegir el lavado.';
-                }
-                alertBox.style.display = 'block';
-                validateStep();
-            };
-
-            function renderWashGrid() {
-                const grid = document.getElementById('wash-grid');
-                if (!grid) return;
-                grid.innerHTML = '';
-                for (const [id, details] of Object.entries(WASH_OPTIONS)) {
-                    let conRecargo = details.price * (1 + order.surcharge / 100);
-                    let finalPrice = conRecargo;
-                    let oldPriceHTML = '';
-                    if (order.hasPromo && order.promoDiscount > 0) {
-                        finalPrice = conRecargo * (1 - order.promoDiscount / 100);
-                        oldPriceHTML = `<span class="old-price">$${conRecargo.toLocaleString('es-AR')}</span>`;
-                    }
-                    const isSelected = order.washType === id ? 'selected' : '';
-                    grid.innerHTML += `
-                    <div class="select-card ${isSelected}" data-wash="${id}" onclick="selectWash('${id}', '${details.name}', ${finalPrice})">
-                        <i class="fa-solid ${details.icon}"></i>
-                        <h3>${details.name}</h3>
-                        <div class="price-display">${oldPriceHTML}$${finalPrice.toLocaleString('es-AR')}</div>
-                    </div>`;
+                    pending.push(payload); // Falla, vuelve a la cola
                 }
             }
+            localStorage.setItem('lavadero_offline_queue', JSON.stringify(pending));
+            if(pending.length === 0 && queue.length > 0) alert('Sincronización offline completada');
+        }
 
-            window.selectWash = function(id, name, finalPrice) {
-                order.washType = id; order.washName = name; order.finalPrice = finalPrice;
-                document.querySelectorAll('#step-3 .select-card').forEach(el => el.classList.remove('selected'));
-                const card = document.querySelector(`#step-3 .select-card[data-wash="${id}"]`);
-                if (card) card.classList.add('selected');
-                validateStep();
-                setTimeout(window.nextStep, 400);
+        window.addEventListener('online', processOfflineQueue);
+        setInterval(processOfflineQueue, 15000); // Reintento periodico por si acaso
+
+        async function pushVehicleToSupabase(car, isUpdateId = null) {
+            const localConfig = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            const url_base = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseUrl : PANEL_CONFIG.supabaseUrl;
+            const key = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseKey : PANEL_CONFIG.supabaseKey;
+            const table = localConfig.queueTable || PANEL_CONFIG.queueTable;
+
+            const nicknamePayload = JSON.stringify({
+                name: car.nickname,
+                plate: car.plate,
+                budget: car.budget,
+                wash_type: car.wash_type,
+                description: car.description
+            });
+
+            // Payload varía si es UPDATE o INSERT
+            const payload = isUpdateId ? {
+                nickname: nicknamePayload,
+                color: car.color,
+                zone: car.zone,
+                entered_at: car.entered_at,
+                status: 'active'
+            } : {
+                id: car.id,
+                tracking_id: car.tracking_id,
+                nickname: nicknamePayload,
+                color: car.color,
+                zone: car.zone,
+                entered_at: car.entered_at
             };
 
-            window.selectPay = function(pay) {
-                order.payment = pay;
-                document.querySelectorAll('#step-4 .select-card').forEach(el => el.classList.remove('selected'));
-                const card = document.querySelector(`#step-4 .select-card[data-pay="${pay}"]`);
-                if (card) card.classList.add('selected');
-                validateStep();
-            };
-
-            async function finishOrder() {
-                const btnNext = document.getElementById('btn-next');
-                if (btnNext) { btnNext.innerText = 'Procesando...'; btnNext.disabled = true; }
-
-                const carObj = {
-                    id: Date.now(),
-                    plate: order.plate,
-                    model: order.category,
-                    nickname: `Vehículo ${order.plate}`,
-                    zone: 'espera',
-                    entered_at: new Date().toISOString(),
-                    wash_type: order.washType,
-                    expected_price: order.finalPrice,
-                    payment_method: order.payment,
-                    status: 'waiting'
+            if (!navigator.onLine) {
+                // En modo offline, encolamos el POST de inserción
+                const fallbackPayload = {
+                    id: car.id,
+                    tracking_id: car.tracking_id,
+                    nickname: nicknamePayload,
+                    color: car.color,
+                    zone: car.zone,
+                    entered_at: car.entered_at
                 };
-
-                try {
-                    if (supabase) await supabase.from('lavadero_camera_queue').insert([carObj]);
-                } catch(e) { console.warn('Supabase insert failed, usando localStorage'); }
-
-                const localVehicles = JSON.parse(localStorage.getItem('lavadero_active_vehicles') || '[]');
-                localVehicles.push(carObj);
-                localStorage.setItem('lavadero_active_vehicles', JSON.stringify(localVehicles));
-
-                const esperaCars = localVehicles.filter(v => v.zone === 'espera')
-                    .sort((a,b) => new Date(a.entered_at) - new Date(b.entered_at));
-                const pos = esperaCars.findIndex(v => v.id === carObj.id) + 1;
-
-                const ticketUrl = `cliente.html?n=${encodeURIComponent(carObj.nickname)}&p=${encodeURIComponent(carObj.plate)}&z=espera&t=${encodeURIComponent(carObj.wash_type)}&pos=${pos}&id=${carObj.id}&pay=${encodeURIComponent(order.payment)}`;
-                setTimeout(() => { window.location.href = ticketUrl; }, 800);
+                queueForSync(fallbackPayload);
+                return;
             }
 
-            // --- Bind plate input ---
-            const plateInput = document.getElementById('plate-input');
-            if (plateInput) {
-                plateInput.addEventListener('input', (e) => {
-                    order.plate = e.target.value.toUpperCase();
-                    e.target.value = order.plate;
-                    validateStep();
-                    const alertBox = document.getElementById('promo-alert');
-                    if (alertBox) alertBox.style.display = 'none';
-                    order.hasPromo = false;
-                    order.promoDiscount = 0;
+            try {
+                const url = isUpdateId 
+                    ? `${url_base}/rest/v1/${table}?id=eq.${isUpdateId}` 
+                    : `${url_base}/rest/v1/${table}`;
+                const method = isUpdateId ? 'PATCH' : 'POST';
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'apikey': key, 
+                        'Authorization': `Bearer ${key}`, 
+                        'Content-Type': 'application/json', 
+                        'Prefer': 'return=representation' 
+                    },
+                    body: JSON.stringify(payload)
                 });
-            }
 
-            // --- Service Worker & PWA Install Logic ---
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('./sw.js')
-                        .then(reg => console.log('Service Worker del Kiosko registrado:', reg.scope))
-                        .catch(err => console.error('Error al registrar Service Worker:', err));
-                });
-            }
-
-            let deferredPrompt;
-            const installBtn = document.getElementById('install-pwa-btn');
-
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                if (installBtn) {
-                    installBtn.style.display = 'flex';
+                if (res.ok) {
+                    console.log(`[Tablet] ✅ Auto ${isUpdateId ? 'actualizado' : 'enviado'} al panel — Ticket #${car.tracking_id}`);
+                } else {
+                    const errText = await res.text();
+                    console.error('[Tablet] ❌ Error Supabase:', res.status, errText);
+                    const fallbackPayload = {
+                        id: car.id,
+                        tracking_id: car.tracking_id,
+                        nickname: nicknamePayload,
+                        color: car.color,
+                        zone: car.zone,
+                        entered_at: car.entered_at
+                    };
+                    queueForSync(fallbackPayload);
                 }
-            });
-
-            if (installBtn) {
-                installBtn.addEventListener('click', async () => {
-                    if (!deferredPrompt) return;
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`Instalación del Kiosko: ${outcome}`);
-                    deferredPrompt = null;
-                    installBtn.style.display = 'none';
-                });
+            } catch (err) {
+                console.error('[Tablet] ❌ Sin conexión a Supabase:', err);
+                const fallbackPayload = {
+                    id: car.id,
+                    tracking_id: car.tracking_id,
+                    nickname: nicknamePayload,
+                    color: car.color,
+                    zone: car.zone,
+                    entered_at: car.entered_at
+                };
+                queueForSync(fallbackPayload);
             }
+        }
+        
+        // Al arrancar procesamos posibles rezagados
+        processOfflineQueue();
 
-            window.addEventListener('appinstalled', () => {
-                console.log('Kiosko instalado como PWA.');
-                if (installBtn) installBtn.style.display = 'none';
-            });
 
+
+        // Escuchar cambios en la patente para validación online
+        document.getElementById('in-plate').addEventListener('input', (e) => {
+            const val = e.target.value.toUpperCase();
+            e.target.value = val;
+            if (val.length >= 6) {
+                checkOnlinePreRegistration(val);
+            } else {
+                detectedOnlineId = null;
+            }
         });
+
+        loadServices();
     </script>
 
-    <footer style="text-align: center; padding: 16px; font-size: 0.75em; color: rgba(255, 255, 255, 0.4); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.06);">
-        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero Estética Vehicular
+    <footer class="app-footer" style="text-align: center; padding: 20px; font-size: 0.8em; color: rgba(255, 255, 255, 0.5); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 40px;">
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. <br>
+        Lavadero Estética Vehicular
     </footer>
 
 </body>
