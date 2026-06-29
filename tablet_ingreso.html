@@ -276,7 +276,7 @@
         function loadServices() {
             let saved = localStorage.getItem('lavadero_wash_settings');
             // Limpiar si hay emojis corruptos
-            if (saved && (saved.includes('ðŸ') || saved.includes('Ã') || saved.includes('â\x80'))) {
+            if (saved && (saved.includes('ðŸ') || saved.includes('Í') || saved.includes('â\x80'))) {
                 localStorage.removeItem('lavadero_wash_settings');
                 saved = null;
             }
