@@ -140,6 +140,7 @@ const elHistoryTotalRevenue = document.getElementById('history-total-revenue');
 const elBtnConfig = document.getElementById('btn-config');
 const elBtnAddLavado = document.getElementById('btn-add-lavado');
 const elBtnAddLavadoAspirado = document.getElementById('btn-add-lavado-aspirado');
+const elBtnAddSoloAspirado = document.getElementById('btn-add-solo-aspirado');
 const elModalConfig = document.getElementById('modal-config');
 const elBtnCloseModal = document.getElementById('btn-close-modal');
 const elCheckUseSupabase = document.getElementById('check-use-supabase');
@@ -751,18 +752,39 @@ function calculateETA() {
     let etaMinutos = 0;
     const currentTime = Date.now();
     
-    const esperaCount = activeVehicles.filter(v => v.zone === 'espera').length;
-    const lavadoCars = activeVehicles.filter(v => v.zone === 'lavado');
+    // Separar la cola en los que van a lavado (todos menos solo aspirado) y los que van solo a aspirado
+    const esperaLavadoCount = activeVehicles.filter(v => v.zone === 'espera' && v.wash_type !== 'aspirado-interior').length;
+    const esperaAspiradoCount = activeVehicles.filter(v => v.zone === 'espera' && v.wash_type === 'aspirado-interior').length;
     
+    const lavadoCars = activeVehicles.filter(v => v.zone === 'lavado');
+    const aspiradoCars = activeVehicles.filter(v => v.zone === 'aspirado');
+    
+    let etaLavado = 0;
     if (lavadoCars.length > 0) {
         let elapsedMins = (currentTime - new Date(lavadoCars[0].entered_at).getTime()) / 60000;
         let remainingLavado = Math.max(0, 7 - Math.floor(elapsedMins));
-        etaMinutos = remainingLavado + (esperaCount * 7);
+        etaLavado = remainingLavado + (esperaLavadoCount * 7);
     } else {
-        etaMinutos = esperaCount * 7;
+        etaLavado = esperaLavadoCount * 7;
     }
 
+    let etaAspirado = 0;
+    // Como entran 2 autos en aspirado, cada ciclo de 7 mins saca 2 autos
+    // Los que estÃ¡n esperando se dividen por 2 (redondeando hacia arriba) para saber cuÃ¡ntos ciclos faltan
+    let ciclosEsperaAspirado = Math.ceil(esperaAspiradoCount / 2);
     
+    if (aspiradoCars.length > 0) {
+        let elapsedMins = (currentTime - new Date(aspiradoCars[0].entered_at).getTime()) / 60000;
+        let remainingAspirado = Math.max(0, 7 - Math.floor(elapsedMins));
+        etaAspirado = remainingAspirado + (ciclosEsperaAspirado * 7);
+    } else {
+        etaAspirado = ciclosEsperaAspirado * 7;
+    }
+
+    // La demora final es el mayor tiempo de espera entre ambas lÃ­neas
+    etaMinutos = Math.max(etaLavado, etaAspirado);
+    const esperaCount = esperaLavadoCount + esperaAspiradoCount;
+
     // Calculate Densidad Cola
     const densidadDisplay = document.getElementById('densidad-display');
     const densidadIcon = document.getElementById('densidad-icon');
@@ -1072,6 +1094,17 @@ if (elBtnAddLavadoAspirado) {
         const color = COLORES[Math.floor(Math.random() * COLORES.length)];
         addVehicle(nick, plate, color, "18000", "combo-limpieza-total");
         showFloatingToast("Lavado y Aspirado agregado a la cola");
+    });
+}
+
+if (elBtnAddSoloAspirado) {
+    elBtnAddSoloAspirado.addEventListener('click', () => {
+        const nick = `${NOMBRES[Math.floor(Math.random() * NOMBRES.length)]} ${ADJETIVOS[Math.floor(Math.random() * ADJETIVOS.length)]}`;
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const plate = `${letters[Math.floor(Math.random()*26)]}${letters[Math.floor(Math.random()*26)]}${Math.floor(Math.random()*900+100)}${letters[Math.floor(Math.random()*26)]}${letters[Math.floor(Math.random()*26)]}`;
+        const color = COLORES[Math.floor(Math.random() * COLORES.length)];
+        addVehicle(nick, plate, color, "8000", "aspirado-interior");
+        showFloatingToast("Solo Aspirado agregado a la cola");
     });
 }
 
