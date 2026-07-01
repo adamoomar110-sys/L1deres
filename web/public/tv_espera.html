@@ -183,11 +183,11 @@
             if (!config.useSupabase || !config.supabaseUrl || !config.supabaseKey) return;
             
             try {
-                const url = \/rest/v1/\?select=*&order=entered_at.asc\;
+                const url = `${config.supabaseUrl}/rest/v1/${config.queueTable}?select=*&order=entered_at.asc`;
                 const response = await fetch(url, {
                     headers: {
                         'apikey': config.supabaseKey,
-                        'Authorization': \Bearer \
+                        'Authorization': `Bearer ${config.supabaseKey}`
                     }
                 });
                 

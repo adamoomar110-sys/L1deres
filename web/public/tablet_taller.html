@@ -112,7 +112,9 @@
                 const hasLustre = (car.extra_lustre) ? 'tag-on' : '';
 
                 let actions = '';
-                if (car.zone === 'pre_espera') {
+                if (car.zone === 'reservado') {
+                    actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'pre_espera')">📱 Confirmar Reserva</button>`;
+                } else if (car.zone === 'pre_espera') {
                     actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'espera')">Aceptar en Fila</button>`;
                 } else if(car.zone === 'espera') {
                     actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'lavado')">Ingresar a Lavado 💧</button>`;
