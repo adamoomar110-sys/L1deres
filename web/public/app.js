@@ -143,6 +143,7 @@ const elInputBudget = document.getElementById('input-budget');
 const elColorHexLabel = document.getElementById('color-hex-label');
 
 const elOperatorTableBody = document.getElementById('operator-table-body');
+const elOperatorReservadosBody = document.getElementById('operator-reservados-tbody');
 const elHistoryTableBody = document.getElementById('history-table-body');
 
 const elHistoryTotalCount = document.getElementById('history-total-count');
@@ -872,16 +873,30 @@ function calculateRevenue() {
 // Renderizar la tabla de mesa de control
 function renderOperatorTable() {
     elOperatorTableBody.innerHTML = '';
+    if (elOperatorReservadosBody) elOperatorReservadosBody.innerHTML = '';
     
-    if (activeVehicles.length === 0) {
+    const hasActive = activeVehicles.some(c => c.zone !== 'reservado');
+    const hasReserved = activeVehicles.some(c => c.zone === 'reservado');
+
+    if (!hasActive) {
         elOperatorTableBody.innerHTML = `
             <tr class="empty-table-row">
                 <td colspan="5" style="text-align: center; color: var(--color-text-dim); font-style: italic; padding: 2rem 0;">
                     Sin vehículos en circulación. Registra uno arriba para comenzar.
                 </td>
             </tr>`;
-        return;
     }
+    
+    if (!hasReserved && elOperatorReservadosBody) {
+        elOperatorReservadosBody.innerHTML = `
+            <tr class="empty-table-row">
+                <td colspan="5" style="text-align: center; color: var(--color-text-dim); font-style: italic; padding: 2rem 0;">
+                    Sin vehículos reservados.
+                </td>
+            </tr>`;
+    }
+
+    if (activeVehicles.length === 0) return;
 
     activeVehicles.forEach(car => {
         const tr = document.createElement('tr');
@@ -905,6 +920,7 @@ function renderOperatorTable() {
             </td>
             <td>
                 <select class="select-zone-dropdown" data-car-id="${car.id}">
+                    <option value="reservado" ${car.zone === 'reservado' ? 'selected' : ''} style="color:var(--color-cyan)">★ Reservado</option>
                     <option value="pre_espera" ${car.zone === 'pre_espera' ? 'selected' : ''}>0. Ingreso Inteligente</option>
                     <option value="espera" ${car.zone === 'espera' ? 'selected' : ''}>1. Espera</option>
                     <option value="lavado" ${car.zone === 'lavado' ? 'selected' : ''}>2. Lavando</option>
@@ -945,7 +961,9 @@ function renderOperatorTable() {
         if (advanceBtn) {
             advanceBtn.addEventListener('click', () => {
                 let nextZone = 'terminado';
-                if (car.zone === 'pre_espera') {
+                if (car.zone === 'reservado') {
+                    nextZone = 'pre_espera';
+                } else if (car.zone === 'pre_espera') {
                     nextZone = 'espera';
                 } else if (car.zone === 'espera') {
                     if (car.wash_type === 'aspirado-interior') {
@@ -996,7 +1014,11 @@ function renderOperatorTable() {
             });
         }
 
-        elOperatorTableBody.appendChild(tr);
+        if (car.zone === 'reservado' && elOperatorReservadosBody) {
+            elOperatorReservadosBody.appendChild(tr);
+        } else {
+            elOperatorTableBody.appendChild(tr);
+        }
     });
 }
 

@@ -2,19 +2,15 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizador & Panel de Control - Lavadero de Autos</title>
-    <meta name="description" content="Visualizador de estado en tiempo real y panel de gestión para el Lavadero de Autos. DiseÁ±o estético premium, optimizado para visualización y administración ágil.">
+    <meta name="description" content="Visualizador de estado en tiempo real y panel de gestión para el Lavadero de Autos. Diseño estético premium, optimizado para visualización y administración ágil.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Orbitron:wght@700;900&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="estilos.css">
     <style>
         /* ESTILOS DE PISTA F1 (PIT LANE) */
         .f1-vehicle-slot {
@@ -136,6 +132,10 @@
             <!-- Panel de Demora y Controles Rápidos -->
             <div class="header-actions">
 
+                <!-- Botón de WhatsApp Top Right -->
+                <a href="https://wa.me/5491100000000?text=Hola,%20necesito%20ayuda" target="_blank" class="btn btn-sm" style="background: #25D366; color: white; border: none; display: flex; align-items: center; gap: 8px; border-radius: var(--radius-full); padding: 0.5rem 1rem; font-weight: 600; text-decoration: none; margin-right: 1rem; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); transition: transform 0.2s ease;">
+                    <i class="fa-brands fa-whatsapp" style="font-size: 1.2rem;"></i> <span style="letter-spacing: 0.5px;">Soporte</span>
+                </a>
                 
                 <div class="eta-card">
                     <svg class="icon-clock text-cyan animate-slow-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -170,7 +170,7 @@
 
         <!-- CUERPO PRINCIPAL: MAPA 2D SOBRE PLANO -->
         <div id="view-lavadero" class="view-section active">
-            <main class="app-main" style="display: block; padding: 0; overflow: hidden; height: 900px; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <main class="app-main" style="display: block; padding: 0; overflow: hidden; height: 750px; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 <iframe src="pantalla_lavado/index.html" width="100%" height="100%" frameborder="0" scrolling="no" style="border-radius: 12px; background: transparent;"></iframe>
             </main>
 
@@ -207,7 +207,7 @@
                             <select id="input-model" onchange="if(window.autoSelectCategory) window.autoSelectCategory();"></select>
                         </div>
                         <div class="form-group">
-                            <label for="input-category">TamaÁ±o de Vehículo</label>
+                            <label for="input-category">Tamaño de Vehículo</label>
                             <select id="input-category" onchange="if(window.calculateBudget) window.calculateBudget();"></select>
                         </div>
                         <div class="form-group" style="display: none;">
@@ -237,6 +237,10 @@
                                 <option value="tarjeta">Tarjeta / Posnet</option>
                                 <option value="cuenta_corriente">Cuenta Corriente (Flota)</option>
                             </select>
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="input-is-paid" style="width: auto;">
+                            <label for="input-is-paid" style="margin: 0; color: var(--color-lime);">¿Pago realizado?</label>
                         </div>
                         <div class="form-group">
                             <label for="input-color">Color del Vehículo</label>
@@ -284,6 +288,29 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <h4 class="form-title" style="margin-top: 3rem; color: var(--color-cyan);">Turnos Reservados (Ingreso Pendiente)</h4>
+                    <p style="color: var(--color-text-dim); margin-bottom: 1rem; font-size: 0.9rem;">Aquí se ubican los autos cargados por clientes. Cuando la cámara los detecte, pasarán a la cola de trabajo automáticamente.</p>
+                    <div class="table-container">
+                        <table class="operator-table">
+                            <thead>
+                                <tr>
+                                    <th>Vehículo</th>
+                                    <th>Patente</th>
+                                    <th>Presupuesto</th>
+                                    <th>Zona Actual</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="operator-reservados-tbody">
+                                <tr class="empty-table-row">
+                                    <td colspan="5" style="text-align: center; color: var(--color-text-dim); font-style: italic; padding: 2rem 0;">
+                                        Sin vehículos reservados.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
@@ -296,7 +323,7 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
                     <h3>Gestión del Ecosistema de Pantallas</h3>
                 </div>
-                <p style="color: var(--color-text-dim); margin-top: 0.5rem;">Abra las pantallas en distintos dispositivos o pestaÁ±as para simular el sistema completo en red.</p>
+                <p style="color: var(--color-text-dim); margin-top: 0.5rem;">Abra las pantallas en distintos dispositivos o pestañas para simular el sistema completo en red.</p>
             </div>
             
             <div class="operator-layout" style="grid-template-columns: repeat(2, 1fr);">
