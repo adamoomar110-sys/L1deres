@@ -481,7 +481,13 @@
                 <!-- Dinámico -->
             </div>
 
-            <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">2. Forma de Pago</p>
+            <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">2. Número de WhatsApp</p>
+            <div style="margin-bottom: 2rem;">
+                <input type="tel" id="config-phone" placeholder="Ej: 1123456789" style="width: 100%; padding: 1rem; border-radius: 12px; background: rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.1); color: #fff; font-family: 'Outfit', sans-serif; font-size: 1.1rem; box-sizing: border-box; outline: none; transition: 0.3s;" onfocus="this.style.borderColor='var(--color-cyan)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                <p style="font-size: 0.75rem; color: #888; margin-top: 8px;">Para avisarte cuando esté listo y sumarte puntos.</p>
+            </div>
+
+            <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">3. Forma de Pago</p>
             <div id="config-pay-grid" class="wash-menu-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
                 <div class="wash-menu-card" data-pay="efectivo" onclick="selectPayment(this, 'efectivo')">
                     <div class="check-badge">✓</div>
@@ -703,6 +709,11 @@
         function confirmarConfiguracion() {
             if (!pendingCats) { alert('Por favor, selecciona qué vehículo tienes.'); return; }
             if (pendingTypeIds.length === 0) { alert('Por favor, selecciona al menos un tipo de lavado.'); return; }
+            
+            const phoneInput = document.getElementById('config-phone');
+            if (phoneInput && phoneInput.value.trim().length < 8) {
+                alert('Por favor, ingresa un número de WhatsApp válido.'); return;
+            }
             if (!pendingPay) { alert('Por favor, selecciona una forma de pago.'); return; }
             
             pendingType = pendingTypeIds.join(',');
@@ -715,6 +726,17 @@
 
             type = pendingType;
             payment = pendingPay;
+            
+            if (phoneInput && plate !== 'SIN PATENTE') {
+                const phone = phoneInput.value.trim();
+                const SB_URL = 'https://hacmhlyvyyysnvekvhya.supabase.co';
+                const SB_KEY = 'sb_publishable_oEB1MoOee7lM99mvHCu_aA_T98vg3NA';
+                fetch(`${SB_URL}/rest/v1/lavadero_clientes`, {
+                    method: 'POST',
+                    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+                    body: JSON.stringify({ patente: plate, telefono: phone })
+                }).catch(e => console.log(e));
+            }
             
             configView.style.display = 'none';
             trackingView.style.display = 'block';

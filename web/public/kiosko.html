@@ -591,6 +591,7 @@
                     <div class="step-dot" id="dot-2">2</div>
                     <div class="step-dot" id="dot-3">3</div>
                     <div class="step-dot" id="dot-4">4</div>
+                    <div class="step-dot" id="dot-5">5</div>
                 </div>
 
                 <!-- PASO 1: Tipo Vehiculo -->
@@ -628,8 +629,17 @@
                     <div class="grid-2" id="wash-grid"></div>
                 </div>
 
-                <!-- PASO 4: Pago -->
+                <!-- PASO 4: Teléfono -->
                 <div class="step-content" id="step-4">
+                    <h2 class="step-title">Número de WhatsApp</h2>
+                    <div class="plate-input-container">
+                        <input type="tel" id="phone-input" class="plate-input" placeholder="Ej: 1123456789" maxlength="15" oninput="order.phone = this.value; validateStep();" style="text-transform: none; font-family: 'Inter', sans-serif; font-size: 2rem;">
+                        <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">Vinculamos tu WhatsApp a la patente para notificarte cuando el auto esté listo.</p>
+                    </div>
+                </div>
+
+                <!-- PASO 5: Pago -->
+                <div class="step-content" id="step-5">
                     <h2 class="step-title">Forma de Pago</h2>
                     <div class="grid-3">
                         <div class="select-card" data-pay="efectivo" onclick="selectPay('efectivo')">
@@ -689,10 +699,10 @@
             }
 
             let currentStep = 1;
-            const totalSteps = 4;
+            const totalSteps = 5;
 
             let order = {
-                category: null, surcharge: 0, plate: '', hasPromo: false,
+                category: null, surcharge: 0, plate: '', phone: '', hasPromo: false,
                 promoDiscount: 0, washType: null, washName: '', basePrice: 0,
                 finalPrice: 0, payment: null
             };
@@ -903,7 +913,8 @@
                 if (currentStep === 1) isValid = order.category !== null;
                 if (currentStep === 2) isValid = order.plate.length >= 6;
                 if (currentStep === 3) isValid = order.washType !== null;
-                if (currentStep === 4) isValid = order.payment !== null;
+                if (currentStep === 4) isValid = order.phone.length >= 8;
+                if (currentStep === 5) isValid = order.payment !== null;
                 const btn = document.getElementById('btn-next');
                 if (btn) btn.disabled = !isValid;
             }
@@ -1000,8 +1011,8 @@
 
             window.selectPay = function(pay) {
                 order.payment = pay;
-                document.querySelectorAll('#step-4 .select-card').forEach(el => el.classList.remove('selected'));
-                const card = document.querySelector(`#step-4 .select-card[data-pay="${pay}"]`);
+                document.querySelectorAll('#step-5 .select-card').forEach(el => el.classList.remove('selected'));
+                const card = document.querySelector(`#step-5 .select-card[data-pay="${pay}"]`);
                 if (card) card.classList.add('selected');
                 validateStep();
             };
@@ -1009,6 +1020,13 @@
             async function finishOrder() {
                 const btnNext = document.getElementById('btn-next');
                 if (btnNext) { btnNext.innerText = 'Procesando...'; btnNext.disabled = true; }
+
+                if (supabase && order.phone && order.phone.length >= 8) {
+                    try {
+                        const { error } = await supabase.from('lavadero_clientes').upsert([{ patente: order.plate, telefono: order.phone }], { onConflict: 'patente' });
+                        if (error) console.warn('Supabase upsert error:', error);
+                    } catch(e) { console.warn('Error upsert cliente:', e); }
+                }
 
                 const carObj = {
                     id: Date.now(),
