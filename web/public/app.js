@@ -21,10 +21,8 @@ let WASH_PACKAGES = [];
 let WASH_NAMES = {};
 
 function initWashPackages() {
-    let saved = localStorage.getItem('lavadero_wash_settings');
     // Auto-fix para localStorage con emojis corruptos (cualquier variante)
     if (saved && (saved.includes('\u00c3\u00b0') || saved.includes('ðŸ') || saved.includes('Í°') || saved.includes('â\u0082¬'))) {
-        localStorage.removeItem('lavadero_wash_settings');
         saved = null;
     }
 
@@ -39,11 +37,9 @@ function initWashPackages() {
             }
         });
         if (updated) {
-            localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
         }
     } else {
         WASH_PACKAGES = [...DEFAULT_WASH_PACKAGES];
-        localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
     }
     WASH_NAMES = {};
     WASH_PACKAGES.forEach(pkg => {
@@ -172,7 +168,7 @@ async function loadRemoteConfig() {
         if (res.ok) {
             const data = await res.json();
             if (data.supabaseUrl && data.supabaseKey) {
-                config.useSupabase = true;
+                
                 config.supabaseUrl = data.supabaseUrl;
                 config.supabaseKey = data.supabaseKey;
                 config.queueTable = data.queueTable || 'lavadero_camera_queue';
@@ -197,7 +193,7 @@ async function loadRemoteConfig() {
 let supabaseClient = null;
 
 function initSupabaseClient() {
-    if (config.useSupabase && config.supabaseUrl && config.supabaseKey && window.supabase) {
+    if (true && config.supabaseUrl && config.supabaseKey && window.supabase) {
         if (!supabaseClient) {
             supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
             setupRealtimeSubscriptions();
@@ -230,26 +226,21 @@ function setupRealtimeSubscriptions() {
 
 function loadLocalData() {
     // Config
-    const savedConfig = localStorage.getItem('lavadero_config');
     if (savedConfig) {
         // Mezclar configuración guardada con los defaults
         const loadedConfig = JSON.parse(savedConfig);
         config = { ...config, ...loadedConfig };
         // Sincronizar credenciales para que la pantalla 3D de React las pueda leer
         if (config.supabaseUrl && config.supabaseKey) {
-            localStorage.setItem('supabase_url', config.supabaseUrl);
-            localStorage.setItem('supabase_key', config.supabaseKey);
         }
     }
     
     // Vehículos Activos
-    const savedVehicles = localStorage.getItem('lavadero_active_vehicles');
     if (savedVehicles) {
         activeVehicles = JSON.parse(savedVehicles);
     }
 
     // Historial
-    const savedHistory = localStorage.getItem('lavadero_completed_history');
     if (savedHistory) {
         washHistory = JSON.parse(savedHistory);
     }
@@ -261,7 +252,7 @@ function loadLocalData() {
     elSupabaseTable.value = config.queueTable || 'lavadero_camera_queue';
     elSupabaseServiceTable.value = config.serviceTable || 'service_orders';
 
-    if (config.useSupabase) {
+    if (true) {
         elSupabaseFields.classList.remove('hidden');
     }
 }
@@ -318,7 +309,6 @@ async function syncFromSupabase() {
                     created_at: dbCar.created_at || new Date().toISOString()
                 };
             });
-            saveStateLocally(false);
         }
 
 
@@ -332,24 +322,20 @@ async function syncFromSupabase() {
                 completed_at: h.appointment_date || h.created_at
             }));
             
-            const localHist = JSON.parse(localStorage.getItem('lavadero_completed_history') || '[]');
             const combined = [...historyMap, ...localHist];
             const uniqueHistory = Array.from(new Map(combined.map(item => [item.id, item])).values());
             
             washHistory = uniqueHistory.sort((a,b) => new Date(b.completed_at) - new Date(a.completed_at));
-            localStorage.setItem('lavadero_completed_history', JSON.stringify(washHistory));
         }
         
         const empData = await fetchSupabase('lavadero_empleados');
         if (empData && Array.isArray(empData)) {
             empleados = empData;
-            localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
         }
         
         const insData = await fetchSupabase('lavadero_insumos');
         if (insData && Array.isArray(insData)) {
             insumos = insData;
-            localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
         }
 
         const gastosData = await fetchSupabase('lavadero_gastos');
@@ -459,12 +445,9 @@ function showFloatingToast(message) {
     }, 4000);
 }
 
-async function saveStateLocally(syncRemote = true) {
-    localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
-    localStorage.setItem('lavadero_completed_history', JSON.stringify(washHistory));
 
     // Si la sincronización remota está habilitada y se solicita sync
-    if (config.useSupabase && syncRemote) {
+    if (true && syncRemote) {
         // En una app robusta, haríamos sincronizaciones granulares. Aquí reflejamos los cambios individuales
         // pero como plan de contingencia guardamos en local por si falla el API.
     }
@@ -479,7 +462,7 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
     const washName = WASH_NAMES[wType] || 'Combo Limpieza Total';
     const uppercasePlate = plate.toUpperCase();
     
-    if (config.useSupabase && uppercasePlate) {
+    if (true && uppercasePlate) {
         // Upsert client data
         fetchSupabase('lavadero_clientes', {
             method: 'POST',
@@ -519,9 +502,8 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
     };
 
     activeVehicles.push(newCar);
-    saveStateLocally(true);
 
-    if (config.useSupabase) {
+    if (true) {
         const nicknamePayload = JSON.stringify({
             name: newCar.nickname,
             isPaid: isPaid,
@@ -577,9 +559,8 @@ async function updateVehicleZone(id, targetZone) {
     car.zone = targetZone;
     car.entered_at = new Date().toISOString(); // Resetear temporizador de zona
 
-    saveStateLocally(true);
 
-    if (config.useSupabase) {
+    if (true) {
         // Actualizar zona en cola de cámara
         await fetchSupabase(`${config.queueTable}?id=eq.${id}`, {
             method: 'PATCH',
@@ -609,7 +590,7 @@ async function finishVehicle(id) {
         completed_at: new Date().toISOString()
     };
 
-    if (config.useSupabase && car.plate && car.plate !== 'SIN PATENTE') {
+    if (true && car.plate && car.plate !== 'SIN PATENTE') {
         const clients = await fetchSupabase(`lavadero_clientes?patente=eq.${car.plate}`);
         if (clients && clients.length > 0) {
             const client = clients[0];
@@ -645,9 +626,8 @@ async function finishVehicle(id) {
     washHistory.unshift(historyItem); // Insertar al inicio
     activeVehicles.splice(index, 1);  // Remover de activos
 
-    saveStateLocally(true);
 
-    if (config.useSupabase) {
+    if (true) {
         // Eliminar de la cola de cámara
         await fetchSupabase(`${config.queueTable}?id=eq.${id}`, {
             method: 'DELETE'
@@ -673,9 +653,8 @@ async function deleteVehicle(id) {
     if (index === -1) return;
     
     activeVehicles.splice(index, 1);
-    saveStateLocally(true);
 
-    if (config.useSupabase) {
+    if (true) {
         await fetchSupabase(`${config.queueTable}?id=eq.${id}`, {
             method: 'DELETE'
         });
@@ -769,7 +748,6 @@ function highlightTableRow(id) {
 // Render General
 function renderAll() {
     // 1. El mapa visual interactivo está ahora encapsulado en un iframe.
-    // La aplicación de React (/pantalla_lavado) lee directamente de Supabase o localStorage.
 
     // 2. Renderizar tabla de operaciones
     renderOperatorTable();
@@ -1208,7 +1186,6 @@ elModalConfig.addEventListener('click', (e) => {
 });
 
 // Toggle campos de Supabase
-elCheckUseSupabase.addEventListener('change', (e) => {
     if (e.target.checked) {
         elSupabaseFields.classList.remove('hidden');
     } else {
@@ -1232,26 +1209,23 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 // Guardar Configuración
 elBtnSaveConfig.addEventListener('click', async () => {
-    config.useSupabase = elCheckUseSupabase.checked;
     config.supabaseUrl = elSupabaseUrl.value.trim();
     config.supabaseKey = elSupabaseKey.value.trim();
     config.queueTable = elSupabaseTable.value.trim() || 'lavadero_camera_queue';
     config.serviceTable = elSupabaseServiceTable.value.trim() || 'service_orders';
 
-    localStorage.setItem('lavadero_config', JSON.stringify(config));
     
     // Cerrar modal
     elModalConfig.classList.remove('active');
     showFloatingToast("Configuración guardada.");
 
     // Aplicar
-    if (config.useSupabase) {
+    if (true) {
         if (!config.supabaseUrl || !config.supabaseKey) {
             showFloatingToast("Error: Faltan credenciales de Supabase");
-            config.useSupabase = false;
+            
             elCheckUseSupabase.checked = false;
             elSupabaseFields.classList.add('hidden');
-            localStorage.setItem('lavadero_config', JSON.stringify(config));
         } else {
             showFloatingToast("Conectando con Supabase...");
             await syncFromSupabase();
@@ -1261,7 +1235,6 @@ elBtnSaveConfig.addEventListener('click', async () => {
         elConnectionStatus.className = "connection-status";
         elConnectionStatus.querySelector('.status-label').innerText = "Modo Local";
         // Cargar lo que tengamos localmente
-        const savedVehicles = localStorage.getItem('lavadero_active_vehicles');
         if (savedVehicles) {
             activeVehicles = JSON.parse(savedVehicles);
         }
@@ -1272,10 +1245,9 @@ elBtnSaveConfig.addEventListener('click', async () => {
 elBtnClearHistory.addEventListener('click', async () => {
     if (confirm("¿Estás completamente seguro de borrar todo el historial y estadísticas de recaudación?")) {
         washHistory = [];
-        saveStateLocally(false);
         renderAll();
         
-        if (config.useSupabase) {
+        if (true) {
             try {
                 await fetchSupabase(`${config.serviceTable}?status=eq.completed`, { method: 'DELETE' });
                 showFloatingToast("Historial borrado en local y en la nube.");
@@ -1331,7 +1303,7 @@ if (elInputPlate) {
     elInputPlate.addEventListener('input', (e) => {
         clearTimeout(debounceTimer);
         const plate = e.target.value.trim().toUpperCase();
-        if (plate.length >= 6 && config.useSupabase) {
+        if (plate.length >= 6) {
             debounceTimer = setTimeout(async () => {
                 const clients = await fetchSupabase(`lavadero_clientes?patente=eq.${plate}`);
                 if (clients && clients.length > 0) {
@@ -1388,7 +1360,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     startRealtimeTicker();
 
     // Sincronizar de inmediato si Supabase está activo
-    if (config.useSupabase) {
+    if (true) {
         syncFromSupabase();
         // Polling de sincronización cada 10 segundos
         setInterval(syncFromSupabase, 10000);
@@ -1455,9 +1427,8 @@ if (formEmpleado) {
         };
         
         empleados.push(newEmp);
-        localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
         
-        if (config.useSupabase) {
+        if (true) {
             await fetchSupabase('lavadero_empleados', {
                 method: 'POST',
                 body: JSON.stringify(newEmp)
@@ -1472,7 +1443,6 @@ if (formEmpleado) {
 }
 
 function renderEmpleados() {
-    const saved = localStorage.getItem('lavadero_empleados');
     if (saved) empleados = JSON.parse(saved);
     
     if (!tbodyEmpleados) return;
@@ -1518,9 +1488,8 @@ document.getElementById('filter-emp-name')?.addEventListener('input', renderEmpl
 
 window.eliminarEmpleado = async function(id) {
     empleados = empleados.filter(e => e.id !== id);
-    localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
     
-    if (config.useSupabase) {
+    if (true) {
         await fetchSupabase(`lavadero_empleados?id=eq.${id}`, {
             method: 'DELETE'
         });
@@ -1535,8 +1504,7 @@ window.editarEmpleado = async function(id) {
     const newHours = prompt(`Modificar horas de ${emp.name} (actual: ${emp.hours}):`, emp.hours);
     if (newHours !== null && newHours.trim() !== '' && !isNaN(newHours)) {
         emp.hours = parseInt(newHours);
-        localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
-        if (config.useSupabase) {
+        if (true) {
             await fetchSupabase(`lavadero_empleados?id=eq.${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({ hours: emp.hours })
@@ -1562,9 +1530,8 @@ if (formInsumo) {
         
         if (existingInsumo) {
             existingInsumo.stock += stockToAdd;
-            localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
             
-            if (config.useSupabase) {
+            if (true) {
                 await fetchSupabase(`lavadero_insumos?id=eq.${existingInsumo.id}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ stock: existingInsumo.stock })
@@ -1574,9 +1541,8 @@ if (formInsumo) {
         } else {
             const newIns = { id: Date.now(), name, stock: stockToAdd };
             insumos.push(newIns);
-            localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
             
-            if (config.useSupabase) {
+            if (true) {
                 await fetchSupabase('lavadero_insumos', {
                     method: 'POST',
                     body: JSON.stringify(newIns)
@@ -1593,7 +1559,6 @@ if (formInsumo) {
 }
 
 function renderInsumos() {
-    const saved = localStorage.getItem('lavadero_insumos');
     if (saved) insumos = JSON.parse(saved);
     
     // Semilla de Insumos Predeterminados (15)
@@ -1609,9 +1574,8 @@ function renderInsumos() {
         predefinidos.forEach((nombre, idx) => {
             insumos.push({ id: Date.now() + idx, name: nombre, stock: 123 });
         });
-        localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
         
-        if (config.useSupabase) {
+        if (true) {
             // Mandar todos a Supabase en bloque o iterando
             // Simplificado para no hacer 15 peticiones juntas, asume local por ahora si falla
             insumos.forEach(async (ins) => {
@@ -1665,9 +1629,8 @@ document.getElementById('filter-ins-name')?.addEventListener('input', renderInsu
 
 window.eliminarInsumo = async function(id) {
     insumos = insumos.filter(i => i.id !== id);
-    localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
     
-    if (config.useSupabase) {
+    if (true) {
         await fetchSupabase(`lavadero_insumos?id=eq.${id}`, {
             method: 'DELETE'
         });
@@ -1682,8 +1645,7 @@ window.editarInsumo = async function(id) {
     const newStock = prompt(`Modificar stock exacto de ${ins.name} (actual: ${ins.stock}):`, ins.stock);
     if (newStock !== null && newStock.trim() !== '' && !isNaN(newStock)) {
         ins.stock = parseInt(newStock);
-        localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
-        if (config.useSupabase) {
+        if (true) {
             await fetchSupabase(`lavadero_insumos?id=eq.${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({ stock: ins.stock })
@@ -1702,7 +1664,6 @@ if (btnResetPrecios) {
     btnResetPrecios.addEventListener('click', () => {
         if(confirm('Í¯¿½Restaurar precios y paquetes a sus valores por defecto?')) {
             WASH_PACKAGES = JSON.parse(JSON.stringify(DEFAULT_WASH_PACKAGES));
-            localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages();
             renderPrecios();
             renderWashMenu(); // Refrescar el grid de la vista lavadero
@@ -1744,11 +1705,10 @@ function renderPrecios() {
             WASH_PACKAGES[idx].title = newTitle;
             WASH_PACKAGES[idx].price = parseInt(newPrice);
             
-            localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages(); // Actualizar mapeos
             renderWashMenu(); // Refrescar menu del form
             
-            if (config.useSupabase) {
+            if (true) {
                 fetchSupabase('lavadero_precios', {
                     method: 'POST',
                     headers: { 'Prefer': 'resolution=merge-duplicates' },
@@ -1818,7 +1778,7 @@ async function renderPostulantes() {
     
     let applicants = [];
     
-    if (config.useSupabase) {
+    if (true) {
         // Cargar desde Supabase externa
         try {
             const data = await fetchSupabase('applicants?select=*&status=eq.pending');
@@ -1828,7 +1788,6 @@ async function renderPostulantes() {
         } catch(e) { console.error('Error cargando postulantes', e); }
     } else {
         // Tratamos de leer de localStorage
-        const applicantsStr = localStorage.getItem('lavadero_applicants');
         applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
         applicants = applicants.filter(a => a.status === 'pending');
     }
@@ -1880,24 +1839,20 @@ window.contratarPostulante = async function(id, name) {
     if (role === null) return; // Cancelado
 
     // Mover a empleados
-    const savedEmp = localStorage.getItem('lavadero_empleados');
     let empList = savedEmp ? JSON.parse(savedEmp) : [];
     empList.push({ id: Date.now(), name: name, role: role });
-    localStorage.setItem('lavadero_empleados', JSON.stringify(empList));
 
-    if (config.useSupabase) {
+    if (true) {
         await fetchSupabase(`applicants?id=eq.${id}`, {
             method: 'PATCH',
             body: JSON.stringify({ status: 'hired' })
         });
     } else {
-        const applicantsStr = localStorage.getItem('lavadero_applicants');
         let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
         applicants = applicants.map(a => {
             if (a.id === id) a.status = 'hired';
             return a;
         });
-        localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
     }
 
     renderPostulantes();
@@ -1913,16 +1868,14 @@ window.contratarPostulante = async function(id, name) {
 window.rechazarPostulante = async function(id) {
     if(!confirm('¿Seguro que quieres rechazar y eliminar a este postulante?')) return;
     
-    if (config.useSupabase) {
+    if (true) {
         await fetchSupabase(`applicants?id=eq.${id}`, {
             method: 'PATCH',
             body: JSON.stringify({ status: 'rejected' })
         });
     } else {
-        const applicantsStr = localStorage.getItem('lavadero_applicants');
         let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
         applicants = applicants.filter(a => a.id !== id);
-        localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
     }
     
     renderPostulantes();
@@ -2098,7 +2051,6 @@ const DEFAULT_VEHICLE_CATEGORIES = [
 let VEHICLE_CATEGORIES = [];
 
 function initVehicleCategories() {
-    const saved = localStorage.getItem('lavadero_vehicle_categories');
     if (saved) {
         VEHICLE_CATEGORIES = JSON.parse(saved);
         // Migrate old data that used surcharge
@@ -2111,10 +2063,8 @@ function initVehicleCategories() {
             }
             return cat;
         });
-        localStorage.setItem('lavadero_vehicle_categories', JSON.stringify(VEHICLE_CATEGORIES));
     } else {
         VEHICLE_CATEGORIES = [...DEFAULT_VEHICLE_CATEGORIES];
-        localStorage.setItem('lavadero_vehicle_categories', JSON.stringify(VEHICLE_CATEGORIES));
     }
     renderVehicleCategoriesTable();
     updateCategorySelects();
@@ -2168,7 +2118,6 @@ window.addVehicleCategory = function() {
     }
     
     VEHICLE_CATEGORIES.push({ id, percentage: perc, icon });
-    localStorage.setItem('lavadero_vehicle_categories', JSON.stringify(VEHICLE_CATEGORIES));
     
     document.getElementById('new-cat-id').value = '';
     document.getElementById('new-cat-perc').value = '0';
@@ -2184,7 +2133,6 @@ window.deleteVehicleCategory = function(index) {
         return;
     }
     VEHICLE_CATEGORIES.splice(index, 1);
-    localStorage.setItem('lavadero_vehicle_categories', JSON.stringify(VEHICLE_CATEGORIES));
     renderVehicleCategoriesTable();
     updateCategorySelects();
     if(window.calculateBudget) window.calculateBudget();
@@ -2318,7 +2266,6 @@ let FINANZAS = {
 };
 
 function initFinanzas() {
-    const saved = localStorage.getItem('lavadero_finanzas');
     if (saved) {
         FINANZAS = JSON.parse(saved);
     }
@@ -2336,7 +2283,6 @@ function updateRevenueDisplay() {
 }
 
 function saveFinanzas() {
-    localStorage.setItem('lavadero_finanzas', JSON.stringify(FINANZAS));
     updateRevenueDisplay();
 }
 
@@ -2410,7 +2356,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formGastos.reset();
             
             // Sync Supabase
-            if (config.useSupabase) {
+            if (true) {
                 fetchSupabase('lavadero_gastos', { method: 'POST', body: JSON.stringify(newGasto) });
             }
         });
@@ -2438,7 +2384,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formSueldos.reset();
             
             // Sync Supabase
-            if (config.useSupabase) {
+            if (true) {
                 fetchSupabase('lavadero_sueldos', { method: 'POST', body: JSON.stringify(newSueldo) });
             }
         });
@@ -2456,7 +2402,6 @@ const oldRev = window.updateRevenueDisplay ? window.updateRevenueDisplay.toStrin
 let APP_PROMOS = [];
 
 function loadPromos() {
-    const saved = localStorage.getItem('lavadero_promos');
     if (saved) APP_PROMOS = JSON.parse(saved);
     renderAdminPromos();
 }
@@ -2497,9 +2442,8 @@ if (formPromo) {
         };
         
         APP_PROMOS.push(newPromo);
-        localStorage.setItem('lavadero_promos', JSON.stringify(APP_PROMOS));
         
-        if (config.useSupabase) {
+        if (true) {
             await fetchSupabase('announcements', {
                 method: 'POST',
                 body: JSON.stringify(newPromo)
@@ -2514,9 +2458,8 @@ if (formPromo) {
 
 window.eliminarPromo = async function(id) {
     APP_PROMOS = APP_PROMOS.filter(p => p.id !== id);
-    localStorage.setItem('lavadero_promos', JSON.stringify(APP_PROMOS));
     
-    if (config.useSupabase) {
+    if (true) {
         await fetchSupabase(`announcements?id=eq.${id}`, { method: 'DELETE' });
     }
     renderAdminPromos();
@@ -2527,11 +2470,9 @@ document.addEventListener('DOMContentLoaded', loadPromos);
 
 window.addEventListener('storage', (e) => {
     if (e.key === 'lavadero_active_vehicles' || e.key === 'lavadero_completed_history') {
-        if (!config.useSupabase) {
-            const savedVehicles = localStorage.getItem('lavadero_active_vehicles');
+        if (false) {
             if (savedVehicles) activeVehicles = JSON.parse(savedVehicles);
             
-            const savedHistory = localStorage.getItem('lavadero_completed_history');
             if (savedHistory) washHistory = JSON.parse(savedHistory);
             
             if (typeof renderAll === 'function') {

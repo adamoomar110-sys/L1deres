@@ -18,7 +18,6 @@ const replacement = `async function renderPostulantes() {
         } catch(e) { console.error('Error cargando postulantes', e); }
     } else {
         // Tratamos de leer de localStorage
-        const applicantsStr = localStorage.getItem('lavadero_applicants');
         applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
         applicants = applicants.filter(a => a.status === 'pending');
     }
@@ -70,10 +69,8 @@ window.contratarPostulante = async function(id, name) {
     if (role === null) return; // Cancelado
 
     // Mover a empleados
-    const savedEmp = localStorage.getItem('lavadero_empleados');
     let empList = savedEmp ? JSON.parse(savedEmp) : [];
     empList.push({ id: Date.now(), name: name, role: role });
-    localStorage.setItem('lavadero_empleados', JSON.stringify(empList));
 
     if (config.useSupabase) {
         await fetchSupabase(\`applicants?id=eq.\${id}\`, {
@@ -81,13 +78,11 @@ window.contratarPostulante = async function(id, name) {
             body: JSON.stringify({ status: 'hired' })
         });
     } else {
-        const applicantsStr = localStorage.getItem('lavadero_applicants');
         let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
         applicants = applicants.map(a => {
             if (a.id === id) a.status = 'hired';
             return a;
         });
-        localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
     }
 
     renderPostulantes();
@@ -109,10 +104,8 @@ window.rechazarPostulante = async function(id) {
             body: JSON.stringify({ status: 'rejected' })
         });
     } else {
-        const applicantsStr = localStorage.getItem('lavadero_applicants');
         let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
         applicants = applicants.filter(a => a.id !== id);
-        localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
     }
     
     renderPostulantes();

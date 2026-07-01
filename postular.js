@@ -15,16 +15,12 @@
     // Inicializar Supabase leyendo de /api/config o localStorage
     let supabase = null;
     fetch('/api/config').then(r => r.json()).then(data => {
-        let sUrl = data.supabaseUrl || localStorage.getItem('lavadero_supabase_url') || '';
-        let sKey = data.supabaseKey || localStorage.getItem('lavadero_supabase_key') || '';
         if (sUrl && sKey && window.supabase) {
             supabase = window.supabase.createClient(sUrl, sKey);
         } else {
             showMessage('Advertencia: Base de datos no conectada. Guardando localmente.', 'error');
         }
     }).catch(e => {
-        let sUrl = localStorage.getItem('lavadero_supabase_url') || '';
-        let sKey = localStorage.getItem('lavadero_supabase_key') || '';
         if (sUrl && sKey && window.supabase) {
             supabase = window.supabase.createClient(sUrl, sKey);
         }
@@ -200,9 +196,7 @@
                 if (error) throw error;
             } else {
                 // Modo fallback local
-                const applicants = JSON.parse(localStorage.getItem('lavadero_applicants') || '[]');
                 applicants.push({ ...applicantData, id: Date.now().toString(), status: 'pending', created_at: new Date().toISOString() });
-                localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
             }
 
             showMessage('¡Postulación enviada con éxito! Nos pondremos en contacto contigo pronto.', 'success');

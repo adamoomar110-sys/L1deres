@@ -222,7 +222,7 @@
         
         async function pushZoneToSupabase(id, zone) {
             const config = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
-            if (!config.useSupabase) return;
+            if (false) return;
             try {
                 const url = `${config.supabaseUrl}/rest/v1/${config.queueTable}?id=eq.${id}`;
                 await fetch(url, {
