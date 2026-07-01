@@ -382,7 +382,7 @@
             <div class="operator-layout" style="grid-template-columns: 1fr 1fr;">
                 <!-- SECCION GASTOS -->
                 <div class="operator-queue-list">
-                    <form id="form-gastos" class="operator-form">
+                    <form id="form-gastos" class="operator-form" autocomplete="off">
                         <h4 class="form-title" style="color: var(--color-yellow)">Registrar Gasto o Deuda</h4>
                         <div class="form-grid">
                             <div class="form-group">
@@ -414,7 +414,7 @@
 
                 <!-- SECCION SUELDOS -->
                 <div class="operator-queue-list">
-                    <form id="form-sueldos" class="operator-form">
+                    <form id="form-sueldos" class="operator-form" autocomplete="off">
                         <h4 class="form-title" style="color: var(--color-cyan)">Pago de Sueldos</h4>
                         <div class="form-grid">
                             <div class="form-group">
@@ -499,7 +499,7 @@
             </div>
 
             <div class="operator-layout">
-                <form id="form-empleado" class="operator-form">
+                <form id="form-empleado" class="operator-form" autocomplete="off">
                     <h4 class="form-title">Registrar Jornada / Empleado</h4>
                     <div class="form-grid">
                         <div class="form-group">
@@ -548,7 +548,7 @@
             </div>
 
             <div class="operator-layout">
-                <form id="form-insumo" class="operator-form">
+                <form id="form-insumo" class="operator-form" autocomplete="off">
                     <h4 class="form-title">Ingresar/Ajustar Insumo</h4>
                     <div class="form-grid">
                         <div class="form-group">
@@ -606,7 +606,7 @@
                 <!-- SECCION PROMOS -->
                 <div class="operator-queue-list">
                     <h4 class="form-title" style="color: var(--color-cyan)">App Cliente - Novedades y Promociones</h4>
-                    <form id="form-promo" class="operator-form" style="margin-bottom: 1rem;">
+                    <form id="form-promo" class="operator-form" autocomplete="off" style="margin-bottom: 1rem;">
                         <div class="form-grid">
                             <div class="form-group">
                                 <label>Título de la Promo</label>
@@ -731,19 +731,19 @@
                     <div id="supabase-fields" class="supabase-fields-container hidden">
                         <div class="form-group">
                             <label for="supabase-url">Supabase URL</label>
-                            <input type="url" id="supabase-url" placeholder="https://xxxxxx.supabase.co">
+                            <input type="url" id="supabase-url" placeholder="https://xxxxxx.supabase.co" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="supabase-key">Supabase Anon/Public Key</label>
-                            <input type="password" id="supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                            <input type="text" id="supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." autocomplete="new-password">
                         </div>
                         <div class="form-group">
                             <label for="supabase-table">Tabla de Cola de Cámara</label>
-                            <input type="text" id="supabase-table" value="lavadero_camera_queue">
+                            <input type="text" id="supabase-table" value="lavadero_camera_queue" autocomplete="off">
                         </div>
                         <div class="form-group">
-                            <label for="supabase-service-table">Tabla de Á“rdenes de Servicio</label>
-                            <input type="text" id="supabase-service-table" value="service_orders">
+                            <label for="supabase-service-table">Tabla de Órdenes de Servicio</label>
+                            <input type="text" id="supabase-service-table" value="service_orders" autocomplete="off">
                         </div>
                     </div>
 

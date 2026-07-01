@@ -701,11 +701,13 @@
             let currentStep = 1;
             const totalSteps = 5;
 
-            let order = {
+            // ✅ Exponer al scope global para que los atributos oninput/onclick del HTML puedan acceder
+            window.order = {
                 category: null, surcharge: 0, plate: '', phone: '', hasPromo: false,
                 promoDiscount: 0, washType: null, washName: '', basePrice: 0,
                 finalPrice: 0, payment: null
             };
+            let order = window.order; // alias local
 
             let WASH_OPTIONS = {
                 'combo-limpieza-total': { name: 'Combo Limpieza Total', icon: 'fa-star', price: 18000 },
@@ -908,7 +910,8 @@
                 if (currentStep === 3) renderWashGrid();
             }
 
-            function validateStep() {
+            // ✅ Exponer al scope global para que los handlers onclick/oninput del HTML puedan acceder
+            window.validateStep = function validateStep() {
                 let isValid = false;
                 if (currentStep === 1) isValid = order.category !== null;
                 if (currentStep === 2) isValid = order.plate.length >= 6;
@@ -917,7 +920,9 @@
                 if (currentStep === 5) isValid = order.payment !== null;
                 const btn = document.getElementById('btn-next');
                 if (btn) btn.disabled = !isValid;
-            }
+            };
+            // Alias local para uso interno
+            function validateStep() { window.validateStep(); }
 
             // Expose to HTML onclick attributes
             window.nextStep = function() {
@@ -962,6 +967,14 @@
                         order.promoDiscount = 15;
                         alertBox.className = 'promo-alert promo-success';
                         alertBox.innerHTML = '<i class="fa-solid fa-gift"></i> ¡Cliente Registrado! Tienes un 15% de descuento hoy.';
+
+                        // ✅ FIX: precargar el teléfono guardado para que el paso 4 no bloquee
+                        const savedPhone = data[0].telefono || '';
+                        if (savedPhone && savedPhone.length >= 8) {
+                            order.phone = savedPhone;
+                            const phoneEl = document.getElementById('phone-input');
+                            if (phoneEl) phoneEl.value = savedPhone;
+                        }
                     } else {
                         order.hasPromo = false; order.promoDiscount = 0;
                         alertBox.className = 'promo-alert';

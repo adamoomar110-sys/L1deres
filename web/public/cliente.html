@@ -663,7 +663,7 @@
             el.classList.add('selected');
             pendingCats = id;
             currentSurcharge = perc;
-            renderCatMenu(); renderConfigMenu(); // re-render prices
+            renderConfigMenu(); // re-render prices only (avoid recursion with renderCatMenu)
         }
 
         let pendingTypeIds = [];
