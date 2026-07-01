@@ -8,7 +8,7 @@ interface QueueVehicle {
   id: string;
   tracking_id: number;
   nickname: string;
-  zone: 'espera' | 'lavado' | 'aspirado' | 'terminado';
+  zone: 'pre_espera' | 'espera' | 'lavado' | 'aspirado' | 'terminado';
   color: string;
   entered_at: string;
   created_at: string;
