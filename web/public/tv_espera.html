@@ -138,7 +138,7 @@
             listProg.innerHTML = '';
             listReady.innerHTML = '';
 
-            const inProg = activeVehicles.filter(v => v.zone === 'espera' || v.zone === 'lavado');
+            const inProg = activeVehicles.filter(v => v.zone === 'espera' || v.zone === 'lavado' || v.zone === 'aspirado');
             const ready = activeVehicles.filter(v => v.zone === 'terminado');
 
             if(inProg.length === 0) listProg.innerHTML = '<div class="empty-msg">No hay vehículos en proceso.</div>';
@@ -148,7 +148,7 @@
                 listProg.innerHTML += `
                     <div class="ticket-item">
                         <span class="ticket-number">#${v.tracking_id}</span>
-                        <span>${v.plate || v.nickname}</span>
+                        <span>${v.nickname || (v.plate ? '***' + v.plate.slice(-3) : 'Auto')}</span>
                     </div>
                 `;
             });
@@ -157,7 +157,7 @@
                 listReady.innerHTML += `
                     <div class="ticket-item">
                         <span class="ticket-number">#${v.tracking_id}</span>
-                        <span>${v.plate || v.nickname}</span>
+                        <span>${v.nickname || (v.plate ? '***' + v.plate.slice(-3) : 'Auto')}</span>
                     </div>
                 `;
             });
