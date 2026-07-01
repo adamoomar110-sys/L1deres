@@ -186,22 +186,22 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // GET assets locales → Stale-While-Revalidate con fallback offline
+  // GET assets locales → Network First, fallback a caché
   event.respondWith(
-    caches.match(request).then(cached => {
-      const fetchPromise = fetch(request).then(networkRes => {
-        if (networkRes && networkRes.status === 200) {
-          caches.open(CACHE_NAME).then(cache => cache.put(request, networkRes.clone()));
-        }
-        return networkRes;
-      }).catch(() => {
+    fetch(request).then(networkRes => {
+      if (networkRes && networkRes.status === 200) {
+        caches.open(CACHE_NAME).then(cache => cache.put(request, networkRes.clone()));
+      }
+      return networkRes;
+    }).catch(() => {
+      return caches.match(request).then(cached => {
+        if (cached) return cached;
         // Si es navegación a una página HTML, mostrar offline.html
         if (request.mode === 'navigate') {
           return caches.match(OFFLINE_URL);
         }
         console.log('[SW] Recurso no disponible offline:', request.url);
       });
-      return cached || fetchPromise;
     })
   );
 });

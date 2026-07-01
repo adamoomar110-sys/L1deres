@@ -2038,52 +2038,74 @@ window.openScannerModal = function() {
     
     setTimeout(() => {
         feed.classList.add('scanning-active');
-        text.innerText = "ANALIZANDO VEHÍCULO...";
+        text.innerText = "ANALIZANDO VEHÍCULO...";
         
         setTimeout(() => {
-            text.innerText = "¡VEHÍCULO DETECTADO!";
+            text.innerText = "¡VEHÍCULO DETECTADO!";
             feed.classList.remove('scanning-active');
             feed.style.background = 'radial-gradient(circle at center, rgba(0,240,255,0.2) 0%, #000 100%)';
             
-            const mockCars = [
-                { nick: "Audi A3", plate: "AF432RT", color: "#ffffff", cat: "Auto", img: "assets/car_auto.png" },
-                { nick: "Toyota Hilux", plate: "AD991ZZ", color: "#a8a8a8", cat: "Camioneta", img: "assets/car_camioneta.png" },
-                { nick: "VW Taos", plate: "AE123CD", color: "#1e3a8a", cat: "SUV", img: "assets/car_suv.png" },
-                { nick: "Ford Focus", plate: "AC876HG", color: "#dc2626", cat: "Auto", img: "assets/car_auto.png" },
-                { nick: "RAM 1500", plate: "AE112QQ", color: "#000000", cat: "Camioneta", img: "assets/car_camioneta.png" }
-            ];
-            const randCar = mockCars[Math.floor(Math.random() * mockCars.length)];
-            
-            document.getElementById('input-nickname').value = randCar.nick;
-            document.getElementById('input-plate').value = randCar.plate;
-            document.getElementById('input-color').value = randCar.color;
-            if(document.getElementById('input-category')) {
-                document.getElementById('input-category').value = randCar.cat;
-            }
-            if(document.getElementById('color-hex-label')) {
-                document.getElementById('color-hex-label').innerText = randCar.color;
-            }
-
-            const realImg = document.getElementById('scanner-real-image');
-            if (realImg) {
-                realImg.src = randCar.img;
-                realImg.style.display = 'block';
-                void realImg.offsetWidth;
-                realImg.style.opacity = '1';
-            }
-            
-            if(window.calculateBudget) { window.calculateBudget(); }
-            
-            setTimeout(() => {
-                if(window.closeScannerModal) window.closeScannerModal();
-                else modal.style.display = 'none';
-                if(typeof showFloatingToast === 'function') showFloatingToast("Datos del vehículo cargados por IA.");
-                if (realImg) {
-                    realImg.style.opacity = '0';
-                    setTimeout(() => { realImg.style.display = 'none'; }, 500);
+            // Revisar si hay autos del kiosko esperando
+            let preEsperaCars = activeVehicles.filter(v => v.zone === 'pre_espera');
+            if (preEsperaCars.length > 0) {
+                preEsperaCars.sort((a, b) => new Date(a.entered_at) - new Date(b.entered_at));
+                let nextCar = preEsperaCars[0];
+                
+                // Mover a espera
+                updateVehicleZone(nextCar.id, 'espera');
+                
+                text.innerText = `VEHÍCULO KIOSCO: ${nextCar.plate || nextCar.nickname}`;
+                
+                setTimeout(() => {
+                    if(window.closeScannerModal) window.closeScannerModal();
+                    else modal.style.display = 'none';
+                    if(typeof showFloatingToast === 'function') showFloatingToast("Vehículo de Kiosco ingresado a espera.");
+                    feed.style.background = 'transparent';
+                    text.innerText = "ESCANEAR CÁMARA (SIMULADOR)";
+                }, 2000);
+            } else {
+                // Fallback normal si no hay autos del kiosko
+                const mockCars = [
+                    { nick: "Audi A3", plate: "AF432RT", color: "#ffffff", cat: "Auto", img: "assets/car_auto.png" },
+                    { nick: "Toyota Hilux", plate: "AD991ZZ", color: "#a8a8a8", cat: "Camioneta", img: "assets/car_camioneta.png" },
+                    { nick: "VW Taos", plate: "AE123CD", color: "#1e3a8a", cat: "SUV", img: "assets/car_suv.png" },
+                    { nick: "Ford Focus", plate: "AC876HG", color: "#dc2626", cat: "Auto", img: "assets/car_auto.png" },
+                    { nick: "RAM 1500", plate: "AE112QQ", color: "#000000", cat: "Camioneta", img: "assets/car_camioneta.png" }
+                ];
+                const randCar = mockCars[Math.floor(Math.random() * mockCars.length)];
+                
+                document.getElementById('input-nickname').value = randCar.nick;
+                document.getElementById('input-plate').value = randCar.plate;
+                document.getElementById('input-color').value = randCar.color;
+                if(document.getElementById('input-category')) {
+                    document.getElementById('input-category').value = randCar.cat;
                 }
-            }, 2500);
-            
+                if(document.getElementById('color-hex-label')) {
+                    document.getElementById('color-hex-label').innerText = randCar.color;
+                }
+
+                const realImg = document.getElementById('scanner-real-image');
+                if (realImg) {
+                    realImg.src = randCar.img;
+                    realImg.style.display = 'block';
+                    void realImg.offsetWidth;
+                    realImg.style.opacity = '1';
+                }
+                
+                if(window.calculateBudget) { window.calculateBudget(); }
+                
+                setTimeout(() => {
+                    if(window.closeScannerModal) window.closeScannerModal();
+                    else modal.style.display = 'none';
+                    if(typeof showFloatingToast === 'function') showFloatingToast("Datos del vehículo cargados por IA.");
+                    if (realImg) {
+                        realImg.style.opacity = '0';
+                        setTimeout(() => { realImg.style.display = 'none'; }, 500);
+                    }
+                    feed.style.background = 'transparent';
+                    text.innerText = "ESCANEAR CÁMARA (SIMULADOR)";
+                }, 2500);
+            }
         }, 3000);
     }, 500);
 }
@@ -2381,7 +2403,7 @@ function populateEmpleadosSueldos() {
     select.innerHTML = '<option value="">Seleccione empleado...</option>';
     
     // Extraer empleados unicos del registro de horas
-    const unicos = [...new Set(EMPLOYEE_RECORDS.map(e => e.name))];
+    const unicos = [...new Set(empleados.map(e => e.name))];
     unicos.forEach(emp => {
         const opt = document.createElement('option');
         opt.value = emp;

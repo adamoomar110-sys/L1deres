@@ -753,14 +753,12 @@
             const step1 = document.getElementById('step-1');
             const step2 = document.getElementById('step-2');
             const step3 = document.getElementById('step-3');
-            const line1 = document.getElementById('line-1');
-            const line2 = document.getElementById('line-2');
             const queueCard = document.getElementById('queue-position-card');
             const progressCard = document.getElementById('progress-card');
 
             // Reset classes
-            [step1, step2, step3, line1, line2].forEach(el => {
-                el.classList.remove('active', 'completed');
+            [step1, step2, step3].forEach(el => {
+                if (el) el.classList.remove('active', 'completed');
             });
 
             if (zone === 'espera') {
@@ -779,7 +777,6 @@
 
             } else if (zone === 'lavado') {
                 step1.classList.add('completed');
-                line1.classList.add('active');
                 step2.classList.add('active');
                 queueCard.style.display = 'none';
                 progressCard.style.display = 'block';
@@ -804,9 +801,7 @@
 
             } else if (zone === 'terminado') {
                 step1.classList.add('completed');
-                line1.classList.add('active');
                 step2.classList.add('completed');
-                line2.classList.add('active');
                 step3.classList.add('active', 'completed');
                 queueCard.style.display = 'none';
                 progressCard.style.display = 'none';
@@ -920,5 +915,9 @@
             }
         };
     </script>
+
+    <footer style="text-align: center; padding: 16px; font-size: 0.75em; color: rgba(255, 255, 255, 0.4); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.06); margin-top: auto;">
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero Estética Vehicular
+    </footer>
 </body>
 </html>

@@ -168,6 +168,7 @@ export default function PantallaLavadero() {
   }, []);
 
   const waitQueueCount = vehicles.filter(v => v.zone === 'espera').length;
+  const preEsperaCount = vehicles.filter(v => v.zone === 'pre_espera').length;
   const washingCount = vehicles.filter(v => v.zone === 'lavado').length;
   const aspiradoCount = vehicles.filter(v => v.zone === 'aspirado').length;
   
@@ -213,13 +214,14 @@ export default function PantallaLavadero() {
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1.2fr 1.2fr 1fr',
-            gridTemplateRows: '60px 180px 320px',
+            gridTemplateRows: '60px 180px 320px 160px',
             gridTemplateAreas: `
               "retorno retorno retorno retorno"
               "espera central central terminado"
               "espera lavado aspirado terminado"
+              "pre_espera pre_espera pre_espera pre_espera"
             `,
-            aspectRatio: '40 / 35'
+            aspectRatio: '40 / 45'
           }}
         >
           
@@ -326,6 +328,73 @@ export default function PantallaLavadero() {
                           {parsedNickname}
                         </p>
                         <VehicleTimer enteredAt={v.entered_at} zone="espera" />
+                      </div>
+                    </motion.div>
+                  )})
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* ZONA DE RECEPCIÓN (Autos del Kiosco) */}
+          <div 
+            className="bg-zinc-950/90 border-2 border-zinc-800/80 rounded-[2.5rem] p-6 flex flex-col items-center relative overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.8)]"
+            style={{ gridArea: 'pre_espera', height: '100%' }}
+          >
+            {/* Indicador de Línea Neon */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
+            
+            <h2 className="text-sm font-black tracking-widest text-blue-500 uppercase mb-4 flex items-center gap-2 z-10">
+              AUTOS KIOSCO (EN INGRESO) <span className="bg-blue-500/10 text-blue-500 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-blue-500/20">{preEsperaCount}</span>
+            </h2>
+            
+            <div className="flex-1 flex flex-row justify-center items-center gap-6 w-full overflow-x-hidden z-10">
+              <AnimatePresence mode="popLayout">
+                {vehicles.filter(v => v.zone === 'pre_espera').length === 0 ? (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.2 }} className="h-full flex flex-col items-center justify-center text-center py-4 text-zinc-600">
+                    <AlertCircle size={32} className="mb-2" />
+                    <p className="text-xs font-black uppercase tracking-wider">Sin autos en ingreso</p>
+                  </motion.div>
+                ) : (
+                  vehicles.filter(v => v.zone === 'pre_espera').map((v) => {
+                    let parsedNickname = v.nickname;
+                    let isPaid = false;
+                    try {
+                      if (v.nickname && v.nickname.startsWith('{')) {
+                        const parsed = JSON.parse(v.nickname);
+                        parsedNickname = parsed.name || v.nickname;
+                        isPaid = parsed.isPaid || false;
+                      }
+                    } catch (e) {}
+                    
+                    return (
+                    <motion.div
+                      key={v.id}
+                      layoutId={v.id}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                      className="relative overflow-hidden rounded-md border-2 border-zinc-800 shadow-xl flex flex-col w-20 h-28"
+                    >
+                      <div 
+                        className="flex-1 flex flex-col items-center justify-center relative"
+                        style={{ backgroundColor: v.color }}
+                      >
+                        <div className="absolute inset-0 bg-black/10" />
+                        <div className="transform z-10 scale-[0.4] mt-[-15px]">
+                          <RetroCar color={v.color} />
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`h-8 flex flex-col items-center justify-center z-10 ${
+                          isPaid ? 'bg-green-500 text-green-950' : 'bg-red-500 text-red-950'
+                        }`}
+                      >
+                        <p className="text-[9px] font-black tracking-tight uppercase px-1 truncate w-full text-center">
+                          {parsedNickname}
+                        </p>
                       </div>
                     </motion.div>
                   )})

@@ -542,6 +542,9 @@
             <button id="install-pwa-btn" class="info-pill install-btn" style="display: none; cursor: pointer; background: linear-gradient(135deg, #c8960c, #f5d061); border: 1px solid rgba(255,255,255,0.1); color: #000; font-weight: 800; font-family: 'Outfit', sans-serif; box-shadow: 0 0 15px rgba(200, 150, 12, 0.4);">
                 <i class="fa-solid fa-download" style="color: #000;"></i> Instalar Kiosco
             </button>
+            <button class="info-pill install-btn" style="cursor: pointer; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Outfit', sans-serif;" onclick="window.location.reload(true)">
+                <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+            </button>
             <div class="info-pill">
                 <i class="fa-regular fa-clock"></i>
                 Lunes a Sábados 08:00 a 20:00
@@ -690,12 +693,32 @@
                 finalPrice: 0, payment: null
             };
 
-            const WASH_OPTIONS = {
+            let WASH_OPTIONS = {
                 'combo-limpieza-total': { name: 'Combo Limpieza Total', icon: 'fa-star', price: 18000 },
                 'combo-vip-gold':       { name: 'Combo VIP Gold',        icon: 'fa-crown', price: 25000 },
                 'lavado-carroceria':    { name: 'Exterior Simple',        icon: 'fa-droplet', price: 12000 },
                 'lavado-express':       { name: 'Lavado Express',         icon: 'fa-bolt', price: 8000 }
             };
+
+            function syncWashPrices() {
+                const settingsStr = localStorage.getItem('lavadero_wash_settings');
+                if (settingsStr) {
+                    try {
+                        const parsed = JSON.parse(settingsStr);
+                        parsed.forEach(pkg => {
+                            if (WASH_OPTIONS[pkg.id]) {
+                                WASH_OPTIONS[pkg.id].price = pkg.price;
+                                WASH_OPTIONS[pkg.id].name = pkg.title || WASH_OPTIONS[pkg.id].name;
+                            }
+                        });
+                        
+                        // Si estamos en el paso 3, actualizamos la vista
+                        if (currentStep === 3) {
+                            renderWashGrid();
+                        }
+                    } catch(e) {}
+                }
+            }
 
             // --- Zona de Espera ---
             const SLOT_COUNT = 8;
@@ -719,6 +742,7 @@
 
                 renderQueuePanel(vehicles);
                 renderStatusBar(vehicles);
+                syncWashPrices();
             }
             updateGlobalETA();
             setInterval(updateGlobalETA, 5000);
@@ -746,12 +770,12 @@
                         const car = waiting[i];
                         const mins = (i + 1) * MINS_PER_CAR;
                         const colorHex = car.color || '#06b6d4';
-                        const name = car.nickname || car.plate || `Auto ${i+1}`;
+                const name = car.nickname || `Auto ${i+1}`;
                         const plate = car.plate || '';
                         html += `
                         <div class="queue-car-card">
                             <div class="queue-car-name">${name}</div>
-                            <div class="queue-car-plate" style="color:${colorHex}">${plate}</div>
+
                             <div class="queue-car-time">${mins} min</div>
                         </div>`;
                     } else {
@@ -934,7 +958,7 @@
                     plate: order.plate,
                     model: order.category,
                     nickname: `Vehículo ${order.plate}`,
-                    zone: 'espera',
+                    zone: 'pre_espera',
                     entered_at: new Date().toISOString(),
                     wash_type: order.washType,
                     expected_price: order.finalPrice,

@@ -40,6 +40,6 @@ fixFile('tv_precios.html');
 fixFile('tv_espera.html');
 fixFile('tablet_taller.html');
 fixFile('tablet_ingreso.html');
-fixFile('presentacion.html');
+
 fixFile('postular.html');
 fixFile('pantalla_lavado/index.html');
