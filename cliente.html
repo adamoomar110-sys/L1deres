@@ -761,21 +761,26 @@
                 if (el) el.classList.remove('active', 'completed');
             });
 
-            if (zone === 'espera') {
+            if (zone === 'pre_espera' || zone === 'espera') {
                 step1.classList.add('active');
                 queueCard.style.display = 'block';
                 progressCard.style.display = 'none';
                 displayContainer.classList.remove('in-wash');
 
                 document.getElementById('queue-number').innerText = '#' + pos;
-                document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
+                if (zone === 'pre_espera') {
+                    document.getElementById('queue-subtitle').innerText = 'Esperando confirmación en Kiosco';
+                    etaText.innerHTML = `<strong style="color:var(--color-yellow); font-size:1.1em;">Ingreso detectado</strong><br>Por favor, confirma tu servicio.`;
+                } else {
+                    document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
 
-                const waitTotalSecs = remainingWashingSecs + (pos * 7 * 60);
-                const mins = Math.floor(waitTotalSecs / 60);
-                const secs = waitTotalSecs % 60;
-                etaText.innerHTML = `Demora estimada: <strong style="color:var(--color-yellow); font-size:1.1em;">${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}</strong> min`;
+                    const waitTotalSecs = remainingWashingSecs + (pos * 7 * 60);
+                    const mins = Math.floor(waitTotalSecs / 60);
+                    const secs = waitTotalSecs % 60;
+                    etaText.innerHTML = `Demora estimada: <strong style="color:var(--color-yellow); font-size:1.1em;">${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}</strong> min`;
+                }
 
-            } else if (zone === 'lavado') {
+            } else if (zone === 'lavado' || zone === 'aspirado') {
                 step1.classList.add('completed');
                 step2.classList.add('active');
                 queueCard.style.display = 'none';

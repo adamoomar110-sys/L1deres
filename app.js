@@ -905,6 +905,7 @@ function renderOperatorTable() {
             </td>
             <td>
                 <select class="select-zone-dropdown" data-car-id="${car.id}">
+                    <option value="pre_espera" ${car.zone === 'pre_espera' ? 'selected' : ''}>0. Ingreso Inteligente</option>
                     <option value="espera" ${car.zone === 'espera' ? 'selected' : ''}>1. Espera</option>
                     <option value="lavado" ${car.zone === 'lavado' ? 'selected' : ''}>2. Lavando</option>
                     <option value="aspirado" ${car.zone === 'aspirado' ? 'selected' : ''}>3. Aspirado</option>
@@ -944,7 +945,9 @@ function renderOperatorTable() {
         if (advanceBtn) {
             advanceBtn.addEventListener('click', () => {
                 let nextZone = 'terminado';
-                if (car.zone === 'espera') {
+                if (car.zone === 'pre_espera') {
+                    nextZone = 'espera';
+                } else if (car.zone === 'espera') {
                     if (car.wash_type === 'aspirado-interior') {
                         nextZone = 'aspirado';
                     } else {

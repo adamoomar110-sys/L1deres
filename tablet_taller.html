@@ -112,16 +112,20 @@
                 const hasLustre = (car.extra_lustre) ? 'tag-on' : '';
 
                 let actions = '';
-                if(car.zone === 'espera') {
+                if (car.zone === 'pre_espera') {
+                    actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'espera')">Aceptar en Fila</button>`;
+                } else if(car.zone === 'espera') {
                     actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'lavado')">Ingresar a Lavado 💧</button>`;
                 } else if(car.zone === 'lavado') {
                     actions = `
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem;">
-                            <button class="btn-action btn-yellow" onclick="toggleExtra('${car.id}', 'aspirado')">Aspirado</button>
+                            <button class="btn-action btn-yellow" onclick="changeZone('${car.id}', 'aspirado')">Pasar a Aspirado</button>
                             <button class="btn-action btn-yellow" onclick="toggleExtra('${car.id}', 'lustre')">Lustre Extra</button>
                         </div>
                         <button class="btn-action btn-green" onclick="changeZone('${car.id}', 'terminado')">✔ Marcar Terminado</button>
                     `;
+                } else if(car.zone === 'aspirado') {
+                    actions = `<button class="btn-action btn-green" onclick="changeZone('${car.id}', 'terminado')">✔ Marcar Terminado</button>`;
                 }
 
                 const extrasHtml = `
