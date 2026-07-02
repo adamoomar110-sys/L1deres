@@ -63,6 +63,16 @@ let config = {
     queueTable: 'lavadero_camera_queue',
     serviceTable: 'service_orders'
 };
+
+const savedConfig = localStorage.getItem('lavadero_config');
+if (savedConfig) {
+    try {
+        const parsed = JSON.parse(savedConfig);
+        config = { ...config, ...parsed };
+    } catch (e) {
+        console.error("Error parsing saved config", e);
+    }
+}
 let isSimulationActive = false;
 let simulationIntervalId = null;
 let realtimeTickerId = null;
@@ -1214,6 +1224,7 @@ elBtnSaveConfig.addEventListener('click', async () => {
     config.queueTable = elSupabaseTable.value.trim() || 'lavadero_camera_queue';
     config.serviceTable = elSupabaseServiceTable.value.trim() || 'service_orders';
 
+    localStorage.setItem('lavadero_config', JSON.stringify(config));
     
     // Cerrar modal
     elModalConfig.classList.remove('active');
