@@ -533,7 +533,11 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
         const nicknamePayload = JSON.stringify({
             name: newCar.nickname,
             isPaid: isPaid,
-            paymentMethod: paymentMethod
+            paymentMethod: paymentMethod,
+            plate: newCar.plate,
+            budget: newCar.budget,
+            wash_type: newCar.wash_type,
+            description: newCar.description
         });
         
         // Registrar en lavadero_camera_queue de Supabase
