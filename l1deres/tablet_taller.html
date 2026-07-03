@@ -117,7 +117,11 @@
                 } else if (car.zone === 'pre_espera') {
                     actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'espera')">Aceptar en Fila</button>`;
                 } else if(car.zone === 'espera') {
-                    actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'lavado')">Ingresar a Lavado 💧</button>`;
+                    if (car.wash_type === 'aspirado-interior') {
+                        actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'aspirado')">Ingresar a Aspirado 💨</button>`;
+                    } else {
+                        actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'lavado')">Ingresar a Lavado 💧</button>`;
+                    }
                 } else if(car.zone === 'lavado') {
                     actions = `
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem;">
