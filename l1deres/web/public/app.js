@@ -16,6 +16,14 @@ function getDisplayNickname(nickname) {
     }
     return nickname;
 }
+
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 const ADJETIVOS = ["Red Bull", "Mercedes", "Ferrari", "McLaren", "Aston Martin", "Williams", "Alpine", "Sauber", "Haas", "Racing Bulls"];
 const COLORES = ["#00f0ff", "#84cc16", "#ffb800", "#3b82f6", "#ef4444", "#a855f7", "#f97316", "#ec4899", "#14b8a6", "#ff2800", "#00a19c", "#0600ef"];
 
@@ -510,7 +518,7 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
         }
 
         const newCar = {
-            id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
+            id: generateUUID(),
             tracking_id: Math.floor(Math.random() * 900) + 100,
             nickname,
             plate: uppercasePlate,

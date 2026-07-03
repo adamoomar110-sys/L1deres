@@ -464,7 +464,7 @@
         function finishIngreso() {
             // Guardar auto en LocalStorage
             const car = {
-                id: detectedOnlineId || Math.random().toString(36).substr(2, 9),
+                id: detectedOnlineId || generateUUID(),
                 tracking_id: Math.floor(Math.random() * 900) + 100,
                 nickname: document.getElementById('in-model').value,
                 plate: document.getElementById('in-plate').value.toUpperCase(),
@@ -641,6 +641,12 @@
         processOfflineQueue();
 
 
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
 
         // Escuchar cambios en la patente para validación online
         document.getElementById('in-plate').addEventListener('input', (e) => {
