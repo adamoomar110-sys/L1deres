@@ -59,6 +59,16 @@ function RetroCar({ color }: { color: string }) {
   );
 }
 
+function getParsedNickname(nickname: string): string {
+  try {
+    if (nickname && nickname.startsWith('{')) {
+      const parsed = JSON.parse(nickname);
+      return parsed.name || nickname;
+    }
+  } catch (e) {}
+  return nickname || '';
+}
+
 function VehicleTimer({ enteredAt, zone }: { enteredAt: string; zone: 'espera' | 'lavado' | 'aspirado' | 'terminado' }) {
   const [seconds, setSeconds] = useState(0);
 
@@ -480,7 +490,7 @@ export default function PantallaLavadero() {
                         <RetroCar color={v.color} />
                       </div>
                       <div className="text-center z-10">
-                        <p className="text-[11px] font-black tracking-tight text-black uppercase">{v.nickname}</p>
+                        <p className="text-[11px] font-black tracking-tight text-black uppercase">{getParsedNickname(v.nickname)}</p>
                         <VehicleTimer enteredAt={v.entered_at} zone="lavado" />
                       </div>
                     </motion.div>
@@ -525,7 +535,7 @@ export default function PantallaLavadero() {
                         <RetroCar color={v.color} />
                       </div>
                       <div className="text-center z-10">
-                        <p className="text-[11px] font-black tracking-tight text-white uppercase">{v.nickname}</p>
+                        <p className="text-[11px] font-black tracking-tight text-white uppercase">{getParsedNickname(v.nickname)}</p>
                         <VehicleTimer enteredAt={v.entered_at} zone="aspirado" />
                       </div>
                     </motion.div>
@@ -578,7 +588,7 @@ export default function PantallaLavadero() {
                     >
                       <RetroCar color={v.color} />
                       <div className="text-center">
-                        <p className="text-[11px] font-black tracking-tight text-black uppercase">{v.nickname}</p>
+                        <p className="text-[11px] font-black tracking-tight text-black uppercase">{getParsedNickname(v.nickname)}</p>
                         <VehicleTimer enteredAt={v.entered_at} zone="terminado" />
                       </div>
                     </motion.div>

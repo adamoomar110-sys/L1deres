@@ -1,5 +1,21 @@
 // Paletas de apodos y colores F1
 const NOMBRES = ["Max", "Lewis", "Charles", "Lando", "Fernando", "Checo", "Carlos", "George", "Oscar", "Alex", "Pierre", "Yuki", "Valtteri", "Nico", "Esteban"];
+
+function getDisplayNickname(nickname) {
+    if (!nickname) return 'Vehículo';
+    if (typeof nickname === 'string' && nickname.startsWith('{')) {
+        try {
+            const parsed = JSON.parse(nickname);
+            return parsed.name || 'Vehículo';
+        } catch(e) {
+            return nickname;
+        }
+    }
+    if (typeof nickname === 'object') {
+        return nickname.name || 'Vehículo';
+    }
+    return nickname;
+}
 const ADJETIVOS = ["Red Bull", "Mercedes", "Ferrari", "McLaren", "Aston Martin", "Williams", "Alpine", "Sauber", "Haas", "Racing Bulls"];
 const COLORES = ["#00f0ff", "#84cc16", "#ffb800", "#3b82f6", "#ef4444", "#a855f7", "#f97316", "#ec4899", "#14b8a6", "#ff2800", "#00a19c", "#0600ef"];
 
@@ -517,7 +533,11 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
         const nicknamePayload = JSON.stringify({
             name: newCar.nickname,
             isPaid: isPaid,
-            paymentMethod: paymentMethod
+            paymentMethod: paymentMethod,
+            plate: newCar.plate,
+            budget: newCar.budget,
+            wash_type: newCar.wash_type,
+            description: newCar.description
         });
         
         // Registrar en lavadero_camera_queue de Supabase
@@ -689,7 +709,7 @@ function createVehicleElement(car, index = -1) {
         
         container.innerHTML = `
             ${carSvg}
-            <div class="f1-driver-name">${car.nickname.split(' ')[0]}</div>
+            <div class="f1-driver-name">${getDisplayNickname(car.nickname).split(' ')[0]}</div>
             <div class="f1-timer-badge" data-timer-type="waiting" data-start="${car.entered_at}">+0 MIN</div>
             <div class="f1-pit-number">PIT ${index !== -1 ? index + 1 : '?'}</div>
         `;
@@ -728,7 +748,7 @@ function createVehicleElement(car, index = -1) {
         container.innerHTML = `
             ${carSvg}
             <div class="vehicle-label">
-                <div>${car.nickname.split(' ')[0]}</div>
+                <div>${getDisplayNickname(car.nickname).split(' ')[0]}</div>
                 ${timerHtml}
             </div>
         `;
@@ -892,7 +912,7 @@ function renderOperatorTable() {
                 <div class="car-badge-name">
                     <span class="car-color-dot" style="background-color: ${car.color}; box-shadow: 0 0 6px ${car.color}"></span>
                     <div>
-                        <div style="font-weight: 800; color: var(--color-text);">${car.nickname}</div>
+                        <div style="font-weight: 800; color: var(--color-text);">${getDisplayNickname(car.nickname)}</div>
                         <div style="font-size: 0.7rem; color: var(--color-text-dim); margin-top: 0.2rem; font-weight: 700;">${WASH_NAMES[car.wash_type] || 'Combo Limpieza Total'}</div>
                     </div>
                 </div>
@@ -976,7 +996,7 @@ function renderOperatorTable() {
         }
 
         tr.querySelector('.btn-delete-car').addEventListener('click', () => {
-            if (confirm(`¿Estás seguro de que deseas eliminar a ${car.nickname} de la cola?`)) {
+            if (confirm(`¿Estás seguro de que deseas eliminar a ${getDisplayNickname(car.nickname)} de la cola?`)) {
                 deleteVehicle(car.id);
             }
         });
@@ -984,7 +1004,7 @@ function renderOperatorTable() {
         const wpBtn = tr.querySelector('.btn-whatsapp');
         if (wpBtn) {
             wpBtn.addEventListener('click', () => {
-                const text = encodeURIComponent(`¡Hola! Tu vehículo ${car.nickname} ya está listo y brillante. Te esperamos en Lavadero Tech System.`);
+                const text = encodeURIComponent(`¡Hola! Tu vehículo ${getDisplayNickname(car.nickname)} ya está listo y brillante. Te esperamos en Lavadero Tech System.`);
                 window.open(`https://wa.me/?text=${text}`, '_blank');
             });
         }

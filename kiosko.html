@@ -1041,32 +1041,66 @@
                     } catch(e) { console.warn('Error upsert cliente:', e); }
                 }
 
-                const carObj = {
-                    id: Date.now(),
+                // Generar ID compatible con el dashboard (string UUID)
+                const carId = crypto.randomUUID ? crypto.randomUUID() : `kiosko-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                const trackingId = Math.floor(Math.random() * 900) + 100;
+
+                // Nickname como JSON (mismo formato que tablet_ingreso y addVehicle del panel)
+                const nicknamePayload = JSON.stringify({
+                    name: `Vehículo ${order.plate}`,
                     plate: order.plate,
-                    model: order.category,
-                    nickname: `Vehículo ${order.plate}`,
-                    zone: 'espera',
-                    entered_at: new Date().toISOString(),
+                    budget: order.finalPrice,
                     wash_type: order.washType,
-                    expected_price: order.finalPrice,
-                    payment_method: order.payment,
-                    status: 'waiting'
+                    description: `Servicio: ${order.washName}. Pago: ${order.payment}.`,
+                    isPaid: order.payment !== 'efectivo',
+                    paymentMethod: order.payment
+                });
+
+                const carObj = {
+                    id: carId,
+                    tracking_id: trackingId,
+                    nickname: nicknamePayload,
+                    zone: 'pre_espera',
+                    color: '#06b6d4',
+                    entered_at: new Date().toISOString()
                 };
 
+                // Objeto local enriquecido para localStorage y posición en cola
+                const localCarObj = {
+                    id: carId,
+                    tracking_id: trackingId,
+                    plate: order.plate,
+                    nickname: `Vehículo ${order.plate}`,
+                    zone: 'pre_espera',
+                    color: '#06b6d4',
+                    wash_type: order.washType,
+                    budget: order.finalPrice,
+                    payment: order.payment,
+                    entered_at: new Date().toISOString()
+                };
+
+                let supabaseOk = false;
                 try {
-                    if (supabase) await supabase.from('lavadero_camera_queue').insert([carObj]);
-                } catch(e) { console.warn('Supabase insert failed, usando localStorage'); }
+                    if (supabase) {
+                        const { error } = await supabase.from('lavadero_camera_queue').insert([carObj]);
+                        if (error) {
+                            console.warn('Supabase insert error:', error);
+                        } else {
+                            supabaseOk = true;
+                            console.log('✅ Vehículo registrado en Supabase OK');
+                        }
+                    }
+                } catch(e) { console.warn('Supabase insert failed:', e); }
 
-                const localVehicles = JSON.parse(localStorage.getItem('lavadero_active_vehicles') || '[]');
-                localVehicles.push(carObj);
-                localStorage.setItem('lavadero_active_vehicles', JSON.stringify(localVehicles));
+                if (!supabaseOk) {
+                    // Fallback a localStorage si Supabase falla
+                    const localVehicles = JSON.parse(localStorage.getItem('lavadero_active_vehicles') || '[]');
+                    localVehicles.push(localCarObj);
+                    localStorage.setItem('lavadero_active_vehicles', JSON.stringify(localVehicles));
+                    console.warn('⚠️ Guardado solo en localStorage (Supabase no disponible)');
+                }
 
-                const esperaCars = localVehicles.filter(v => v.zone === 'espera')
-                    .sort((a,b) => new Date(a.entered_at) - new Date(b.entered_at));
-                const pos = esperaCars.findIndex(v => v.id === carObj.id) + 1;
-
-                const ticketUrl = `cliente.html?n=${encodeURIComponent(carObj.nickname)}&p=${encodeURIComponent(carObj.plate)}&z=espera&t=${encodeURIComponent(carObj.wash_type)}&pos=${pos}&id=${carObj.id}&pay=${encodeURIComponent(order.payment)}`;
+                const ticketUrl = `cliente.html?n=${encodeURIComponent(localCarObj.nickname)}&p=${encodeURIComponent(localCarObj.plate)}&z=pre_espera&t=${encodeURIComponent(localCarObj.wash_type)}&pos=1&id=${carId}&pay=${encodeURIComponent(order.payment)}`;
                 setTimeout(() => { window.location.href = ticketUrl; }, 800);
             }
 
