@@ -130,7 +130,7 @@ export default function LavaderoAdmin() {
           <h2 className="text-2xl md:text-3xl font-black text-black tracking-tighter flex items-center gap-3">
              <Waves className="text-orange-500" /> Control de Lavadero
           </h2>
-          <p className="text-zinc-600 text-xs md:text-sm font-bold uppercase tracking-widest">Monitoreo y Auditoría del Lavadero de Lujo</p>
+          <p className="text-zinc-600 text-xs md:text-sm font-bold uppercase tracking-widest">Monitoreo y Auditoría del Lavadero L1deres</p>
         </div>
         
         <div className="flex items-center bg-white border border-orange-200 px-5 py-3 rounded-2xl w-full md:w-80 shadow-inner">
