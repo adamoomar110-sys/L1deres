@@ -233,7 +233,16 @@
             <h2 style="margin-top:0; color: var(--color-lime);">2. Servicio y Pago</h2>
             
             <div class="form-group">
-                <label>Seleccionar Servicio</label>
+                <label>Categoría</label>
+                <select id="in-category" onchange="onCategoryChange()">
+                    <option value="lavado" data-price="0">💦 Lavado</option>
+                    <option value="secado" data-price="5000">💨 Secado ($5.000)</option>
+                    <option value="lavado_secado" data-price="5000">✨ Lavado y Secado (+ $5.000)</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="wash-options-group">
+                <label>Opciones de Lavado</label>
                 <select id="in-service" onchange="updatePrice()">
                     <!-- Cargar dinámicamente -->
                 </select>
@@ -307,10 +316,30 @@
         }
 
 
+        function onCategoryChange() {
+            const catSelect = document.getElementById('in-category');
+            const washGroup = document.getElementById('wash-options-group');
+            if (catSelect.value === 'secado') {
+                washGroup.style.display = 'none';
+            } else {
+                washGroup.style.display = 'block';
+            }
+            updatePrice();
+        }
+
         function updatePrice() {
-            const select = document.getElementById('in-service');
-            const opt = select.options[select.selectedIndex];
-            currentPrice = parseInt(opt.getAttribute('data-price'));
+            const catSelect = document.getElementById('in-category');
+            const catOpt = catSelect.options[catSelect.selectedIndex];
+            let price = parseInt(catOpt.getAttribute('data-price'));
+            
+            if (catSelect.value !== 'secado') {
+                const select = document.getElementById('in-service');
+                if (select.selectedIndex >= 0) {
+                    const opt = select.options[select.selectedIndex];
+                    price += parseInt(opt.getAttribute('data-price'));
+                }
+            }
+            currentPrice = price;
             document.getElementById('in-price').value = `$${currentPrice.toLocaleString('es-AR')}`;
         }
 
@@ -471,7 +500,8 @@
                 color: document.getElementById('in-color').value,
                 zone: 'espera',
                 budget: currentPrice,
-                wash_type: document.getElementById('in-service').value,
+                wash_type: document.getElementById('in-category').value === 'secado' ? 'secado-solo' : document.getElementById('in-service').value,
+                category: document.getElementById('in-category').value,
                 description: `Pago vía: ${selectedPayment.toUpperCase()}`,
                 entered_at: new Date().toISOString()
             };

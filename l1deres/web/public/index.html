@@ -714,12 +714,15 @@
                     <button class="tab-btn" data-tab="tab-history">Historial de Lavados</button>
                 </div>
 
-                <div class="tab-content" id="tab-source">
-                    <p class="tab-description">Configuración de conexión a la base de datos (Supabase).</p>
-                    
-                    
+                    <div class="tab-content" id="tab-source">
+                        <p class="tab-description">Configuración de conexión a la base de datos (Supabase).</p>
+                        
+                        <div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <input type="checkbox" id="check-use-supabase" style="width: auto;">
+                            <label for="check-use-supabase" style="margin: 0;">Usar Servidor Remoto (Supabase)</label>
+                        </div>
 
-                    <div id="supabase-fields" class="supabase-fields-container hidden">
+                        <div id="supabase-fields" class="supabase-fields-container hidden">
                         <div class="form-group">
                             <label for="supabase-url">Supabase URL</label>
                             <input type="url" id="supabase-url" placeholder="https://xxxxxx.supabase.co" autocomplete="off">
@@ -814,7 +817,7 @@
 
     <!-- Lógica de la aplicación -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=3"></script>
 
     
 

@@ -16,54 +16,50 @@ function getDisplayNickname(nickname) {
     }
     return nickname;
 }
-
-function generateUUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-}
-
 const ADJETIVOS = ["Red Bull", "Mercedes", "Ferrari", "McLaren", "Aston Martin", "Williams", "Alpine", "Sauber", "Haas", "Racing Bulls"];
 const COLORES = ["#00f0ff", "#84cc16", "#ffb800", "#3b82f6", "#ef4444", "#a855f7", "#f97316", "#ec4899", "#14b8a6", "#ff2800", "#00a19c", "#0600ef"];
 
-const DEFAULT_WASH_PACKAGES = [
-    { id: 'combo-limpieza-total', title: 'Limpieza Total', icon: '🌀', price: 18000, category: 'combos', items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clásico'] },
-    { id: 'combo-vip-gold', title: 'VIP Gold', icon: '🏆', price: 25000, category: 'combos', items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor'] },
-    { id: 'lavado-carroceria', title: 'Exterior Simple', icon: '🚗', price: 12000, category: 'lavados', items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumáticos'] },
-    { id: 'aspirado-interior', title: 'Interior Pro', icon: '💨', price: 10000, category: 'lavados', items: ['Aspirado butacas y paneles', 'Desinfección de contacto', 'Acondicionado de plásticos'] },
-    { id: 'solo-aspirado', title: 'Solo Aspirado', icon: '💨', price: 5000, category: 'lavados', items: ['Aspirado básico interior'] },
-    { id: 'lavado-express', title: 'Express', icon: '⚡', price: 8000, category: 'lavados', items: ['Lavado exterior a presión', 'Secado rápido', 'Brillo básico de cubiertas'] },
-    { id: 'lavado-motor', title: 'Motor Vapor', icon: '🔥', price: 15000, category: 'especiales', items: ['Limpieza técnica a vapor', 'Desengrasantes biodegradables', 'Protector dieléctrico plásticos'] },
-    { id: 'encerado-acrilico', title: 'Encerado', icon: '🛡️', price: 22000, category: 'estetica', items: ['Lavado artesanal descontaminante', 'Cera selladora acrílica manual', 'Efecto hidrofóbico extremo'] },
-    { id: 'lavado-chasis', title: 'Chasis', icon: '🔩', price: 28000, category: 'especiales', items: ['Limpieza chasis inferior', 'Desengrasado pesado a vapor', 'Protector antioxidante metal'] },
-    { id: 'pulido-opticas', title: 'Ópticas', icon: '💡', price: 16000, category: 'estetica', items: ['Lijado al agua multietapa', 'Pulido de policarbonato', 'Sellado UV de ópticas'] },
-    { id: 'tratamiento-ceramico', title: 'Cerámico 9H', icon: '💎', price: 65000, category: 'estetica', items: ['Corrección de pintura 2 etapas', 'Sellador cerámico 9H importado', 'Protección contra rayones UV'], active: true }
+const MAIN_CATEGORIES = [
+    { id: 'lavado', title: 'Lavado', icon: '💦', base_price: 0 },
+    { id: 'secado', title: 'Secado', icon: '💨', base_price: 5000 },
+    { id: 'lavado_secado', title: 'Lavado y Secado', icon: '✨', base_price: 5000 }
+];
+
+const DEFAULT_WASH_OPTIONS = [
+    { id: 'secado-solo', title: 'Solo Secado / Aspirado', icon: '💨', price: 5000, category: 'lavados', items: ['Aspirado básico interior'] },
+    { id: 'lavado-express', title: 'Express', icon: '⚡', price: 8000, category: 'lavados', items: ['Lavado exterior a presión'] },
+    { id: 'lavado-carroceria', title: 'Exterior Simple', icon: '🚗', price: 12000, category: 'lavados', items: ['Lavado shampoo pH balanceado'] },
+    { id: 'combo-limpieza-total', title: 'Limpieza Total', icon: '🌀', price: 18000, category: 'combos', items: ['Lavado exterior espuma activa'] },
+    { id: 'combo-vip-gold', title: 'VIP Gold', icon: '🏆', price: 25000, category: 'combos', items: ['Lavado pH neutro artesanal'] }
 ];
 
 let WASH_PACKAGES = [];
 let WASH_NAMES = {};
 
 function initWashPackages() {
+    let saved = localStorage.getItem('lavadero_wash_settings');
     // Auto-fix para localStorage con emojis corruptos (cualquier variante)
-    if (saved && (saved.includes('\u00c3\u00b0') || saved.includes('ðŸ') || saved.includes('Í°') || saved.includes('â\u0082¬'))) {
+    if (saved && (saved.includes('\u00c3\u00b0') || saved.includes('�x') || saved.includes('ð') || saved.includes('�\u0082�'))) {
+        localStorage.removeItem('lavadero_wash_settings');
         saved = null;
     }
 
     if (saved) {
         WASH_PACKAGES = JSON.parse(saved);
-        // Sincronizar paquetes nuevos que no estén en localStorage
+        // Sincronizar paquetes nuevos que no est�n en localStorage
         let updated = false;
-        DEFAULT_WASH_PACKAGES.forEach(defPkg => {
+        DEFAULT_WASH_OPTIONS.forEach(defPkg => {
             if (!WASH_PACKAGES.find(p => p.id === defPkg.id)) {
                 WASH_PACKAGES.push(defPkg);
                 updated = true;
             }
         });
         if (updated) {
+            localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
         }
     } else {
-        WASH_PACKAGES = [...DEFAULT_WASH_PACKAGES];
+        WASH_PACKAGES = [...DEFAULT_WASH_OPTIONS];
+        localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
     }
     WASH_NAMES = {};
     WASH_PACKAGES.forEach(pkg => {
@@ -87,16 +83,6 @@ let config = {
     queueTable: 'lavadero_camera_queue',
     serviceTable: 'service_orders'
 };
-
-const savedConfig = localStorage.getItem('lavadero_config');
-if (savedConfig) {
-    try {
-        const parsed = JSON.parse(savedConfig);
-        config = { ...config, ...parsed };
-    } catch (e) {
-        console.error("Error parsing saved config", e);
-    }
-}
 let isSimulationActive = false;
 let simulationIntervalId = null;
 let realtimeTickerId = null;
@@ -173,7 +159,6 @@ const elInputBudget = document.getElementById('input-budget');
 const elColorHexLabel = document.getElementById('color-hex-label');
 
 const elOperatorTableBody = document.getElementById('operator-table-body');
-const elOperatorReservadosBody = document.getElementById('operator-reservados-tbody');
 const elHistoryTableBody = document.getElementById('history-table-body');
 
 const elHistoryTotalCount = document.getElementById('history-total-count');
@@ -195,19 +180,19 @@ const elSupabaseServiceTable = document.getElementById('supabase-service-table')
 const elBtnSaveConfig = document.getElementById('btn-save-config');
 const elBtnClearHistory = document.getElementById('btn-clear-history');
 
-// --- CARGAR CONFIGURACIÓN REMOTA DESDE VERCEL ENV ---
+// --- CARGAR CONFIGURACI�N REMOTA DESDE VERCEL ENV ---
 async function loadRemoteConfig() {
     try {
         const res = await fetch('/api/config');
         if (res.ok) {
             const data = await res.json();
             if (data.supabaseUrl && data.supabaseKey) {
-                
+                config.useSupabase = true;
                 config.supabaseUrl = data.supabaseUrl;
                 config.supabaseKey = data.supabaseKey;
                 config.queueTable = data.queueTable || 'lavadero_camera_queue';
                 config.serviceTable = data.serviceTable || 'service_orders';
-                // console.log("Í°Å¸â€Å’ Configuración de Supabase cargada desde Vercel Environment Variables.");
+                // console.log("ðŸ⬝� Configuración de Supabase cargada desde Vercel Environment Variables.");
                 
                 // Actualizar la interfaz para reflejar que está conectado externamente
                 if (elConnectionStatus) {
@@ -217,7 +202,7 @@ async function loadRemoteConfig() {
             }
         }
     } catch (err) {
-        console.warn("⚠️ No se pudo obtener la configuración remota (usando fallback local):", err);
+        console.warn("� No se pudo obtener la configuraci�n remota (usando fallback local):", err);
     }
 }
 
@@ -227,7 +212,7 @@ async function loadRemoteConfig() {
 let supabaseClient = null;
 
 function initSupabaseClient() {
-    if (true && config.supabaseUrl && config.supabaseKey && window.supabase) {
+    if (config.useSupabase && config.supabaseUrl && config.supabaseKey && window.supabase) {
         if (!supabaseClient) {
             supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
             setupRealtimeSubscriptions();
@@ -238,7 +223,7 @@ function initSupabaseClient() {
 function setupRealtimeSubscriptions() {
     if (!supabaseClient) return;
     
-    // Suscripción a la tabla de cola
+    // Suscripci�n a la tabla de cola
     supabaseClient
       .channel('public:lavadero_camera_queue')
       .on('postgres_changes', { event: '*', schema: 'public', table: config.queueTable || 'lavadero_camera_queue' }, payload => {
@@ -248,7 +233,7 @@ function setupRealtimeSubscriptions() {
       })
       .subscribe();
 
-    // Suscripción a la tabla de servicios
+    // Suscripci�n a la tabla de servicios
     supabaseClient
       .channel('public:service_orders')
       .on('postgres_changes', { event: '*', schema: 'public', table: config.serviceTable || 'service_orders' }, payload => {
@@ -260,21 +245,26 @@ function setupRealtimeSubscriptions() {
 
 function loadLocalData() {
     // Config
+    const savedConfig = localStorage.getItem('lavadero_config');
     if (savedConfig) {
-        // Mezclar configuración guardada con los defaults
+        // Mezclar configuraci�n guardada con los defaults
         const loadedConfig = JSON.parse(savedConfig);
         config = { ...config, ...loadedConfig };
         // Sincronizar credenciales para que la pantalla 3D de React las pueda leer
         if (config.supabaseUrl && config.supabaseKey) {
+            localStorage.setItem('supabase_url', config.supabaseUrl);
+            localStorage.setItem('supabase_key', config.supabaseKey);
         }
     }
     
-    // Vehículos Activos
+    // Veh�culos Activos
+    const savedVehicles = localStorage.getItem('lavadero_active_vehicles');
     if (savedVehicles) {
         activeVehicles = JSON.parse(savedVehicles);
     }
 
     // Historial
+    const savedHistory = localStorage.getItem('lavadero_completed_history');
     if (savedHistory) {
         washHistory = JSON.parse(savedHistory);
     }
@@ -286,12 +276,12 @@ function loadLocalData() {
     elSupabaseTable.value = config.queueTable || 'lavadero_camera_queue';
     elSupabaseServiceTable.value = config.serviceTable || 'service_orders';
 
-    if (true) {
+    if (config.useSupabase) {
         elSupabaseFields.classList.remove('hidden');
     }
 }
 
-// --- CONEXIÓN DE DATOS & SYNC SUPABASE ---
+// --- CONEXI�N DE DATOS & SYNC SUPABASE ---
 function updateConnectionStatus(msg, className) {
     console.log("Supabase Status:", msg);
 }
@@ -314,7 +304,7 @@ async function syncFromSupabase() {
                     }
                 } catch(e) { /* nickname es texto plano, no JSON */ }
 
-                const realNickname = extra.name || dbCar.nickname || 'Vehículo';
+                const realNickname = extra.name || dbCar.nickname || 'Veh�culo';
                 const plate = extra.plate || dbCar.plate || '';
                 const budget = extra.budget || dbCar.budget || 0;
                 const description = extra.description || dbCar.description || '';
@@ -343,6 +333,7 @@ async function syncFromSupabase() {
                     created_at: dbCar.created_at || new Date().toISOString()
                 };
             });
+            saveStateLocally(false);
         }
 
 
@@ -356,20 +347,24 @@ async function syncFromSupabase() {
                 completed_at: h.appointment_date || h.created_at
             }));
             
+            const localHist = JSON.parse(localStorage.getItem('lavadero_completed_history') || '[]');
             const combined = [...historyMap, ...localHist];
             const uniqueHistory = Array.from(new Map(combined.map(item => [item.id, item])).values());
             
             washHistory = uniqueHistory.sort((a,b) => new Date(b.completed_at) - new Date(a.completed_at));
+            localStorage.setItem('lavadero_completed_history', JSON.stringify(washHistory));
         }
         
         const empData = await fetchSupabase('lavadero_empleados');
         if (empData && Array.isArray(empData)) {
             empleados = empData;
+            localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
         }
         
         const insData = await fetchSupabase('lavadero_insumos');
         if (insData && Array.isArray(insData)) {
             insumos = insData;
+            localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
         }
 
         const gastosData = await fetchSupabase('lavadero_gastos');
@@ -438,7 +433,7 @@ async function fetchSupabase(endpoint, options = {}) {
         if (response.status === 204) return true;
         return await response.json();
     } catch (err) {
-        console.error("âŒ Fallo en API Supabase:", err);
+        console.error("�R Fallo en API Supabase:", err);
         showFloatingToast(`Error de base de datos externa. Operando en modo local.`);
         return null;
     }
@@ -479,15 +474,18 @@ function showFloatingToast(message) {
     }, 4000);
 }
 
+async function saveStateLocally(syncRemote = true) {
+    localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
+    localStorage.setItem('lavadero_completed_history', JSON.stringify(washHistory));
 
     // Si la sincronización remota está habilitada y se solicita sync
-    if (true && syncRemote) {
+    if (config.useSupabase && syncRemote) {
         // En una app robusta, haríamos sincronizaciones granulares. Aquí reflejamos los cambios individuales
         // pero como plan de contingencia guardamos en local por si falla el API.
     }
 }
 
-// --- OPERACIONES DE VEHÍCULOS ---
+// --- OPERACIONES DE VEHÍCULOS ---
 
 // Agregar Vehículo
 async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '', clientType = 'normal', paymentMethod = 'efectivo', isPaid = false) {
@@ -496,7 +494,7 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
     const washName = WASH_NAMES[wType] || 'Combo Limpieza Total';
     const uppercasePlate = plate.toUpperCase();
     
-    if (true && uppercasePlate) {
+    if (config.useSupabase && uppercasePlate) {
         // Upsert client data
         fetchSupabase('lavadero_clientes', {
             method: 'POST',
@@ -509,26 +507,19 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
             })
         });
     }
-        let initialZone = 'espera';
-        if (wType === 'aspirado-interior') {
-            const aspiradoCount = activeVehicles.filter(v => v.zone === 'aspirado').length;
-            if (aspiradoCount < 2) {
-                initialZone = 'aspirado';
-            }
-        }
 
-        const newCar = {
-            id: generateUUID(),
-            tracking_id: Math.floor(Math.random() * 900) + 100,
-            nickname,
-            plate: uppercasePlate,
-            phone,
-            clientType,
-            paymentMethod,
-            isPaid,
-            color,
-            zone: initialZone,
-            budget,
+    const newCar = {
+        id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
+        tracking_id: Math.floor(Math.random() * 900) + 100,
+        nickname,
+        plate: uppercasePlate,
+        phone,
+        clientType,
+        paymentMethod,
+        isPaid,
+        color,
+        zone: 'espera',
+        budget,
         wash_type: wType,
         description: `Servicio: ${washName}. Lavado estándar y detallado de carrocería.`,
         entered_at: new Date().toISOString(),
@@ -536,8 +527,9 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
     };
 
     activeVehicles.push(newCar);
+    saveStateLocally(true);
 
-    if (true) {
+    if (config.useSupabase) {
         const nicknamePayload = JSON.stringify({
             name: newCar.nickname,
             isPaid: isPaid,
@@ -576,6 +568,9 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
     }
 
     renderAll();
+    
+    // Mostrar modal QR al registrar
+    showQrModal(newCar);
 }
 
 // Cambiar Zona de un Vehículo
@@ -597,8 +592,9 @@ async function updateVehicleZone(id, targetZone) {
     car.zone = targetZone;
     car.entered_at = new Date().toISOString(); // Resetear temporizador de zona
 
+    saveStateLocally(true);
 
-    if (true) {
+    if (config.useSupabase) {
         // Actualizar zona en cola de cámara
         await fetchSupabase(`${config.queueTable}?id=eq.${id}`, {
             method: 'PATCH',
@@ -628,7 +624,7 @@ async function finishVehicle(id) {
         completed_at: new Date().toISOString()
     };
 
-    if (true && car.plate && car.plate !== 'SIN PATENTE') {
+    if (config.useSupabase && car.plate && car.plate !== 'SIN PATENTE') {
         const clients = await fetchSupabase(`lavadero_clientes?patente=eq.${car.plate}`);
         if (clients && clients.length > 0) {
             const client = clients[0];
@@ -656,7 +652,7 @@ async function finishVehicle(id) {
             });
             
             if (promoAplica) {
-                showFloatingToast(`¡Atención! Lavado nro ${client.visitas_totales + 1} de ${car.plate}. ¡Aplica Promoción!`);
+                showFloatingToast(`�Atenci�n! Lavado nro ${client.visitas_totales + 1} de ${car.plate}. �Aplica Promoci�n!`);
             }
         }
     }
@@ -664,8 +660,9 @@ async function finishVehicle(id) {
     washHistory.unshift(historyItem); // Insertar al inicio
     activeVehicles.splice(index, 1);  // Remover de activos
 
+    saveStateLocally(true);
 
-    if (true) {
+    if (config.useSupabase) {
         // Eliminar de la cola de cámara
         await fetchSupabase(`${config.queueTable}?id=eq.${id}`, {
             method: 'DELETE'
@@ -691,8 +688,9 @@ async function deleteVehicle(id) {
     if (index === -1) return;
     
     activeVehicles.splice(index, 1);
+    saveStateLocally(true);
 
-    if (true) {
+    if (config.useSupabase) {
         await fetchSupabase(`${config.queueTable}?id=eq.${id}`, {
             method: 'DELETE'
         });
@@ -740,17 +738,8 @@ function createVehicleElement(car, index = -1) {
                     <div class="wash-progress-fill" data-progress-fill="${car.entered_at}" style="width: 0%"></div>
                 </div>
             `;
-        } else if (car.zone === 'aspirado') {
-            timerHtml = `
-                <div class="timer-badge washing">
-                    <span data-timer-type="vacuuming" data-start="${car.entered_at}">07:00</span>
-                </div>
-                <div class="wash-progress-bar">
-                    <div class="wash-progress-fill" data-progress-fill-vacuum="${car.entered_at}" style="width: 0%"></div>
-                </div>
-            `;
         } else if (car.zone === 'terminado') {
-            timerHtml = `<span class="timer-badge finished">✔ LISTO</span>`;
+            timerHtml = `<span class="timer-badge finished">�S LISTO</span>`;
         }
 
         container.innerHTML = `
@@ -786,6 +775,7 @@ function highlightTableRow(id) {
 // Render General
 function renderAll() {
     // 1. El mapa visual interactivo está ahora encapsulado en un iframe.
+    // La aplicación de React (/pantalla_lavado) lee directamente de Supabase o localStorage.
 
     // 2. Renderizar tabla de operaciones
     renderOperatorTable();
@@ -861,7 +851,7 @@ function calculateETA() {
     }
 
     if (etaMinutos === 0) {
-        elEtaDisplay.innerText = "Sin Demoras ⚡";
+        elEtaDisplay.innerText = "Sin Demoras �";
         elEtaDisplay.className = "eta-value text-cyan";
     } else {
         elEtaDisplay.innerText = `~ ${etaMinutos} MINUTOS`;
@@ -886,30 +876,16 @@ function calculateRevenue() {
 // Renderizar la tabla de mesa de control
 function renderOperatorTable() {
     elOperatorTableBody.innerHTML = '';
-    if (elOperatorReservadosBody) elOperatorReservadosBody.innerHTML = '';
     
-    const hasActive = activeVehicles.some(c => c.zone !== 'reservado');
-    const hasReserved = activeVehicles.some(c => c.zone === 'reservado');
-
-    if (!hasActive) {
+    if (activeVehicles.length === 0) {
         elOperatorTableBody.innerHTML = `
             <tr class="empty-table-row">
                 <td colspan="5" style="text-align: center; color: var(--color-text-dim); font-style: italic; padding: 2rem 0;">
                     Sin vehículos en circulación. Registra uno arriba para comenzar.
                 </td>
             </tr>`;
+        return;
     }
-    
-    if (!hasReserved && elOperatorReservadosBody) {
-        elOperatorReservadosBody.innerHTML = `
-            <tr class="empty-table-row">
-                <td colspan="5" style="text-align: center; color: var(--color-text-dim); font-style: italic; padding: 2rem 0;">
-                    Sin vehículos reservados.
-                </td>
-            </tr>`;
-    }
-
-    if (activeVehicles.length === 0) return;
 
     activeVehicles.forEach(car => {
         const tr = document.createElement('tr');
@@ -933,8 +909,6 @@ function renderOperatorTable() {
             </td>
             <td>
                 <select class="select-zone-dropdown" data-car-id="${car.id}">
-                    <option value="reservado" ${car.zone === 'reservado' ? 'selected' : ''} style="color:var(--color-cyan)">★ Reservado</option>
-                    <option value="pre_espera" ${car.zone === 'pre_espera' ? 'selected' : ''}>0. Ingreso Inteligente</option>
                     <option value="espera" ${car.zone === 'espera' ? 'selected' : ''}>1. Espera</option>
                     <option value="lavado" ${car.zone === 'lavado' ? 'selected' : ''}>2. Lavando</option>
                     <option value="aspirado" ${car.zone === 'aspirado' ? 'selected' : ''}>3. Aspirado</option>
@@ -943,6 +917,7 @@ function renderOperatorTable() {
             </td>
             <td>
                 <div class="table-actions" style="flex-wrap: wrap;">
+
                     ${car.zone === 'terminado' ? `
                         <button class="btn btn-primary btn-sm btn-finish-car" data-car-id="${car.id}">
                             Entregar
@@ -971,16 +946,8 @@ function renderOperatorTable() {
         if (advanceBtn) {
             advanceBtn.addEventListener('click', () => {
                 let nextZone = 'terminado';
-                if (car.zone === 'reservado') {
-                    nextZone = 'pre_espera';
-                } else if (car.zone === 'pre_espera') {
-                    nextZone = 'espera';
-                } else if (car.zone === 'espera') {
-                    if (car.wash_type === 'aspirado-interior') {
-                        nextZone = 'aspirado';
-                    } else {
-                        nextZone = 'lavado';
-                    }
+                if (car.zone === 'espera') {
+                    nextZone = 'lavado';
                 } else if (car.zone === 'lavado') {
                     // Si el servicio incluye aspirado, pasar a aspirado. Si no, terminado.
                     const serviciosConAspirado = ['combo-limpieza-total', 'combo-vip-gold', 'aspirado-interior'];
@@ -1009,6 +976,8 @@ function renderOperatorTable() {
             }
         });
 
+
+
         const wpBtn = tr.querySelector('.btn-whatsapp');
         if (wpBtn) {
             wpBtn.addEventListener('click', () => {
@@ -1017,11 +986,7 @@ function renderOperatorTable() {
             });
         }
 
-        if (car.zone === 'reservado' && elOperatorReservadosBody) {
-            elOperatorReservadosBody.appendChild(tr);
-        } else {
-            elOperatorTableBody.appendChild(tr);
-        }
+        elOperatorTableBody.appendChild(tr);
     });
 }
 
@@ -1091,13 +1056,13 @@ function startRealtimeTicker() {
 
     realtimeTickerId = setInterval(() => {
         const now = new Date().getTime();
-        const WASH_DURATION_SECS = 7 * 60; // 7 minutos en segundos
+        const WASH_DURATION_SECS = 15 * 60; // 15 minutos en segundos
 
-        // Calcular cuánto tiempo restante le queda al auto que se está lavando
+        // Calcular cu�nto tiempo restante le queda al auto que se est� lavando
         let remainingWashingSecs = 0;
         const washingEls = document.querySelectorAll('[data-timer-type="washing"]');
         if (washingEls.length > 0) {
-            // Tomamos el primero que se está lavando
+            // Tomamos el primero que se est� lavando
             const startStr = washingEls[0].getAttribute('data-start');
             if (startStr) {
                 const start = new Date(startStr).getTime();
@@ -1108,8 +1073,8 @@ function startRealtimeTicker() {
 
         // 1. Relojes en espera (Calculando ETA real acumulada)
         document.querySelectorAll('[data-timer-type="waiting"]').forEach((el, index) => {
-            // El delay es el tiempo restante del vehiculo en lavado + (7 min por cada auto delante suyo) + 7 minutos para el auto mismo
-            const waitTotalSecs = remainingWashingSecs + ((index + 1) * WASH_DURATION_SECS);
+            // El delay es el tiempo restante del vehiculo en lavado + (15 min por cada auto delante suyo)
+            const waitTotalSecs = remainingWashingSecs + (index * WASH_DURATION_SECS);
             
             const mins = Math.floor(waitTotalSecs / 60);
             const secs = waitTotalSecs % 60;
@@ -1142,35 +1107,10 @@ function startRealtimeTicker() {
                 el.style.width = `${percent}%`;
             }
         });
-
-        // 4. Relojes en aspirado
-        document.querySelectorAll('[data-timer-type="vacuuming"]').forEach(el => {
-            const startStr = el.getAttribute('data-start');
-            if (startStr) {
-                const start = new Date(startStr).getTime();
-                const elapsedSecs = Math.max(0, Math.floor((now - start) / 1000));
-                const remainingSecs = Math.max(0, WASH_DURATION_SECS - elapsedSecs);
-
-                const mins = Math.floor(remainingSecs / 60);
-                const secs = remainingSecs % 60;
-                el.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            }
-        });
-
-        // 5. Barra de progreso aspirado
-        document.querySelectorAll('[data-progress-fill-vacuum]').forEach(el => {
-            const startStr = el.getAttribute('data-progress-fill-vacuum');
-            if (startStr) {
-                const start = new Date(startStr).getTime();
-                const elapsedSecs = Math.max(0, Math.floor((now - start) / 1000));
-                const percent = Math.min(100, Math.floor((elapsedSecs / WASH_DURATION_SECS) * 100));
-                el.style.width = `${percent}%`;
-            }
-        });
     }, 1000);
 }
 
-// --- BOTONES MANUALES DE TRÁFICO ---
+// --- BOTONES MANUALES DE TR�FICO ---
 if (elBtnAddLavado) {
     elBtnAddLavado.addEventListener('click', () => {
         const nick = `${NOMBRES[Math.floor(Math.random() * NOMBRES.length)]} ${ADJETIVOS[Math.floor(Math.random() * ADJETIVOS.length)]}`;
@@ -1205,7 +1145,7 @@ if (elBtnAddSoloAspirado) {
 }
 
 
-// --- CONFIGURACIÓN & MODAL ---
+// --- CONFIGURACI�N & MODAL ---
 
 // Modal Toggle
 elBtnConfig.addEventListener('click', () => {
@@ -1224,12 +1164,15 @@ elModalConfig.addEventListener('click', (e) => {
 });
 
 // Toggle campos de Supabase
-    if (e.target.checked) {
-        elSupabaseFields.classList.remove('hidden');
-    } else {
-        elSupabaseFields.classList.add('hidden');
-    }
-});
+if (elCheckUseSupabase) {
+    elCheckUseSupabase.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            elSupabaseFields.classList.remove('hidden');
+        } else {
+            elSupabaseFields.classList.add('hidden');
+        }
+    });
+}
 
 // Tab Switch en Modal
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1247,6 +1190,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
 // Guardar Configuración
 elBtnSaveConfig.addEventListener('click', async () => {
+    config.useSupabase = elCheckUseSupabase.checked;
     config.supabaseUrl = elSupabaseUrl.value.trim();
     config.supabaseKey = elSupabaseKey.value.trim();
     config.queueTable = elSupabaseTable.value.trim() || 'lavadero_camera_queue';
@@ -1259,12 +1203,13 @@ elBtnSaveConfig.addEventListener('click', async () => {
     showFloatingToast("Configuración guardada.");
 
     // Aplicar
-    if (true) {
+    if (config.useSupabase) {
         if (!config.supabaseUrl || !config.supabaseKey) {
             showFloatingToast("Error: Faltan credenciales de Supabase");
-            
+            config.useSupabase = false;
             elCheckUseSupabase.checked = false;
             elSupabaseFields.classList.add('hidden');
+            localStorage.setItem('lavadero_config', JSON.stringify(config));
         } else {
             showFloatingToast("Conectando con Supabase...");
             await syncFromSupabase();
@@ -1274,6 +1219,7 @@ elBtnSaveConfig.addEventListener('click', async () => {
         elConnectionStatus.className = "connection-status";
         elConnectionStatus.querySelector('.status-label').innerText = "Modo Local";
         // Cargar lo que tengamos localmente
+        const savedVehicles = localStorage.getItem('lavadero_active_vehicles');
         if (savedVehicles) {
             activeVehicles = JSON.parse(savedVehicles);
         }
@@ -1282,11 +1228,12 @@ elBtnSaveConfig.addEventListener('click', async () => {
 });
 
 elBtnClearHistory.addEventListener('click', async () => {
-    if (confirm("¿Estás completamente seguro de borrar todo el historial y estadísticas de recaudación?")) {
+    if (confirm("�Est�s completamente seguro de borrar todo el historial y estad�sticas de recaudaci�n?")) {
         washHistory = [];
+        saveStateLocally(false);
         renderAll();
         
-        if (true) {
+        if (config.useSupabase) {
             try {
                 await fetchSupabase(`${config.serviceTable}?status=eq.completed`, { method: 'DELETE' });
                 showFloatingToast("Historial borrado en local y en la nube.");
@@ -1300,7 +1247,7 @@ elBtnClearHistory.addEventListener('click', async () => {
     }
 });
 
-// --- INICIALIZACIÓN ---
+// --- INICIALIZACI�N ---
 
 // Cambiar color label
 elInputColor.addEventListener('input', (e) => {
@@ -1320,7 +1267,7 @@ function renderWashMenu() {
         card.setAttribute('data-price', pkg.price);
 
         card.innerHTML = `
-            <div class="check-badge">Í¢Å“â€œ</div>
+            <div class="check-badge">â��S</div>
             <div class="wash-card-icon">${pkg.icon}</div>
             <div class="wash-card-title">${pkg.title}</div>
             <div class="wash-card-price">$${pkg.price.toLocaleString('es-AR')}</div>
@@ -1342,7 +1289,7 @@ if (elInputPlate) {
     elInputPlate.addEventListener('input', (e) => {
         clearTimeout(debounceTimer);
         const plate = e.target.value.trim().toUpperCase();
-        if (plate.length >= 6) {
+        if (plate.length >= 6 && config.useSupabase) {
             debounceTimer = setTimeout(async () => {
                 const clients = await fetchSupabase(`lavadero_clientes?patente=eq.${plate}`);
                 if (clients && clients.length > 0) {
@@ -1399,19 +1346,19 @@ window.addEventListener('DOMContentLoaded', async () => {
     startRealtimeTicker();
 
     // Sincronizar de inmediato si Supabase está activo
-    if (true) {
+    if (config.useSupabase) {
         syncFromSupabase();
         // Polling de sincronización cada 10 segundos
         setInterval(syncFromSupabase, 10000);
     }
 });
 
-// --- LÍ¯¿½GICA DE NAVEGACIÍ¯¿½N (SIDEBAR) ---
+// --- Lï¿½GICA DE NAVEGACIï¿½N (SIDEBAR) ---
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         // Remover active de todos los botones
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        // Agregar active al botÍ¯¿½n clickeado
+        // Agregar active al botï¿½n clickeado
         const targetBtn = e.currentTarget;
         targetBtn.classList.add('active');
 
@@ -1446,7 +1393,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     });
 });
 
-// --- LÍ¯¿½GICA DE EMPLEADOS ---
+// --- Lï¿½GICA DE EMPLEADOS ---
 const formEmpleado = document.getElementById('form-empleado');
 const tbodyEmpleados = document.getElementById('empleados-tbody');
 
@@ -1466,8 +1413,9 @@ if (formEmpleado) {
         };
         
         empleados.push(newEmp);
+        localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
         
-        if (true) {
+        if (config.useSupabase) {
             await fetchSupabase('lavadero_empleados', {
                 method: 'POST',
                 body: JSON.stringify(newEmp)
@@ -1482,6 +1430,7 @@ if (formEmpleado) {
 }
 
 function renderEmpleados() {
+    const saved = localStorage.getItem('lavadero_empleados');
     if (saved) empleados = JSON.parse(saved);
     
     if (!tbodyEmpleados) return;
@@ -1527,8 +1476,9 @@ document.getElementById('filter-emp-name')?.addEventListener('input', renderEmpl
 
 window.eliminarEmpleado = async function(id) {
     empleados = empleados.filter(e => e.id !== id);
+    localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
     
-    if (true) {
+    if (config.useSupabase) {
         await fetchSupabase(`lavadero_empleados?id=eq.${id}`, {
             method: 'DELETE'
         });
@@ -1543,7 +1493,8 @@ window.editarEmpleado = async function(id) {
     const newHours = prompt(`Modificar horas de ${emp.name} (actual: ${emp.hours}):`, emp.hours);
     if (newHours !== null && newHours.trim() !== '' && !isNaN(newHours)) {
         emp.hours = parseInt(newHours);
-        if (true) {
+        localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
+        if (config.useSupabase) {
             await fetchSupabase(`lavadero_empleados?id=eq.${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({ hours: emp.hours })
@@ -1554,7 +1505,7 @@ window.editarEmpleado = async function(id) {
     }
 };
 
-// --- LÍ¯¿½GICA DE INSUMOS ---
+// --- Lï¿½GICA DE INSUMOS ---
 const formInsumo = document.getElementById('form-insumo');
 const tbodyInsumos = document.getElementById('insumos-tbody');
 
@@ -1569,8 +1520,9 @@ if (formInsumo) {
         
         if (existingInsumo) {
             existingInsumo.stock += stockToAdd;
+            localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
             
-            if (true) {
+            if (config.useSupabase) {
                 await fetchSupabase(`lavadero_insumos?id=eq.${existingInsumo.id}`, {
                     method: 'PATCH',
                     body: JSON.stringify({ stock: existingInsumo.stock })
@@ -1580,8 +1532,9 @@ if (formInsumo) {
         } else {
             const newIns = { id: Date.now(), name, stock: stockToAdd };
             insumos.push(newIns);
+            localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
             
-            if (true) {
+            if (config.useSupabase) {
                 await fetchSupabase('lavadero_insumos', {
                     method: 'POST',
                     body: JSON.stringify(newIns)
@@ -1598,6 +1551,7 @@ if (formInsumo) {
 }
 
 function renderInsumos() {
+    const saved = localStorage.getItem('lavadero_insumos');
     if (saved) insumos = JSON.parse(saved);
     
     // Semilla de Insumos Predeterminados (15)
@@ -1613,8 +1567,9 @@ function renderInsumos() {
         predefinidos.forEach((nombre, idx) => {
             insumos.push({ id: Date.now() + idx, name: nombre, stock: 123 });
         });
+        localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
         
-        if (true) {
+        if (config.useSupabase) {
             // Mandar todos a Supabase en bloque o iterando
             // Simplificado para no hacer 15 peticiones juntas, asume local por ahora si falla
             insumos.forEach(async (ins) => {
@@ -1668,8 +1623,9 @@ document.getElementById('filter-ins-name')?.addEventListener('input', renderInsu
 
 window.eliminarInsumo = async function(id) {
     insumos = insumos.filter(i => i.id !== id);
+    localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
     
-    if (true) {
+    if (config.useSupabase) {
         await fetchSupabase(`lavadero_insumos?id=eq.${id}`, {
             method: 'DELETE'
         });
@@ -1684,7 +1640,8 @@ window.editarInsumo = async function(id) {
     const newStock = prompt(`Modificar stock exacto de ${ins.name} (actual: ${ins.stock}):`, ins.stock);
     if (newStock !== null && newStock.trim() !== '' && !isNaN(newStock)) {
         ins.stock = parseInt(newStock);
-        if (true) {
+        localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
+        if (config.useSupabase) {
             await fetchSupabase(`lavadero_insumos?id=eq.${id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({ stock: ins.stock })
@@ -1695,14 +1652,15 @@ window.editarInsumo = async function(id) {
     }
 };
 
-// --- LÍ¯¿½GICA DE PRECIOS ---
+// --- Lï¿½GICA DE PRECIOS ---
 const tbodyPrecios = document.getElementById('precios-tbody');
 const btnResetPrecios = document.getElementById('btn-reset-precios');
 
 if (btnResetPrecios) {
     btnResetPrecios.addEventListener('click', () => {
-        if(confirm('Í¯¿½Restaurar precios y paquetes a sus valores por defecto?')) {
-            WASH_PACKAGES = JSON.parse(JSON.stringify(DEFAULT_WASH_PACKAGES));
+        if(confirm('ï¿½Restaurar precios y paquetes a sus valores por defecto?')) {
+            WASH_PACKAGES = JSON.parse(JSON.stringify(DEFAULT_WASH_OPTIONS));
+            localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages();
             renderPrecios();
             renderWashMenu(); // Refrescar el grid de la vista lavadero
@@ -1744,10 +1702,11 @@ function renderPrecios() {
             WASH_PACKAGES[idx].title = newTitle;
             WASH_PACKAGES[idx].price = parseInt(newPrice);
             
+            localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages(); // Actualizar mapeos
             renderWashMenu(); // Refrescar menu del form
             
-            if (true) {
+            if (config.useSupabase) {
                 fetchSupabase('lavadero_precios', {
                     method: 'POST',
                     headers: { 'Prefer': 'resolution=merge-duplicates' },
@@ -1772,7 +1731,7 @@ function renderPrecios() {
     });
 }
 
-// Override de la renderizaciÍ¯¿½n del grid de lavados inicial
+// Override de la renderizaciï¿½n del grid de lavados inicial
 function renderWashMenu() {
     const grid = document.getElementById('wash-menu-grid');
     if (!grid) return;
@@ -1809,7 +1768,7 @@ function renderWashMenu() {
 // Llamar a renderWashMenu en el boot inicial para asegurar que cargue lo de localStorage
 setTimeout(renderWashMenu, 500);
 
-// --- LÍƒÆ’â€œGICA DE POSTULANTES ---
+// --- LÒ��SGICA DE POSTULANTES ---
 const tbodyPostulantes = document.getElementById('postulantes-tbody');
 
 async function renderPostulantes() {
@@ -1817,7 +1776,7 @@ async function renderPostulantes() {
     
     let applicants = [];
     
-    if (true) {
+    if (config.useSupabase) {
         // Cargar desde Supabase externa
         try {
             const data = await fetchSupabase('applicants?select=*&status=eq.pending');
@@ -1827,6 +1786,7 @@ async function renderPostulantes() {
         } catch(e) { console.error('Error cargando postulantes', e); }
     } else {
         // Tratamos de leer de localStorage
+        const applicantsStr = localStorage.getItem('lavadero_applicants');
         applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
         applicants = applicants.filter(a => a.status === 'pending');
     }
@@ -1848,7 +1808,7 @@ async function renderPostulantes() {
             </td>
             <td>
                 <div style="font-weight:bold; color:var(--color-cyan)">${app.full_name}</div>
-                <div style="font-size:0.85em; color:var(--color-text-dim)">DNI: ${app.dni} Í¢â‚¬¢ ${app.age || '--'} años</div>
+                <div style="font-size:0.85em; color:var(--color-text-dim)">DNI: ${app.dni} â��¢ ${app.age || '--'} años</div>
             </td>
             <td>
                 <div><a href="https://wa.me/${app.phone}" target="_blank" style="color:var(--color-lime); text-decoration:none;">${app.phone}</a></div>
@@ -1878,20 +1838,24 @@ window.contratarPostulante = async function(id, name) {
     if (role === null) return; // Cancelado
 
     // Mover a empleados
+    const savedEmp = localStorage.getItem('lavadero_empleados');
     let empList = savedEmp ? JSON.parse(savedEmp) : [];
     empList.push({ id: Date.now(), name: name, role: role });
+    localStorage.setItem('lavadero_empleados', JSON.stringify(empList));
 
-    if (true) {
+    if (config.useSupabase) {
         await fetchSupabase(`applicants?id=eq.${id}`, {
             method: 'PATCH',
             body: JSON.stringify({ status: 'hired' })
         });
     } else {
+        const applicantsStr = localStorage.getItem('lavadero_applicants');
         let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
         applicants = applicants.map(a => {
             if (a.id === id) a.status = 'hired';
             return a;
         });
+        localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
     }
 
     renderPostulantes();
@@ -1907,20 +1871,22 @@ window.contratarPostulante = async function(id, name) {
 window.rechazarPostulante = async function(id) {
     if(!confirm('¿Seguro que quieres rechazar y eliminar a este postulante?')) return;
     
-    if (true) {
+    if (config.useSupabase) {
         await fetchSupabase(`applicants?id=eq.${id}`, {
             method: 'PATCH',
             body: JSON.stringify({ status: 'rejected' })
         });
     } else {
+        const applicantsStr = localStorage.getItem('lavadero_applicants');
         let applicants = applicantsStr ? JSON.parse(applicantsStr) : [];
         applicants = applicants.filter(a => a.id !== id);
+        localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
     }
     
     renderPostulantes();
 }
 
-// Escuchar cambios de pestaÍƒÆ’±a para renderizar postulantes
+// Escuchar cambios de pestaÒ�±a para renderizar postulantes
 document.addEventListener('DOMContentLoaded', () => {
     const navBtns = document.querySelectorAll('.nav-btn');
     navBtns.forEach(btn => {
@@ -1933,6 +1899,41 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- FUNCIONES NUEVAS: QR Y COMPARTIR ---
+function showQrModal(car) {
+    const colorHex = car.color.replace('#', '');
+    let baseUrl = window.location.origin + window.location.pathname;
+    baseUrl = baseUrl.replace('index.html', '');
+    if(!baseUrl.endsWith('/')) baseUrl += '/';
+    
+    // Calcular pos (Posición en la fila)
+    const esperaCars = activeVehicles.filter(v => v.zone === 'espera');
+    let pos = esperaCars.findIndex(v => v.id === car.id) + 1;
+    if (pos <= 0) pos = 1;
+
+    const url = `${baseUrl}cliente.html?n=${encodeURIComponent(car.nickname)}&c=${colorHex}&p=${encodeURIComponent(car.plate || 'SIN PATENTE')}&z=${car.zone}&t=${encodeURIComponent(car.wash_type || 'combo-limpieza-total')}&pos=${pos}&id=${car.id}`;
+    
+    const qrModal = document.getElementById('modal-ticket-qr');
+    if(!qrModal) return;
+
+    const qrImage = document.getElementById('qr-image');
+    const qrLinkText = document.getElementById('qr-link-text');
+    const btnCopy = document.getElementById('btn-copy-ticket');
+
+    // Usar API de QR pública para generar la imagen
+    qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&color=00f0ff&bgcolor=18181b`;
+    // Make link clickable and QR image clickable
+    qrLinkText.innerHTML = `<a href="${url}" target="_blank" style="color: var(--color-cyan); text-decoration: underline; word-break: break-all;">${url}</a>`;
+    qrImage.style.cursor = 'pointer';
+    qrImage.onclick = () => window.open(url, '_blank');
+    
+    btnCopy.onclick = () => {
+        navigator.clipboard.writeText(url).then(() => {
+            showFloatingToast("Enlace del cliente copiado al portapapeles.");
+        });
+    };
+
+    qrModal.style.display = 'flex';
+}
 
 function copyPostularLink() {
     let baseUrl = window.location.origin + window.location.pathname;
@@ -1959,7 +1960,7 @@ window.renderWashMenuOverride = function() {
         card.setAttribute('data-id', pkg.id);
         
         card.innerHTML = `
-            <div class="check-badge">âœ“</div>
+            <div class="check-badge">�S</div>
             <div class="wash-icon">${pkg.icon}</div>
             <div class="wash-details">
                 <div class="wash-title">${pkg.title}</div>
@@ -2014,82 +2015,61 @@ window.openScannerModal = function() {
             feed.classList.remove('scanning-active');
             feed.style.background = 'radial-gradient(circle at center, rgba(0,240,255,0.2) 0%, #000 100%)';
             
-            // Revisar si hay autos del kiosko esperando
-            let preEsperaCars = activeVehicles.filter(v => v.zone === 'pre_espera');
-            if (preEsperaCars.length > 0) {
-                preEsperaCars.sort((a, b) => new Date(a.entered_at) - new Date(b.entered_at));
-                let nextCar = preEsperaCars[0];
-                
-                // Mover a espera
-                updateVehicleZone(nextCar.id, 'espera');
-                
-                text.innerText = `VEHÍCULO KIOSCO: ${nextCar.plate || nextCar.nickname}`;
-                
-                setTimeout(() => {
-                    if(window.closeScannerModal) window.closeScannerModal();
-                    else modal.style.display = 'none';
-                    if(typeof showFloatingToast === 'function') showFloatingToast("Vehículo de Kiosco ingresado a espera.");
-                    feed.style.background = 'transparent';
-                    text.innerText = "ESCANEAR CÁMARA (SIMULADOR)";
-                }, 2000);
-            } else {
-                // Fallback normal si no hay autos del kiosko
-                const mockCars = [
-                    { nick: "Audi A3", plate: "AF432RT", color: "#ffffff", cat: "Auto", img: "assets/car_auto.png" },
-                    { nick: "Toyota Hilux", plate: "AD991ZZ", color: "#a8a8a8", cat: "Camioneta", img: "assets/car_camioneta.png" },
-                    { nick: "VW Taos", plate: "AE123CD", color: "#1e3a8a", cat: "SUV", img: "assets/car_suv.png" },
-                    { nick: "Ford Focus", plate: "AC876HG", color: "#dc2626", cat: "Auto", img: "assets/car_auto.png" },
-                    { nick: "RAM 1500", plate: "AE112QQ", color: "#000000", cat: "Camioneta", img: "assets/car_camioneta.png" }
-                ];
-                const randCar = mockCars[Math.floor(Math.random() * mockCars.length)];
-                
-                document.getElementById('input-nickname').value = randCar.nick;
-                document.getElementById('input-plate').value = randCar.plate;
-                document.getElementById('input-color').value = randCar.color;
-                if(document.getElementById('input-category')) {
-                    document.getElementById('input-category').value = randCar.cat;
-                }
-                if(document.getElementById('color-hex-label')) {
-                    document.getElementById('color-hex-label').innerText = randCar.color;
-                }
-
-                const realImg = document.getElementById('scanner-real-image');
-                if (realImg) {
-                    realImg.src = randCar.img;
-                    realImg.style.display = 'block';
-                    void realImg.offsetWidth;
-                    realImg.style.opacity = '1';
-                }
-                
-                if(window.calculateBudget) { window.calculateBudget(); }
-                
-                setTimeout(() => {
-                    if(window.closeScannerModal) window.closeScannerModal();
-                    else modal.style.display = 'none';
-                    if(typeof showFloatingToast === 'function') showFloatingToast("Datos del vehículo cargados por IA.");
-                    if (realImg) {
-                        realImg.style.opacity = '0';
-                        setTimeout(() => { realImg.style.display = 'none'; }, 500);
-                    }
-                    feed.style.background = 'transparent';
-                    text.innerText = "ESCANEAR CÁMARA (SIMULADOR)";
-                }, 2500);
+            const mockCars = [
+                { nick: "Audi A3", plate: "AF432RT", color: "#ffffff", cat: "Auto", img: "assets/car_auto.png" },
+                { nick: "Toyota Hilux", plate: "AD991ZZ", color: "#a8a8a8", cat: "Camioneta", img: "assets/car_camioneta.png" },
+                { nick: "VW Taos", plate: "AE123CD", color: "#1e3a8a", cat: "SUV", img: "assets/car_suv.png" },
+                { nick: "Ford Focus", plate: "AC876HG", color: "#dc2626", cat: "Auto", img: "assets/car_auto.png" },
+                { nick: "RAM 1500", plate: "AE112QQ", color: "#000000", cat: "Camioneta", img: "assets/car_camioneta.png" }
+            ];
+            const randCar = mockCars[Math.floor(Math.random() * mockCars.length)];
+            
+            document.getElementById('input-nickname').value = randCar.nick;
+            document.getElementById('input-plate').value = randCar.plate;
+            document.getElementById('input-color').value = randCar.color;
+            if(document.getElementById('input-category')) {
+                document.getElementById('input-category').value = randCar.cat;
             }
+            if(document.getElementById('color-hex-label')) {
+                document.getElementById('color-hex-label').innerText = randCar.color;
+            }
+
+            const realImg = document.getElementById('scanner-real-image');
+            if (realImg) {
+                realImg.src = randCar.img;
+                realImg.style.display = 'block';
+                void realImg.offsetWidth;
+                realImg.style.opacity = '1';
+            }
+            
+            if(window.calculateBudget) { window.calculateBudget(); }
+            
+            setTimeout(() => {
+                if(window.closeScannerModal) window.closeScannerModal();
+                else modal.style.display = 'none';
+                if(typeof showFloatingToast === 'function') showFloatingToast("Datos del vehículo cargados por IA.");
+                if (realImg) {
+                    realImg.style.opacity = '0';
+                    setTimeout(() => { realImg.style.display = 'none'; }, 500);
+                }
+            }, 2500);
+            
         }, 3000);
     }, 500);
 }
 
 
-// --- GESTIÓN DE CATEGORÍAS DE VEHÍCULOS ---
+// --- GESTI�N DE CATEGORÍAS DE VEHÍCULOS ---
 const DEFAULT_VEHICLE_CATEGORIES = [
-        { id: 'Auto', percentage: 0, icon: '🚗' },
-        { id: 'SUV', percentage: 10, icon: 'ðŸš™' },
-        { id: 'Camioneta', percentage: 20, icon: 'ðŸ›»' }
+        { id: 'Auto', percentage: 0, icon: '�xa' },
+        { id: 'SUV', percentage: 10, icon: '�xa"' },
+        { id: 'Camioneta', percentage: 20, icon: '�x:�' }
     ];
 
 let VEHICLE_CATEGORIES = [];
 
 function initVehicleCategories() {
+    const saved = localStorage.getItem('lavadero_vehicle_categories');
     if (saved) {
         VEHICLE_CATEGORIES = JSON.parse(saved);
         // Migrate old data that used surcharge
@@ -2102,8 +2082,10 @@ function initVehicleCategories() {
             }
             return cat;
         });
+        localStorage.setItem('lavadero_vehicle_categories', JSON.stringify(VEHICLE_CATEGORIES));
     } else {
         VEHICLE_CATEGORIES = [...DEFAULT_VEHICLE_CATEGORIES];
+        localStorage.setItem('lavadero_vehicle_categories', JSON.stringify(VEHICLE_CATEGORIES));
     }
     renderVehicleCategoriesTable();
     updateCategorySelects();
@@ -2144,7 +2126,7 @@ function renderVehicleCategoriesTable() {
 window.addVehicleCategory = function() {
     const id = document.getElementById('new-cat-id').value.trim();
     const perc = parseInt(document.getElementById('new-cat-perc').value) || 0;
-    const icon = document.getElementById('new-cat-icon').value.trim() || '🚗';
+    const icon = document.getElementById('new-cat-icon').value.trim() || '�xa';
     
     if (!id) {
         alert('Debe ingresar un nombre para la categoría.');
@@ -2157,6 +2139,7 @@ window.addVehicleCategory = function() {
     }
     
     VEHICLE_CATEGORIES.push({ id, percentage: perc, icon });
+    localStorage.setItem('lavadero_vehicle_categories', JSON.stringify(VEHICLE_CATEGORIES));
     
     document.getElementById('new-cat-id').value = '';
     document.getElementById('new-cat-perc').value = '0';
@@ -2172,6 +2155,7 @@ window.deleteVehicleCategory = function(index) {
         return;
     }
     VEHICLE_CATEGORIES.splice(index, 1);
+    localStorage.setItem('lavadero_vehicle_categories', JSON.stringify(VEHICLE_CATEGORIES));
     renderVehicleCategoriesTable();
     updateCategorySelects();
     if(window.calculateBudget) window.calculateBudget();
@@ -2305,6 +2289,7 @@ let FINANZAS = {
 };
 
 function initFinanzas() {
+    const saved = localStorage.getItem('lavadero_finanzas');
     if (saved) {
         FINANZAS = JSON.parse(saved);
     }
@@ -2322,6 +2307,7 @@ function updateRevenueDisplay() {
 }
 
 function saveFinanzas() {
+    localStorage.setItem('lavadero_finanzas', JSON.stringify(FINANZAS));
     updateRevenueDisplay();
 }
 
@@ -2364,7 +2350,7 @@ function populateEmpleadosSueldos() {
     if(!select) return;
     select.innerHTML = '<option value="">Seleccione empleado...</option>';
     
-    // Extraer empleados unicos del registro de horas
+    // Extraer empleados unicos del registro
     const unicos = [...new Set(empleados.map(e => e.name))];
     unicos.forEach(emp => {
         const opt = document.createElement('option');
@@ -2395,7 +2381,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formGastos.reset();
             
             // Sync Supabase
-            if (true) {
+            if (config.useSupabase) {
                 fetchSupabase('lavadero_gastos', { method: 'POST', body: JSON.stringify(newGasto) });
             }
         });
@@ -2423,7 +2409,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formSueldos.reset();
             
             // Sync Supabase
-            if (true) {
+            if (config.useSupabase) {
                 fetchSupabase('lavadero_sueldos', { method: 'POST', body: JSON.stringify(newSueldo) });
             }
         });
@@ -2437,10 +2423,11 @@ const oldRev = window.updateRevenueDisplay ? window.updateRevenueDisplay.toStrin
 
 // --- CROSS-TAB SYNC (ECOSISTEMA MULTI-PANTALLAS) ---
 
-// --- GESTIÓN DE PROMOS (APP CLIENTE) ---
+// --- GESTI�N DE PROMOS (APP CLIENTE) ---
 let APP_PROMOS = [];
 
 function loadPromos() {
+    const saved = localStorage.getItem('lavadero_promos');
     if (saved) APP_PROMOS = JSON.parse(saved);
     renderAdminPromos();
 }
@@ -2481,8 +2468,9 @@ if (formPromo) {
         };
         
         APP_PROMOS.push(newPromo);
+        localStorage.setItem('lavadero_promos', JSON.stringify(APP_PROMOS));
         
-        if (true) {
+        if (config.useSupabase) {
             await fetchSupabase('announcements', {
                 method: 'POST',
                 body: JSON.stringify(newPromo)
@@ -2497,8 +2485,9 @@ if (formPromo) {
 
 window.eliminarPromo = async function(id) {
     APP_PROMOS = APP_PROMOS.filter(p => p.id !== id);
+    localStorage.setItem('lavadero_promos', JSON.stringify(APP_PROMOS));
     
-    if (true) {
+    if (config.useSupabase) {
         await fetchSupabase(`announcements?id=eq.${id}`, { method: 'DELETE' });
     }
     renderAdminPromos();
@@ -2509,9 +2498,11 @@ document.addEventListener('DOMContentLoaded', loadPromos);
 
 window.addEventListener('storage', (e) => {
     if (e.key === 'lavadero_active_vehicles' || e.key === 'lavadero_completed_history') {
-        if (false) {
+        if (!config.useSupabase) {
+            const savedVehicles = localStorage.getItem('lavadero_active_vehicles');
             if (savedVehicles) activeVehicles = JSON.parse(savedVehicles);
             
+            const savedHistory = localStorage.getItem('lavadero_completed_history');
             if (savedHistory) washHistory = JSON.parse(savedHistory);
             
             if (typeof renderAll === 'function') {
@@ -2553,7 +2544,7 @@ setInterval(() => {
         for (let car of lavadoCars) {
             let elapsedMins = (currentTime - new Date(car.entered_at).getTime()) / 60000;
             if (elapsedMins >= 7) {
-                if (SERVICIOS_CON_ASPIRADO.includes(car.wash_type)) {
+                if (car.category === 'lavado_secado' || car.category === 'secado' || SERVICIOS_CON_ASPIRADO.includes(car.wash_type)) {
                     updateVehicleZone(car.id, 'aspirado');
                 } else {
                     updateVehicleZone(car.id, 'terminado');
@@ -2570,22 +2561,13 @@ setInterval(() => {
         
         lavadoCars = activeVehicles.filter(v => v.zone === 'lavado');
         if (lavadoCars.length === 0) {
-            let esperaLavadoCars = activeVehicles.filter(v => v.zone === 'espera' && v.wash_type !== 'aspirado-interior');
-            if (esperaLavadoCars.length > 0) {
-                esperaLavadoCars.sort((a, b) => new Date(a.entered_at) - new Date(b.entered_at));
-                updateVehicleZone(esperaLavadoCars[0].id, 'lavado');
-            }
-        }
-
-        aspiradoCars = activeVehicles.filter(v => v.zone === 'aspirado');
-        if (aspiradoCars.length < 2) {
-            let esperaAspiradoCars = activeVehicles.filter(v => v.zone === 'espera' && v.wash_type === 'aspirado-interior');
-            if (esperaAspiradoCars.length > 0) {
-                esperaAspiradoCars.sort((a, b) => new Date(a.entered_at) - new Date(b.entered_at));
-                updateVehicleZone(esperaAspiradoCars[0].id, 'aspirado');
+            let esperaCars = activeVehicles.filter(v => v.zone === 'espera');
+            if (esperaCars.length > 0) {
+                esperaCars.sort((a, b) => new Date(a.entered_at) - new Date(b.entered_at));
+                updateVehicleZone(esperaCars[0].id, 'lavado');
             }
         }
     } catch (e) {
-        console.error('Error en automatización:', e);
+        console.error('Error en automatizaci�n:', e);
     }
 }, 5000);
