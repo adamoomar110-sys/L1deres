@@ -585,36 +585,15 @@
 
             <div class="wizard-card">
                 
-                <!-- Indicador de pasos -->
                 <div class="step-indicator">
                     <div class="step-dot active" id="dot-1">1</div>
                     <div class="step-dot" id="dot-2">2</div>
                     <div class="step-dot" id="dot-3">3</div>
                     <div class="step-dot" id="dot-4">4</div>
-                    <div class="step-dot" id="dot-5">5</div>
                 </div>
 
-                <!-- PASO 1: Tipo Vehiculo -->
+                <!-- PASO 1: Patente -->
                 <div class="step-content active" id="step-1">
-                    <h2 class="step-title">¿Qué vehículo vas a lavar?</h2>
-                    <div class="grid-3">
-                        <div class="select-card" data-cat="Auto" onclick="selectCat('Auto', 0)">
-                            <i class="fa-solid fa-car"></i>
-                            <h3>Auto</h3>
-                        </div>
-                        <div class="select-card" data-cat="SUV" onclick="selectCat('SUV', 20)">
-                            <i class="fa-solid fa-car-side"></i>
-                            <h3>SUV</h3>
-                        </div>
-                        <div class="select-card" data-cat="Camioneta" onclick="selectCat('Camioneta', 50)">
-                            <i class="fa-solid fa-truck-pickup"></i>
-                            <h3>Camioneta</h3>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PASO 2: Patente -->
-                <div class="step-content" id="step-2">
                     <h2 class="step-title">Ingresa tu Patente</h2>
                     <div class="plate-input-container">
                         <input type="text" id="plate-input" class="plate-input" placeholder="AA123BB" maxlength="7">
@@ -623,8 +602,8 @@
                     </div>
                 </div>
 
-                <!-- PASO 3: Lavado -->
-                <div class="step-content" id="step-3">
+                <!-- PASO 2: Lavado -->
+                <div class="step-content" id="step-2">
                     <h2 class="step-title">Selecciona la Categoría</h2>
                     <div class="grid-3" id="category-grid" style="margin-bottom: 2rem;">
                         <div class="select-card" data-cat="lavado" onclick="selectCategory('lavado', 'Lavado')">
@@ -648,8 +627,8 @@
                     <div class="grid-2" id="wash-grid" style="display:none;"></div>
                 </div>
 
-                <!-- PASO 4: Teléfono -->
-                <div class="step-content" id="step-4">
+                <!-- PASO 3: Teléfono -->
+                <div class="step-content" id="step-3">
                     <h2 class="step-title">Número de WhatsApp</h2>
                     <div class="plate-input-container">
                         <input type="tel" id="phone-input" class="plate-input" placeholder="Ej: 1123456789" maxlength="15" oninput="order.phone = this.value; validateStep();" style="text-transform: none; font-family: 'Inter', sans-serif; font-size: 2rem;">
@@ -657,8 +636,8 @@
                     </div>
                 </div>
 
-                <!-- PASO 5: Pago -->
-                <div class="step-content" id="step-5">
+                <!-- PASO 3: Pago -->
+                <div class="step-content" id="step-3">
                     <h2 class="step-title">Forma de Pago</h2>
                     <div class="grid-3">
                         <div class="select-card" data-pay="efectivo" onclick="selectPay('efectivo')">
@@ -718,16 +697,6 @@
             }
 
             let currentStep = 1;
-            const totalSteps = 5;
-
-            // ✅ Exponer al scope global para que los atributos oninput/onclick del HTML puedan acceder
-            window.order = {
-                category: null, surcharge: 0, plate: '', phone: '', hasPromo: false,
-                promoDiscount: 0, washType: null, washName: '', basePrice: 0,
-                finalPrice: 0, payment: null
-            };
-            let order = window.order; // alias local
-
             let WASH_OPTIONS = {
                 'lavado': [
                     { id: 'lavado-simple', name: 'Lavado Simple', icon: 'fa-droplet', price: 10000 },
@@ -938,11 +907,10 @@
             // ✅ Exponer al scope global para que los handlers onclick/oninput del HTML puedan acceder
             window.validateStep = function validateStep() {
                 let isValid = false;
-                if (currentStep === 1) isValid = order.category !== null;
-                if (currentStep === 2) isValid = order.plate.length >= 6;
-                if (currentStep === 3) isValid = order.washType !== null;
-                if (currentStep === 4) isValid = order.phone.length >= 8;
-                if (currentStep === 5) isValid = order.payment !== null;
+                if (currentStep === 1) isValid = order.plate.length >= 6;
+                if (currentStep === 2) isValid = order.washType !== null;
+                if (currentStep === 3) isValid = order.phone.length >= 8;
+                if (currentStep === 4) isValid = order.payment !== null;
                 const btn = document.getElementById('btn-next');
                 if (btn) btn.disabled = !isValid;
             };
@@ -951,7 +919,7 @@
 
             // Expose to HTML onclick attributes
             window.nextStep = function() {
-                if (currentStep === 2 && !order.hasPromo) {
+                if (currentStep === 1 && !order.hasPromo) {
                     const pi = document.getElementById('plate-input');
                     if (pi) order.plate = pi.value.trim().toUpperCase();
                 }
@@ -968,13 +936,7 @@
             };
 
             window.selectCat = function(cat, surcharge) {
-                order.category = cat;
-                order.surcharge = surcharge;
-                document.querySelectorAll('#step-1 .select-card').forEach(el => el.classList.remove('selected'));
-                const card = document.querySelector(`#step-1 .select-card[data-cat="${cat}"]`);
-                if (card) card.classList.add('selected');
-                validateStep();
-                setTimeout(window.nextStep, 400);
+                // Obsoleto pero dejamos la function por si acaso
             };
 
             window.checkPromo = async function() {
@@ -1024,12 +986,11 @@
                 if (!options) return;
                 
                 for (const details of options) {
-                    let conRecargo = details.price * (1 + order.surcharge / 100);
-                    let finalPrice = conRecargo;
+                    let finalPrice = details.price;
                     let oldPriceHTML = '';
                     if (order.hasPromo && order.promoDiscount > 0) {
-                        finalPrice = conRecargo * (1 - order.promoDiscount / 100);
-                        oldPriceHTML = `<span class="old-price">$${conRecargo.toLocaleString('es-AR')}</span>`;
+                        finalPrice = details.price * (1 - order.promoDiscount / 100);
+                        oldPriceHTML = `<span class="old-price">$${details.price.toLocaleString('es-AR')}</span>`;
                     }
                     const isSelected = order.washType === details.id ? 'selected' : '';
                     grid.innerHTML += `
@@ -1050,19 +1011,11 @@
                 document.querySelector(`#category-grid .select-card[data-cat="${catId}"]`).classList.add('selected');
                 
                 if (catId === 'interior') {
-                    document.getElementById('wash-grid').style.display = 'none';
-                    document.getElementById('wash-options-title').style.display = 'none';
-                    order.washType = 'interior-solo';
-                    order.washName = 'Interior';
-                    
-                    let conRecargo = 8000 * (1 + order.surcharge / 100);
-                    if (order.hasPromo && order.promoDiscount > 0) {
-                        conRecargo = conRecargo * (1 - order.promoDiscount / 100);
-                    }
-                    order.finalPrice = conRecargo;
-                    
+                    document.getElementById('wash-grid').style.display = 'grid';
+                    document.getElementById('wash-options-title').style.display = 'block';
+                    order.washType = null;
+                    renderWashGrid();
                     validateStep();
-                    setTimeout(window.nextStep, 400);
                 } else {
                     document.getElementById('wash-grid').style.display = 'grid';
                     document.getElementById('wash-options-title').style.display = 'block';
@@ -1076,11 +1029,16 @@
                 order.washType = id; 
                 order.washName = name; 
                 
-                let conRecargo = washPrice * (1 + order.surcharge / 100);
+                let finalPrice = washPrice;
                 if (order.hasPromo && order.promoDiscount > 0) {
-                    conRecargo = conRecargo * (1 - order.promoDiscount / 100);
+                    finalPrice = washPrice * (1 - order.promoDiscount / 100);
                 }
-                order.finalPrice = conRecargo;
+                order.finalPrice = finalPrice;
+                
+                // Mapear el tamaño del vehículo a order.category para el ticket
+                if (name.includes('Auto')) order.category = 'Auto';
+                else if (name.includes('Utilitario')) order.category = 'SUV';
+                else if (name.includes('Pick-up')) order.category = 'Camioneta';
                 
                 document.querySelectorAll('#wash-grid .select-card').forEach(el => el.classList.remove('selected'));
                 const card = document.querySelector(`#wash-grid .select-card[data-wash="${id}"]`);

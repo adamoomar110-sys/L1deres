@@ -26,11 +26,26 @@ const MAIN_CATEGORIES = [
 ];
 
 const DEFAULT_WASH_OPTIONS = [
-    { id: 'secado-solo', title: 'Solo Secado / Aspirado', icon: '💨', price: 5000, category: 'lavados', items: ['Aspirado básico interior'] },
-    { id: 'lavado-express', title: 'Express', icon: '⚡', price: 8000, category: 'lavados', items: ['Lavado exterior a presión'] },
-    { id: 'lavado-carroceria', title: 'Exterior Simple', icon: '🚗', price: 12000, category: 'lavados', items: ['Lavado shampoo pH balanceado'] },
-    { id: 'combo-limpieza-total', title: 'Limpieza Total', icon: '🌀', price: 18000, category: 'combos', items: ['Lavado exterior espuma activa'] },
-    { id: 'combo-vip-gold', title: 'VIP Gold', icon: '🏆', price: 25000, category: 'combos', items: ['Lavado pH neutro artesanal'] }
+    { id: 'lavado-autos', title: 'Lavado Autos', icon: '🚗', price: 10000, category: 'lavados', items: ['Lavado exterior Autos'] },
+    { id: 'lavado-utilitarios', title: 'Lavado Utilitarios', icon: '🚙', price: 12000, category: 'lavados', items: ['Lavado exterior Utilitarios'] },
+    { id: 'lavado-pickup', title: 'Lavado Pick-up', icon: '🛻', price: 15000, category: 'lavados', items: ['Lavado exterior Pick-up'] },
+    
+    { id: 'completo-autos', title: 'Lavado + Interior Autos', icon: '🚗', price: 15000, category: 'combos', items: ['Lavado y aspirado Autos'] },
+    { id: 'completo-utilitarios', title: 'Lavado + Interior Utilitarios', icon: '🚙', price: 18000, category: 'combos', items: ['Lavado y aspirado Utilitarios'] },
+    { id: 'completo-pickup', title: 'Lavado + Interior Pick-up', icon: '🛻', price: 22000, category: 'combos', items: ['Lavado y aspirado Pick-up'] },
+    
+    { id: 'interior-autos', title: 'Interior Autos', icon: '🚗', price: 5000, category: 'interior', items: ['Aspirado Autos'] },
+    { id: 'interior-utilitarios', title: 'Interior Utilitarios', icon: '🚙', price: 7000, category: 'interior', items: ['Aspirado Utilitarios'] },
+    { id: 'interior-pickup', title: 'Interior Pick-up', icon: '🛻', price: 9000, category: 'interior', items: ['Aspirado Pick-up'] },
+    
+    // Retrocompatibilidad con órdenes viejas
+    { id: 'lavado-simple', title: 'Lavado Simple', icon: '💦', price: 10000, category: 'lavados', items: [] },
+    { id: 'lavado-especial', title: 'Lavado Especial', icon: '⭐', price: 15000, category: 'lavados', items: [] },
+    { id: 'lavado-vip', title: 'Lavado VIP', icon: '👑', price: 20000, category: 'lavados', items: [] },
+    { id: 'completo-simple', title: 'Completo Simple', icon: '💦', price: 15000, category: 'combos', items: [] },
+    { id: 'completo-especial', title: 'Completo Especial', icon: '⭐', price: 20000, category: 'combos', items: [] },
+    { id: 'completo-vip', title: 'Completo VIP', icon: '👑', price: 25000, category: 'combos', items: [] },
+    { id: 'interior-solo', title: 'Solo Interior', icon: '💨', price: 8000, category: 'interior', items: [] }
 ];
 
 let WASH_PACKAGES = [];

@@ -295,15 +295,21 @@
                 const cat = document.getElementById('in-category').value;
                 if (cat === 'lavado') {
                     washPackages = [
-                        { id: 'lavado-simple', title: 'Lavado Simple', icon: '💦', price: 10000 },
-                        { id: 'lavado-especial', title: 'Lavado Especial', icon: '⭐', price: 15000 },
-                        { id: 'lavado-vip', title: 'Lavado VIP', icon: '👑', price: 20000 }
+                        { id: 'lavado-autos', title: 'Autos', icon: '🚗', price: 10000 },
+                        { id: 'lavado-utilitarios', title: 'Utilitarios', icon: '🚙', price: 12000 },
+                        { id: 'lavado-pickup', title: 'Pick-up', icon: '🛻', price: 15000 }
                     ];
                 } else if (cat === 'lavado_interior') {
                     washPackages = [
-                        { id: 'completo-simple', title: 'Completo Simple', icon: '💦', price: 15000 },
-                        { id: 'completo-especial', title: 'Completo Especial', icon: '⭐', price: 20000 },
-                        { id: 'completo-vip', title: 'Completo VIP', icon: '👑', price: 25000 }
+                        { id: 'completo-autos', title: 'Autos', icon: '🚗', price: 15000 },
+                        { id: 'completo-utilitarios', title: 'Utilitarios', icon: '🚙', price: 18000 },
+                        { id: 'completo-pickup', title: 'Pick-up', icon: '🛻', price: 22000 }
+                    ];
+                } else if (cat === 'interior') {
+                    washPackages = [
+                        { id: 'interior-autos', title: 'Autos', icon: '🚗', price: 5000 },
+                        { id: 'interior-utilitarios', title: 'Utilitarios', icon: '🚙', price: 7000 },
+                        { id: 'interior-pickup', title: 'Pick-up', icon: '🛻', price: 9000 }
                     ];
                 } else {
                     washPackages = [];
@@ -322,27 +328,22 @@
         function onCategoryChange() {
             const catSelect = document.getElementById('in-category');
             const washGroup = document.getElementById('wash-options-group');
-            if (catSelect.value === 'interior') {
-                washGroup.style.display = 'none';
-            } else {
-                washGroup.style.display = 'block';
-                loadWashOptions();
-            }
+            // Ya no ocultamos las opciones de lavado para interior
+            washGroup.style.display = 'block';
+            loadServices();
             updatePrice();
         }
 
         function updatePrice() {
             const catSelect = document.getElementById('in-category');
-            const catOpt = catSelect.options[catSelect.selectedIndex];
-            let price = parseInt(catOpt.getAttribute('data-price'));
+            const select = document.getElementById('in-service');
+            let price = 0;
             
-            if (catSelect.value !== 'interior') {
-                const select = document.getElementById('in-service');
-                if (select.selectedIndex >= 0) {
-                    const opt = select.options[select.selectedIndex];
-                    price += parseInt(opt.getAttribute('data-price'));
-                }
+            if (select && select.selectedIndex >= 0) {
+                const opt = select.options[select.selectedIndex];
+                price = parseInt(opt.getAttribute('data-price'));
             }
+            
             currentPrice = price;
             document.getElementById('in-price').value = `$${currentPrice.toLocaleString('es-AR')}`;
         }
