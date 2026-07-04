@@ -165,10 +165,6 @@ const elHistoryTotalCount = document.getElementById('history-total-count');
 const elHistoryTotalRevenue = document.getElementById('history-total-revenue');
 
 // Modales & Tabs
-const elBtnConfig = document.getElementById('btn-config');
-const elBtnAddLavado = document.getElementById('btn-add-lavado');
-const elBtnAddLavadoAspirado = document.getElementById('btn-add-lavado-aspirado');
-const elBtnAddSoloAspirado = document.getElementById('btn-add-solo-aspirado');
 const elModalConfig = document.getElementById('modal-config');
 const elBtnCloseModal = document.getElementById('btn-close-modal');
 const elCheckUseSupabase = document.getElementById('check-use-supabase');
@@ -1110,48 +1106,9 @@ function startRealtimeTicker() {
     }, 1000);
 }
 
-// --- BOTONES MANUALES DE TR�FICO ---
-if (elBtnAddLavado) {
-    elBtnAddLavado.addEventListener('click', () => {
-        const nick = `${NOMBRES[Math.floor(Math.random() * NOMBRES.length)]} ${ADJETIVOS[Math.floor(Math.random() * ADJETIVOS.length)]}`;
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const plate = `${letters[Math.floor(Math.random()*26)]}${letters[Math.floor(Math.random()*26)]}${Math.floor(Math.random()*900+100)}${letters[Math.floor(Math.random()*26)]}${letters[Math.floor(Math.random()*26)]}`;
-        const color = COLORES[Math.floor(Math.random() * COLORES.length)];
-        addVehicle(nick, plate, color, "12000", "lavado-carroceria");
-        showFloatingToast("Lavado agregado a la cola");
-    });
-}
-
-if (elBtnAddLavadoAspirado) {
-    elBtnAddLavadoAspirado.addEventListener('click', () => {
-        const nick = `${NOMBRES[Math.floor(Math.random() * NOMBRES.length)]} ${ADJETIVOS[Math.floor(Math.random() * ADJETIVOS.length)]}`;
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const plate = `${letters[Math.floor(Math.random()*26)]}${letters[Math.floor(Math.random()*26)]}${Math.floor(Math.random()*900+100)}${letters[Math.floor(Math.random()*26)]}${letters[Math.floor(Math.random()*26)]}`;
-        const color = COLORES[Math.floor(Math.random() * COLORES.length)];
-        addVehicle(nick, plate, color, "18000", "combo-limpieza-total");
-        showFloatingToast("Lavado y Aspirado agregado a la cola");
-    });
-}
-
-if (elBtnAddSoloAspirado) {
-    elBtnAddSoloAspirado.addEventListener('click', () => {
-        const nick = `${NOMBRES[Math.floor(Math.random() * NOMBRES.length)]} ${ADJETIVOS[Math.floor(Math.random() * ADJETIVOS.length)]}`;
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const plate = `${letters[Math.floor(Math.random()*26)]}${letters[Math.floor(Math.random()*26)]}${Math.floor(Math.random()*900+100)}${letters[Math.floor(Math.random()*26)]}${letters[Math.floor(Math.random()*26)]}`;
-        const color = COLORES[Math.floor(Math.random() * COLORES.length)];
-        addVehicle(nick, plate, color, "8000", "aspirado-interior");
-        showFloatingToast("Solo Aspirado agregado a la cola");
-    });
-}
-
-
 // --- CONFIGURACI�N & MODAL ---
 
 // Modal Toggle
-elBtnConfig.addEventListener('click', () => {
-    elModalConfig.classList.add('active');
-    renderHistory(); // Re-render por si cambió algo
-});
 
 elBtnCloseModal.addEventListener('click', () => {
     elModalConfig.classList.remove('active');

@@ -117,8 +117,8 @@
                 } else if (car.zone === 'pre_espera') {
                     actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'espera')">Aceptar en Fila</button>`;
                 } else if(car.zone === 'espera') {
-                    if (car.category === 'secado' || car.wash_type === 'secado-solo' || car.wash_type === 'aspirado-interior') {
-                        actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'aspirado')">Ingresar a Aspirado 💨</button>`;
+                    if (car.category === 'interior' || car.wash_type === 'interior-solo' || car.wash_type === 'aspirado-interior') {
+                        actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'aspirado')">Ingresar a Interior 💨</button>`;
                     } else {
                         actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'lavado')">Ingresar a Lavado 💧</button>`;
                     }

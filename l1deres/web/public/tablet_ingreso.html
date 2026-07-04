@@ -236,8 +236,8 @@
                 <label>Categoría</label>
                 <select id="in-category" onchange="onCategoryChange()">
                     <option value="lavado" data-price="0">💦 Lavado</option>
-                    <option value="secado" data-price="5000">💨 Secado ($5.000)</option>
-                    <option value="lavado_secado" data-price="5000">✨ Lavado y Secado (+ $5.000)</option>
+                    <option value="lavado_interior" data-price="0">✨ Lavado + Interior</option>
+                    <option value="interior" data-price="8000">💨 Interior</option>
                 </select>
             </div>
             
@@ -292,19 +292,22 @@
             if (saved) {
                 washPackages = JSON.parse(saved);
             } else {
-                // Fallback completo con emojis correctos
-                washPackages = [
-                    { id: 'combo-limpieza-total', title: 'Limpieza Total', icon: '🌀', price: 18000 },
-                    { id: 'combo-vip-gold',       title: 'VIP Gold',       icon: '🏆', price: 25000 },
-                    { id: 'lavado-carroceria',    title: 'Exterior Simple', icon: '🚗', price: 12000 },
-                    { id: 'aspirado-interior',    title: 'Interior Pro',    icon: '💨', price: 10000 },
-                    { id: 'lavado-express',       title: 'Express',        icon: '⚡', price: 8000  },
-                    { id: 'lavado-motor',         title: 'Motor Vapor',    icon: '🔥', price: 15000 },
-                    { id: 'encerado-acrilico',    title: 'Encerado',       icon: '🛡️', price: 22000 },
-                    { id: 'lavado-chasis',        title: 'Chasis',         icon: '🔩', price: 28000 },
-                    { id: 'pulido-opticas',       title: 'Ópticas',        icon: '💡', price: 16000 },
-                    { id: 'tratamiento-ceramico', title: 'Cerámico 9H',    icon: '💎', price: 65000 }
-                ];
+                const cat = document.getElementById('in-category').value;
+                if (cat === 'lavado') {
+                    washPackages = [
+                        { id: 'lavado-simple', title: 'Lavado Simple', icon: '💦', price: 10000 },
+                        { id: 'lavado-especial', title: 'Lavado Especial', icon: '⭐', price: 15000 },
+                        { id: 'lavado-vip', title: 'Lavado VIP', icon: '👑', price: 20000 }
+                    ];
+                } else if (cat === 'lavado_interior') {
+                    washPackages = [
+                        { id: 'completo-simple', title: 'Completo Simple', icon: '💦', price: 15000 },
+                        { id: 'completo-especial', title: 'Completo Especial', icon: '⭐', price: 20000 },
+                        { id: 'completo-vip', title: 'Completo VIP', icon: '👑', price: 25000 }
+                    ];
+                } else {
+                    washPackages = [];
+                }
             }
 
             const select = document.getElementById('in-service');
@@ -319,10 +322,11 @@
         function onCategoryChange() {
             const catSelect = document.getElementById('in-category');
             const washGroup = document.getElementById('wash-options-group');
-            if (catSelect.value === 'secado') {
+            if (catSelect.value === 'interior') {
                 washGroup.style.display = 'none';
             } else {
                 washGroup.style.display = 'block';
+                loadWashOptions();
             }
             updatePrice();
         }
@@ -332,7 +336,7 @@
             const catOpt = catSelect.options[catSelect.selectedIndex];
             let price = parseInt(catOpt.getAttribute('data-price'));
             
-            if (catSelect.value !== 'secado') {
+            if (catSelect.value !== 'interior') {
                 const select = document.getElementById('in-service');
                 if (select.selectedIndex >= 0) {
                     const opt = select.options[select.selectedIndex];

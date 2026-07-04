@@ -626,21 +626,21 @@
                 <!-- PASO 3: Lavado -->
                 <div class="step-content" id="step-3">
                     <h2 class="step-title">Selecciona la Categoría</h2>
-                    <div class="grid-2" id="category-grid" style="margin-bottom: 2rem;">
-                        <div class="select-card" data-cat="lavado" onclick="selectCategory('lavado', 'Lavado Solo', 0)">
+                    <div class="grid-3" id="category-grid" style="margin-bottom: 2rem;">
+                        <div class="select-card" data-cat="lavado" onclick="selectCategory('lavado', 'Lavado')">
                             <i class="fa-solid fa-droplet"></i>
-                            <h3>Lavado Solo</h3>
-                            <div class="price-display">Solo exterior</div>
+                            <h3>Lavado</h3>
+                            <div class="price-display">Exterior</div>
                         </div>
-                        <div class="select-card" data-cat="secado" onclick="selectCategory('secado', 'Solo Secado / Aspirado', 5000)">
-                            <i class="fa-solid fa-wind"></i>
-                            <h3>Secado / Aspirado</h3>
-                            <div class="price-display">$5.000</div>
-                        </div>
-                        <div class="select-card" data-cat="lavado_secado" onclick="selectCategory('lavado_secado', 'Lavado y Secado', 5000)">
+                        <div class="select-card" data-cat="lavado_interior" onclick="selectCategory('lavado_interior', 'Lavado + Interior')">
                             <i class="fa-solid fa-sparkles"></i>
-                            <h3>Lavado y Secado</h3>
-                            <div class="price-display">Lavado + $5.000</div>
+                            <h3>Lavado + Interior</h3>
+                            <div class="price-display">Completo</div>
+                        </div>
+                        <div class="select-card" data-cat="interior" onclick="selectCategory('interior', 'Interior')">
+                            <i class="fa-solid fa-wind"></i>
+                            <h3>Interior</h3>
+                            <div class="price-display">Solo Interior</div>
                         </div>
                     </div>
                     
@@ -729,10 +729,16 @@
             let order = window.order; // alias local
 
             let WASH_OPTIONS = {
-                'combo-limpieza-total': { name: 'Combo Limpieza Total', icon: 'fa-star', price: 18000 },
-                'combo-vip-gold':       { name: 'Combo VIP Gold',        icon: 'fa-crown', price: 25000 },
-                'lavado-carroceria':    { name: 'Exterior Simple',        icon: 'fa-droplet', price: 12000 },
-                'lavado-express':       { name: 'Lavado Express',         icon: 'fa-bolt', price: 8000 }
+                'lavado': [
+                    { id: 'lavado-simple', name: 'Lavado Simple', icon: 'fa-droplet', price: 10000 },
+                    { id: 'lavado-especial', name: 'Lavado Especial', icon: 'fa-star', price: 15000 },
+                    { id: 'lavado-vip', name: 'Lavado VIP', icon: 'fa-crown', price: 20000 }
+                ],
+                'lavado_interior': [
+                    { id: 'completo-simple', name: 'Completo Simple', icon: 'fa-droplet', price: 15000 },
+                    { id: 'completo-especial', name: 'Completo Especial', icon: 'fa-star', price: 20000 },
+                    { id: 'completo-vip', name: 'Completo VIP', icon: 'fa-crown', price: 25000 }
+                ]
             };
 
             async function syncWashPrices() {
@@ -1014,7 +1020,10 @@
                 const grid = document.getElementById('wash-grid');
                 if (!grid) return;
                 grid.innerHTML = '';
-                for (const [id, details] of Object.entries(WASH_OPTIONS)) {
+                const options = WASH_OPTIONS[order.washCategory];
+                if (!options) return;
+                
+                for (const details of options) {
                     let conRecargo = details.price * (1 + order.surcharge / 100);
                     let finalPrice = conRecargo;
                     let oldPriceHTML = '';
@@ -1022,9 +1031,9 @@
                         finalPrice = conRecargo * (1 - order.promoDiscount / 100);
                         oldPriceHTML = `<span class="old-price">$${conRecargo.toLocaleString('es-AR')}</span>`;
                     }
-                    const isSelected = order.washType === id ? 'selected' : '';
+                    const isSelected = order.washType === details.id ? 'selected' : '';
                     grid.innerHTML += `
-                    <div class="select-card ${isSelected}" data-wash="${id}" onclick="selectWash('${id}', '${details.name}', ${finalPrice})">
+                    <div class="select-card ${isSelected}" data-wash="${details.id}" onclick="selectWash('${details.id}', '${details.name}', ${finalPrice})">
                         <i class="fa-solid ${details.icon}"></i>
                         <h3>${details.name}</h3>
                         <div class="price-display">${oldPriceHTML}$${finalPrice.toLocaleString('es-AR')}</div>
@@ -1032,27 +1041,33 @@
                 }
             }
 
-            window.selectCategory = function(catId, catName, catPrice) {
+            window.selectCategory = function(catId, catName) {
                 order.washCategory = catId;
                 order.catName = catName;
-                order.catPrice = catPrice;
                 
                 // Limpiar selección
                 document.querySelectorAll('#category-grid .select-card').forEach(el => el.classList.remove('selected'));
                 document.querySelector(`#category-grid .select-card[data-cat="${catId}"]`).classList.add('selected');
                 
-                if (catId === 'secado') {
+                if (catId === 'interior') {
                     document.getElementById('wash-grid').style.display = 'none';
                     document.getElementById('wash-options-title').style.display = 'none';
-                    order.washType = 'secado-solo';
-                    order.washName = '';
-                    order.finalPrice = catPrice;
+                    order.washType = 'interior-solo';
+                    order.washName = 'Interior';
+                    
+                    let conRecargo = 8000 * (1 + order.surcharge / 100);
+                    if (order.hasPromo && order.promoDiscount > 0) {
+                        conRecargo = conRecargo * (1 - order.promoDiscount / 100);
+                    }
+                    order.finalPrice = conRecargo;
+                    
                     validateStep();
                     setTimeout(window.nextStep, 400);
                 } else {
                     document.getElementById('wash-grid').style.display = 'grid';
                     document.getElementById('wash-options-title').style.display = 'block';
                     order.washType = null;
+                    renderWashGrid();
                     validateStep();
                 }
             };
@@ -1060,9 +1075,8 @@
             window.selectWash = function(id, name, washPrice) {
                 order.washType = id; 
                 order.washName = name; 
-                order.washPrice = washPrice;
                 
-                let conRecargo = (washPrice + (order.catPrice || 0)) * (1 + order.surcharge / 100);
+                let conRecargo = washPrice * (1 + order.surcharge / 100);
                 if (order.hasPromo && order.promoDiscount > 0) {
                     conRecargo = conRecargo * (1 - order.promoDiscount / 100);
                 }
