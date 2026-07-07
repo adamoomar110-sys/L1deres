@@ -1263,9 +1263,46 @@
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('./sw.js')
-                        .then(reg => console.log('Service Worker del Kiosko registrado:', reg.scope))
+                        .then(reg => {
+                            console.log('Service Worker del Kiosko registrado:', reg.scope);
+                            
+                            // Detectar actualizaciones de la PWA
+                            reg.addEventListener('updatefound', () => {
+                                const newWorker = reg.installing;
+                                newWorker.addEventListener('statechange', () => {
+                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        showUpdateBanner(newWorker);
+                                    }
+                                });
+                            });
+                        })
                         .catch(err => console.error('Error al registrar Service Worker:', err));
+
+                    // Recargar automáticamente si el SW toma el control
+                    let refreshing = false;
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        if (!refreshing) {
+                            refreshing = true;
+                            window.location.reload();
+                        }
+                    });
                 });
+            }
+
+            function showUpdateBanner(worker) {
+                const banner = document.createElement('div');
+                banner.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%;
+                    background-color: var(--color-cyan); color: #000;
+                    text-align: center; padding: 15px; font-weight: bold; font-size: 1.2rem;
+                    z-index: 10000; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 240, 255, 0.5);
+                    animation: slideDown 0.5s ease-out;
+                `;
+                banner.innerHTML = '✨ ¡Nueva versión disponible! Toca aquí para actualizar. ✨';
+                banner.onclick = () => {
+                    worker.postMessage({ type: 'SKIP_WAITING' });
+                };
+                document.body.appendChild(banner);
             }
 
             let deferredPrompt;
