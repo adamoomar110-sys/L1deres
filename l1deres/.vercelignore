@@ -1,0 +1,14 @@
+.git
+node_modules
+temp_asar_extract
+dist
+supabase
+*.py
+*.json
+!package.json
+!vercel.json
+!manifest*.json
+!package-lock.json
+web/node_modules
+web/.next
+web/out
