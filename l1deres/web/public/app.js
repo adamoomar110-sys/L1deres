@@ -7,7 +7,7 @@ function getDisplayNickname(nickname) {
         try {
             const parsed = JSON.parse(nickname);
             return parsed.name || 'Vehículo';
-        } catch(e) {
+        } catch (e) {
             return nickname;
         }
     }
@@ -29,15 +29,15 @@ const DEFAULT_WASH_OPTIONS = [
     { id: 'lavado-autos', title: 'Lavado Autos', icon: '🚗', price: 10000, category: 'lavados', items: ['Lavado exterior Autos'] },
     { id: 'lavado-utilitarios', title: 'Lavado Utilitarios', icon: '🚙', price: 12000, category: 'lavados', items: ['Lavado exterior Utilitarios'] },
     { id: 'lavado-pickup', title: 'Lavado Pick-up', icon: '🛻', price: 15000, category: 'lavados', items: ['Lavado exterior Pick-up'] },
-    
+
     { id: 'completo-autos', title: 'Lavado + Interior Autos', icon: '🚗', price: 15000, category: 'combos', items: ['Lavado y aspirado Autos'] },
     { id: 'completo-utilitarios', title: 'Lavado + Interior Utilitarios', icon: '🚙', price: 18000, category: 'combos', items: ['Lavado y aspirado Utilitarios'] },
     { id: 'completo-pickup', title: 'Lavado + Interior Pick-up', icon: '🛻', price: 22000, category: 'combos', items: ['Lavado y aspirado Pick-up'] },
-    
+
     { id: 'interior-autos', title: 'Interior Autos', icon: '🚗', price: 5000, category: 'interior', items: ['Aspirado Autos'] },
     { id: 'interior-utilitarios', title: 'Interior Utilitarios', icon: '🚙', price: 7000, category: 'interior', items: ['Aspirado Utilitarios'] },
     { id: 'interior-pickup', title: 'Interior Pick-up', icon: '🛻', price: 9000, category: 'interior', items: ['Aspirado Pick-up'] },
-    
+
     // Retrocompatibilidad con órdenes viejas
     { id: 'lavado-simple', title: 'Lavado Simple', icon: '💦', price: 10000, category: 'lavados', items: [] },
     { id: 'lavado-especial', title: 'Lavado Especial', icon: '⭐', price: 15000, category: 'lavados', items: [] },
@@ -89,7 +89,6 @@ let selectedWashType = 'combo-limpieza-total';
 // --- ESTADO GLOBAL ---
 let activeVehicles = [];
 let washHistory = [];
-let empleados = [];
 let insumos = [];
 let config = {
     useSupabase: true,
@@ -204,7 +203,7 @@ async function loadRemoteConfig() {
                 config.queueTable = data.queueTable || 'lavadero_camera_queue';
                 config.serviceTable = data.serviceTable || 'service_orders';
                 // console.log("ðŸ⬝� Configuración de Supabase cargada desde Vercel Environment Variables.");
-                
+
                 // Actualizar la interfaz para reflejar que está conectado externamente
                 if (elConnectionStatus) {
                     elConnectionStatus.className = "connection-status supabase-active";
@@ -233,25 +232,25 @@ function initSupabaseClient() {
 
 function setupRealtimeSubscriptions() {
     if (!supabaseClient) return;
-    
+
     // Suscripci�n a la tabla de cola
     supabaseClient
-      .channel('public:lavadero_camera_queue')
-      .on('postgres_changes', { event: '*', schema: 'public', table: config.queueTable || 'lavadero_camera_queue' }, payload => {
-          console.log('Realtime change in queue:', payload);
-          // Llamar a sync manual por simplicidad para asegurar estado consistente
-          syncFromSupabase();
-      })
-      .subscribe();
+        .channel('public:lavadero_camera_queue')
+        .on('postgres_changes', { event: '*', schema: 'public', table: config.queueTable || 'lavadero_camera_queue' }, payload => {
+            console.log('Realtime change in queue:', payload);
+            // Llamar a sync manual por simplicidad para asegurar estado consistente
+            syncFromSupabase();
+        })
+        .subscribe();
 
     // Suscripci�n a la tabla de servicios
     supabaseClient
-      .channel('public:service_orders')
-      .on('postgres_changes', { event: '*', schema: 'public', table: config.serviceTable || 'service_orders' }, payload => {
-          console.log('Realtime change in services:', payload);
-          syncFromSupabase();
-      })
-      .subscribe();
+        .channel('public:service_orders')
+        .on('postgres_changes', { event: '*', schema: 'public', table: config.serviceTable || 'service_orders' }, payload => {
+            console.log('Realtime change in services:', payload);
+            syncFromSupabase();
+        })
+        .subscribe();
 }
 
 function loadLocalData() {
@@ -267,7 +266,7 @@ function loadLocalData() {
             localStorage.setItem('supabase_key', config.supabaseKey);
         }
     }
-    
+
     // Veh�culos Activos
     const savedVehicles = localStorage.getItem('lavadero_active_vehicles');
     if (savedVehicles) {
@@ -299,7 +298,7 @@ function updateConnectionStatus(msg, className) {
 
 async function syncFromSupabase() {
     if (!config.useSupabase || !config.supabaseUrl || !config.supabaseKey) return;
-    
+
     isSyncing = true;
     updateConnectionStatus("Syncing...");
 
@@ -313,7 +312,7 @@ async function syncFromSupabase() {
                     if (dbCar.nickname && dbCar.nickname.startsWith('{')) {
                         extra = JSON.parse(dbCar.nickname);
                     }
-                } catch(e) { /* nickname es texto plano, no JSON */ }
+                } catch (e) { /* nickname es texto plano, no JSON */ }
 
                 const realNickname = extra.name || dbCar.nickname || 'Veh�culo';
                 const plate = extra.plate || dbCar.plate || '';
@@ -357,21 +356,15 @@ async function syncFromSupabase() {
                 budget: h.budget,
                 completed_at: h.appointment_date || h.created_at
             }));
-            
+
             const localHist = JSON.parse(localStorage.getItem('lavadero_completed_history') || '[]');
             const combined = [...historyMap, ...localHist];
             const uniqueHistory = Array.from(new Map(combined.map(item => [item.id, item])).values());
-            
-            washHistory = uniqueHistory.sort((a,b) => new Date(b.completed_at) - new Date(a.completed_at));
+
+            washHistory = uniqueHistory.sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
             localStorage.setItem('lavadero_completed_history', JSON.stringify(washHistory));
         }
-        
-        const empData = await fetchSupabase('lavadero_empleados');
-        if (empData && Array.isArray(empData)) {
-            empleados = empData;
-            localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
-        }
-        
+
         const insData = await fetchSupabase('lavadero_insumos');
         if (insData && Array.isArray(insData)) {
             insumos = insData;
@@ -380,7 +373,7 @@ async function syncFromSupabase() {
 
         const gastosData = await fetchSupabase('lavadero_gastos');
         if (gastosData && Array.isArray(gastosData)) {
-            if(typeof FINANZAS !== 'undefined') {
+            if (typeof FINANZAS !== 'undefined') {
                 FINANZAS.gastos = gastosData.map(g => ({
                     fecha: g.fecha,
                     detalle: g.detalle,
@@ -392,7 +385,7 @@ async function syncFromSupabase() {
 
         const sueldosData = await fetchSupabase('lavadero_sueldos');
         if (sueldosData && Array.isArray(sueldosData)) {
-            if(typeof FINANZAS !== 'undefined') {
+            if (typeof FINANZAS !== 'undefined') {
                 FINANZAS.sueldos = sueldosData.map(s => ({
                     fecha: s.fecha,
                     empleado: s.empleado_nombre,
@@ -400,15 +393,15 @@ async function syncFromSupabase() {
                 }));
             }
         }
-        
+
         if (typeof FINANZAS !== 'undefined' && ((gastosData && Array.isArray(gastosData)) || (sueldosData && Array.isArray(sueldosData)))) {
-            if(typeof saveFinanzas === 'function') saveFinanzas();
-            if(typeof renderFinanzas === 'function') renderFinanzas();
+            if (typeof saveFinanzas === 'function') saveFinanzas();
+            if (typeof renderFinanzas === 'function') renderFinanzas();
         }
 
         updateConnectionStatus("Connected");
         initSupabaseClient();
-        if(typeof renderAll === 'function') renderAll();
+        if (typeof renderAll === 'function') renderAll();
     } catch (e) {
         updateConnectionStatus("Error", "bg-danger");
     } finally {
@@ -418,7 +411,7 @@ async function syncFromSupabase() {
 
 async function fetchSupabase(endpoint, options = {}) {
     if (!config.useSupabase || !config.supabaseUrl || !config.supabaseKey) return null;
-    
+
     const url = `${config.supabaseUrl}/rest/v1/${endpoint}`;
     const headers = {
         'apikey': config.supabaseKey,
@@ -499,12 +492,12 @@ async function saveStateLocally(syncRemote = true) {
 // --- OPERACIONES DE VEHÍCULOS ---
 
 // Agregar Vehículo
-async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '', clientType = 'normal', paymentMethod = 'efectivo', isPaid = false) {
+async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '', clientType = 'normal', paymentMethod = 'transferencia', isPaid = false) {
     const budget = budgetStr ? parseFloat(budgetStr) : 0;
     const wType = washType || 'combo-limpieza-total';
     const washName = WASH_NAMES[wType] || 'Combo Limpieza Total';
     const uppercasePlate = plate.toUpperCase();
-    
+
     if (config.useSupabase && uppercasePlate) {
         // Upsert client data
         fetchSupabase('lavadero_clientes', {
@@ -550,7 +543,7 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
             wash_type: newCar.wash_type,
             description: newCar.description
         });
-        
+
         // Registrar en lavadero_camera_queue de Supabase
         await fetchSupabase(config.queueTable, {
             method: 'POST',
@@ -579,7 +572,7 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
     }
 
     renderAll();
-    
+
     // Mostrar modal QR al registrar
     showQrModal(newCar);
 }
@@ -625,7 +618,7 @@ async function finishVehicle(id) {
     if (index === -1) return;
 
     const car = activeVehicles[index];
-    
+
     // Crear registro de historial
     const historyItem = {
         id: car.id,
@@ -640,7 +633,7 @@ async function finishVehicle(id) {
         if (clients && clients.length > 0) {
             const client = clients[0];
             const promoAplica = client.visitas_totales > 0 && (client.visitas_totales + 1) % 4 === 0;
-            
+
             await fetchSupabase(`lavadero_clientes?id=eq.${client.id}`, {
                 method: 'PATCH',
                 body: JSON.stringify({
@@ -656,12 +649,12 @@ async function finishVehicle(id) {
                     cliente_id: client.id,
                     patente: car.plate,
                     tipo_servicio: car.wash_type,
-                    forma_pago: car.paymentMethod || 'efectivo',
+                    forma_pago: car.paymentMethod || 'transferencia',
                     monto: car.budget,
                     promo_aplicada: promoAplica
                 })
             });
-            
+
             if (promoAplica) {
                 showFloatingToast(`�Atenci�n! Lavado nro ${client.visitas_totales + 1} de ${car.plate}. �Aplica Promoci�n!`);
             }
@@ -697,7 +690,7 @@ async function finishVehicle(id) {
 async function deleteVehicle(id) {
     const index = activeVehicles.findIndex(v => v.id === id);
     if (index === -1) return;
-    
+
     activeVehicles.splice(index, 1);
     saveStateLocally(true);
 
@@ -715,15 +708,15 @@ async function deleteVehicle(id) {
 // Generar HTML del auto en su contenedor
 function createVehicleElement(car, index = -1) {
     const container = document.createElement('div');
-    
+
     // Layout F1 Pit Lane para Espera
     if (car.zone === 'espera') {
         container.className = 'f1-vehicle-slot';
         container.setAttribute('data-id', car.id);
-        
+
         // Inyectamos clase al SVG
         const carSvg = getCarSvg(car.color).replace('<svg ', '<svg class="f1-car-svg" ');
-        
+
         container.innerHTML = `
             ${carSvg}
             <div class="f1-driver-name">${getDisplayNickname(car.nickname).split(' ')[0]}</div>
@@ -738,7 +731,7 @@ function createVehicleElement(car, index = -1) {
         container.setAttribute('data-id', car.id);
 
         const carSvg = getCarSvg(car.color);
-        
+
         let timerHtml = '';
         if (car.zone === 'lavado') {
             timerHtml = `
@@ -805,14 +798,14 @@ function renderAll() {
 function calculateETA() {
     let etaMinutos = 0;
     const currentTime = Date.now();
-    
+
     // Separar la cola en los que van a lavado (todos menos solo aspirado) y los que van solo a aspirado
     const esperaLavadoCount = activeVehicles.filter(v => v.zone === 'espera' && v.wash_type !== 'aspirado-interior').length;
     const esperaAspiradoCount = activeVehicles.filter(v => v.zone === 'espera' && v.wash_type === 'aspirado-interior').length;
-    
+
     const lavadoCars = activeVehicles.filter(v => v.zone === 'lavado');
     const aspiradoCars = activeVehicles.filter(v => v.zone === 'aspirado');
-    
+
     let etaLavado = 0;
     if (lavadoCars.length > 0) {
         let elapsedMins = (currentTime - new Date(lavadoCars[0].entered_at).getTime()) / 60000;
@@ -826,7 +819,7 @@ function calculateETA() {
     // Como entran 2 autos en aspirado, cada ciclo de 7 mins saca 2 autos
     // Los que están esperando se dividen por 2 (redondeando hacia arriba) para saber cuántos ciclos faltan
     let ciclosEsperaAspirado = Math.ceil(esperaAspiradoCount / 2);
-    
+
     if (aspiradoCars.length > 0) {
         let elapsedMins = (currentTime - new Date(aspiradoCars[0].entered_at).getTime()) / 60000;
         let remainingAspirado = Math.max(0, 7 - Math.floor(elapsedMins));
@@ -876,7 +869,7 @@ function calculateRevenue() {
 
     // Real: Total de trabajos finalizados (historial)
     const realRevenue = washHistory.reduce((acc, curr) => acc + (curr.budget || 0), 0);
-    
+
     // Proyectado: Autos actualmente en la cola (activos)
     const projectedRevenue = activeVehicles.reduce((acc, curr) => acc + (curr.budget || 0), 0);
 
@@ -887,7 +880,7 @@ function calculateRevenue() {
 // Renderizar la tabla de mesa de control
 function renderOperatorTable() {
     elOperatorTableBody.innerHTML = '';
-    
+
     if (activeVehicles.length === 0) {
         elOperatorTableBody.innerHTML = `
             <tr class="empty-table-row">
@@ -901,7 +894,7 @@ function renderOperatorTable() {
     activeVehicles.forEach(car => {
         const tr = document.createElement('tr');
         tr.id = `row-op-${car.id}`;
-        
+
         tr.innerHTML = `
             <td>
                 <div class="car-badge-name">
@@ -1004,12 +997,12 @@ function renderOperatorTable() {
 // Renderizar Historial de lavados terminados
 function renderHistory() {
     elHistoryTableBody.innerHTML = '';
-    
+
     const filterDate = document.getElementById('filter-history-date')?.value;
     const filterName = document.getElementById('filter-history-name')?.value.toLowerCase();
-    
+
     let filtered = washHistory;
-    
+
     if (filterDate) {
         // filterDate is YYYY-MM-DD. We compare against item.completed_at ISO string start.
         filtered = filtered.filter(item => {
@@ -1017,17 +1010,17 @@ function renderHistory() {
             return itemDate === filterDate;
         });
     }
-    
+
     if (filterName) {
-        filtered = filtered.filter(item => 
+        filtered = filtered.filter(item =>
             (item.nickname && item.nickname.toLowerCase().includes(filterName)) ||
             (item.plate && item.plate.toLowerCase().includes(filterName))
         );
     }
-    
+
     // Calcular estadísticas sobre los resultados FILTRADOS
     elHistoryTotalCount.innerText = filtered.length;
-    
+
     const revenue = filtered.reduce((acc, curr) => acc + (curr.budget || 0), 0);
     elHistoryTotalRevenue.innerText = `$${revenue.toLocaleString()}`;
 
@@ -1086,10 +1079,10 @@ function startRealtimeTicker() {
         document.querySelectorAll('[data-timer-type="waiting"]').forEach((el, index) => {
             // El delay es el tiempo restante del vehiculo en lavado + (15 min por cada auto delante suyo)
             const waitTotalSecs = remainingWashingSecs + (index * WASH_DURATION_SECS);
-            
+
             const mins = Math.floor(waitTotalSecs / 60);
             const secs = waitTotalSecs % 60;
-            
+
             // Mostrar ETA
             el.innerText = `~${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         });
@@ -1169,7 +1162,7 @@ elBtnSaveConfig.addEventListener('click', async () => {
     config.serviceTable = elSupabaseServiceTable.value.trim() || 'service_orders';
 
     localStorage.setItem('lavadero_config', JSON.stringify(config));
-    
+
     // Cerrar modal
     elModalConfig.classList.remove('active');
     showFloatingToast("Configuración guardada.");
@@ -1204,12 +1197,12 @@ elBtnClearHistory.addEventListener('click', async () => {
         washHistory = [];
         saveStateLocally(false);
         renderAll();
-        
+
         if (config.useSupabase) {
             try {
                 await fetchSupabase(`${config.serviceTable}?status=eq.completed`, { method: 'DELETE' });
                 showFloatingToast("Historial borrado en local y en la nube.");
-            } catch(e) {
+            } catch (e) {
                 console.error(e);
                 showFloatingToast("Historial borrado localmente.");
             }
@@ -1248,7 +1241,7 @@ function renderWashMenu() {
         card.addEventListener('click', () => {
             selectedWashType = pkg.id;
             elInputBudget.value = pkg.price;
-            if(window.renderWashMenuOverride) window.renderWashMenuOverride(); else renderWashMenu(); // Re-render to update selected class
+            if (window.renderWashMenuOverride) window.renderWashMenuOverride(); else renderWashMenu(); // Re-render to update selected class
         });
 
         grid.appendChild(card);
@@ -1286,7 +1279,7 @@ elFormRegister.addEventListener('submit', (e) => {
     const plate = elInputPlate.value.trim();
     const phone = elInputPhone ? elInputPhone.value.trim() : '';
     const clientType = elInputClientType ? elInputClientType.value : 'normal';
-    const paymentMethod = elInputPaymentMethod ? elInputPaymentMethod.value : 'efectivo';
+    const paymentMethod = elInputPaymentMethod ? elInputPaymentMethod.value : 'transferencia';
     const isPaid = document.getElementById('input-is-paid') ? document.getElementById('input-is-paid').checked : false;
     const color = elInputColor.value;
     const budget = elInputBudget.value;
@@ -1298,13 +1291,13 @@ elFormRegister.addEventListener('submit', (e) => {
     elInputNickname.value = '';
     elInputPlate.value = '';
     elInputPhone.value = '';
-    if(document.getElementById('input-is-paid')) document.getElementById('input-is-paid').checked = false;
+    if (document.getElementById('input-is-paid')) document.getElementById('input-is-paid').checked = false;
     elInputBudget.value = '18000';
     renderWashMenu();
-    
+
     // Enfocar apodo para el siguiente
     elInputNickname.focus();
-    
+
     showFloatingToast(`Vehículo ${nickname} registrado.`);
 });
 
@@ -1347,7 +1340,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
             viewEl.classList.remove('hidden');
             viewEl.classList.add('active');
         }
-        
+
         // Ocultar acciones del header si no es el dashboard principal
         const headerActions = document.querySelector('.header-actions');
         if (headerActions) {
@@ -1359,123 +1352,10 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         }
 
         // Si entramos a ciertas vistas, refrescamos
-        if (targetView === 'view-empleados') renderEmpleados();
         if (targetView === 'view-insumos') renderInsumos();
         if (targetView === 'view-precios') renderPrecios();
     });
 });
-
-// --- Lï¿½GICA DE EMPLEADOS ---
-const formEmpleado = document.getElementById('form-empleado');
-const tbodyEmpleados = document.getElementById('empleados-tbody');
-
-if (formEmpleado) {
-    formEmpleado.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('emp-name').value;
-        const hours = document.getElementById('emp-hours').value;
-        const role = document.getElementById('emp-role').value;
-        
-        const newEmp = { 
-            id: Date.now(), 
-            date: new Date().toISOString().split('T')[0],
-            name, 
-            hours: parseInt(hours),
-            role 
-        };
-        
-        empleados.push(newEmp);
-        localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
-        
-        if (config.useSupabase) {
-            await fetchSupabase('lavadero_empleados', {
-                method: 'POST',
-                body: JSON.stringify(newEmp)
-            });
-        }
-        
-        document.getElementById('emp-name').value = '';
-        document.getElementById('emp-hours').value = '8';
-        renderEmpleados();
-        showFloatingToast('Jornada registrada exitosamente');
-    });
-}
-
-function renderEmpleados() {
-    const saved = localStorage.getItem('lavadero_empleados');
-    if (saved) empleados = JSON.parse(saved);
-    
-    if (!tbodyEmpleados) return;
-    tbodyEmpleados.innerHTML = '';
-    
-    const filterDate = document.getElementById('filter-emp-date')?.value;
-    const filterName = document.getElementById('filter-emp-name')?.value.toLowerCase();
-    
-    let filtered = empleados;
-    if (filterDate) {
-        filtered = filtered.filter(e => e.date === filterDate);
-    }
-    if (filterName) {
-        filtered = filtered.filter(e => e.name.toLowerCase().includes(filterName));
-    }
-    
-    if (filtered.length === 0) {
-        tbodyEmpleados.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--color-text-dim);">No hay registros</td></tr>';
-        return;
-    }
-
-    // Sort by newest first
-    filtered.sort((a, b) => b.id - a.id).forEach(emp => {
-        const tr = document.createElement('tr');
-        const displayDate = emp.date ? new Date(emp.date + 'T00:00:00').toLocaleDateString() : '-';
-        tr.innerHTML = `
-            <td>${displayDate}</td>
-            <td>${emp.name}</td>
-            <td><span class="plate-badge">${emp.role}</span></td>
-            <td>${emp.hours || 0} hs</td>
-            <td class="print-visible">
-                <button class="btn btn-primary btn-sm" onclick="editarEmpleado(${emp.id})" style="margin-right: 5px;">Editar</button>
-                <button class="btn btn-danger btn-sm" onclick="eliminarEmpleado(${emp.id})">Eliminar</button>
-            </td>
-        `;
-        tbodyEmpleados.appendChild(tr);
-    });
-}
-
-// Escuchar cambios en los filtros
-document.getElementById('filter-emp-date')?.addEventListener('change', renderEmpleados);
-document.getElementById('filter-emp-name')?.addEventListener('input', renderEmpleados);
-
-window.eliminarEmpleado = async function(id) {
-    empleados = empleados.filter(e => e.id !== id);
-    localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
-    
-    if (config.useSupabase) {
-        await fetchSupabase(`lavadero_empleados?id=eq.${id}`, {
-            method: 'DELETE'
-        });
-    }
-    
-    renderEmpleados();
-};
-
-window.editarEmpleado = async function(id) {
-    const emp = empleados.find(e => e.id === id);
-    if (!emp) return;
-    const newHours = prompt(`Modificar horas de ${emp.name} (actual: ${emp.hours}):`, emp.hours);
-    if (newHours !== null && newHours.trim() !== '' && !isNaN(newHours)) {
-        emp.hours = parseInt(newHours);
-        localStorage.setItem('lavadero_empleados', JSON.stringify(empleados));
-        if (config.useSupabase) {
-            await fetchSupabase(`lavadero_empleados?id=eq.${id}`, {
-                method: 'PATCH',
-                body: JSON.stringify({ hours: emp.hours })
-            });
-        }
-        renderEmpleados();
-        showFloatingToast('Horas actualizadas');
-    }
-};
 
 // --- Lï¿½GICA DE INSUMOS ---
 const formInsumo = document.getElementById('form-insumo');
@@ -1486,14 +1366,14 @@ if (formInsumo) {
         e.preventDefault();
         const name = document.getElementById('ins-name').value.trim();
         const stockToAdd = parseInt(document.getElementById('ins-stock').value) || 0;
-        
+
         // Buscar si ya existe
         const existingInsumo = insumos.find(i => i.name.toLowerCase() === name.toLowerCase());
-        
+
         if (existingInsumo) {
             existingInsumo.stock += stockToAdd;
             localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
-            
+
             if (config.useSupabase) {
                 await fetchSupabase(`lavadero_insumos?id=eq.${existingInsumo.id}`, {
                     method: 'PATCH',
@@ -1505,7 +1385,7 @@ if (formInsumo) {
             const newIns = { id: Date.now(), name, stock: stockToAdd };
             insumos.push(newIns);
             localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
-            
+
             if (config.useSupabase) {
                 await fetchSupabase('lavadero_insumos', {
                     method: 'POST',
@@ -1514,7 +1394,7 @@ if (formInsumo) {
             }
             showFloatingToast('Nuevo insumo agregado');
         }
-        
+
         document.getElementById('ins-name').value = '';
         document.getElementById('ins-stock').value = '10';
         renderInsumos();
@@ -1525,22 +1405,22 @@ if (formInsumo) {
 function renderInsumos() {
     const saved = localStorage.getItem('lavadero_insumos');
     if (saved) insumos = JSON.parse(saved);
-    
+
     // Semilla de Insumos Predeterminados (15)
     if (insumos.length === 0) {
         const predefinidos = [
-            "Shampoo pH Neutro", "Cera de Carnauba", "Silicona Interior", 
-            "Limpia Motores", "Acondicionador de Plásticos", "Desengrasante Multiuso", 
-            "Limpia Vidrios", "Cepillos de Limpieza", "Paños de Microfibra", 
+            "Shampoo pH Neutro", "Cera de Carnauba", "Silicona Interior",
+            "Limpia Motores", "Acondicionador de Plásticos", "Desengrasante Multiuso",
+            "Limpia Vidrios", "Cepillos de Limpieza", "Paños de Microfibra",
             "Revividor de Neumáticos", "Ambientador Líquido", "APC (All Purpose Cleaner)",
             "Limpia Llantas", "Esponjas de Lavado", "Sellador Acrílico"
         ];
-        
+
         predefinidos.forEach((nombre, idx) => {
             insumos.push({ id: Date.now() + idx, name: nombre, stock: 123 });
         });
         localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
-        
+
         if (config.useSupabase) {
             // Mandar todos a Supabase en bloque o iterando
             // Simplificado para no hacer 15 peticiones juntas, asume local por ahora si falla
@@ -1564,14 +1444,14 @@ function renderInsumos() {
 
     if (!tbodyInsumos) return;
     tbodyInsumos.innerHTML = '';
-    
+
     const filterName = document.getElementById('filter-ins-name')?.value.toLowerCase();
-    
+
     let filtered = insumos;
     if (filterName) {
         filtered = filtered.filter(i => i.name.toLowerCase().includes(filterName));
     }
-    
+
     if (filtered.length === 0) {
         tbodyInsumos.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--color-text-dim);">No hay insumos registrados</td></tr>';
         return;
@@ -1593,20 +1473,20 @@ function renderInsumos() {
 
 document.getElementById('filter-ins-name')?.addEventListener('input', renderInsumos);
 
-window.eliminarInsumo = async function(id) {
+window.eliminarInsumo = async function (id) {
     insumos = insumos.filter(i => i.id !== id);
     localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
-    
+
     if (config.useSupabase) {
         await fetchSupabase(`lavadero_insumos?id=eq.${id}`, {
             method: 'DELETE'
         });
     }
-    
+
     renderInsumos();
 };
 
-window.editarInsumo = async function(id) {
+window.editarInsumo = async function (id) {
     const ins = insumos.find(i => i.id === id);
     if (!ins) return;
     const newStock = prompt(`Modificar stock exacto de ${ins.name} (actual: ${ins.stock}):`, ins.stock);
@@ -1630,7 +1510,7 @@ const btnResetPrecios = document.getElementById('btn-reset-precios');
 
 if (btnResetPrecios) {
     btnResetPrecios.addEventListener('click', () => {
-        if(confirm('ï¿½Restaurar precios y paquetes a sus valores por defecto?')) {
+        if (confirm('ï¿½Restaurar precios y paquetes a sus valores por defecto?')) {
             WASH_PACKAGES = JSON.parse(JSON.stringify(DEFAULT_WASH_OPTIONS));
             localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages();
@@ -1644,7 +1524,7 @@ if (btnResetPrecios) {
 function renderPrecios() {
     if (!tbodyPrecios) return;
     tbodyPrecios.innerHTML = '';
-    
+
     WASH_PACKAGES.forEach((pkg, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1670,14 +1550,14 @@ function renderPrecios() {
             const row = e.target.closest('tr');
             const newTitle = row.querySelector('.precio-input-name').value;
             const newPrice = row.querySelector('.precio-input-val').value;
-            
+
             WASH_PACKAGES[idx].title = newTitle;
             WASH_PACKAGES[idx].price = parseInt(newPrice);
-            
+
             localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages(); // Actualizar mapeos
             renderWashMenu(); // Refrescar menu del form
-            
+
             if (config.useSupabase) {
                 fetchSupabase('lavadero_precios', {
                     method: 'POST',
@@ -1690,9 +1570,9 @@ function renderPrecios() {
                     })
                 });
             }
-            
+
             showFloatingToast('Precio actualizado correctamente');
-            
+
             e.target.innerText = '?';
             e.target.style.backgroundColor = 'var(--color-lime)';
             setTimeout(() => {
@@ -1708,12 +1588,12 @@ function renderWashMenu() {
     const grid = document.getElementById('wash-menu-grid');
     if (!grid) return;
     grid.innerHTML = '';
-    
+
     WASH_PACKAGES.forEach(pkg => {
         const card = document.createElement('div');
         card.className = 'wash-option-card ' + (selectedWashType === pkg.id ? 'selected' : '');
         card.setAttribute('data-id', pkg.id);
-        
+
         card.innerHTML = `
             <div class="wash-icon">${pkg.icon}</div>
             <div class="wash-details">
@@ -1721,19 +1601,19 @@ function renderWashMenu() {
                 <div class="wash-price">$${pkg.price}</div>
             </div>
         `;
-        
+
         card.addEventListener('click', () => {
             document.querySelectorAll('.wash-option-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
             selectedWashType = pkg.id;
-            
+
             if (elInputBudget) {
                 elInputBudget.value = pkg.price;
                 elInputBudget.classList.add('pulse-highlight');
                 setTimeout(() => elInputBudget.classList.remove('pulse-highlight'), 500);
             }
         });
-        
+
         grid.appendChild(card);
     });
 }
@@ -1745,9 +1625,9 @@ const tbodyPostulantes = document.getElementById('postulantes-tbody');
 
 async function renderPostulantes() {
     if (!tbodyPostulantes) return;
-    
+
     let applicants = [];
-    
+
     if (config.useSupabase) {
         // Cargar desde Supabase externa
         try {
@@ -1755,7 +1635,7 @@ async function renderPostulantes() {
             if (data && Array.isArray(data)) {
                 applicants = data;
             }
-        } catch(e) { console.error('Error cargando postulantes', e); }
+        } catch (e) { console.error('Error cargando postulantes', e); }
     } else {
         // Tratamos de leer de localStorage
         const applicantsStr = localStorage.getItem('lavadero_applicants');
@@ -1772,7 +1652,7 @@ async function renderPostulantes() {
 
     applicants.forEach(app => {
         const tr = document.createElement('tr');
-        const imgSrc = app.selfie_url && app.selfie_url.length > 50 ? app.selfie_url : 'https://ui-avatars.com/api/?name='+encodeURIComponent(app.full_name)+'&background=06b6d4&color=fff';
+        const imgSrc = app.selfie_url && app.selfie_url.length > 50 ? app.selfie_url : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(app.full_name) + '&background=06b6d4&color=fff';
 
         tr.innerHTML = `
             <td>
@@ -1805,7 +1685,7 @@ async function renderPostulantes() {
     });
 }
 
-window.contratarPostulante = async function(id, name) {
+window.contratarPostulante = async function (id, name) {
     const role = prompt(`¿Qué rol le asignarás a ${name}? (Ej: Lavador, Detallador, Encargado)`, 'Lavador');
     if (role === null) return; // Cancelado
 
@@ -1831,18 +1711,18 @@ window.contratarPostulante = async function(id, name) {
     }
 
     renderPostulantes();
-    if(typeof renderEmpleados === 'function') renderEmpleados();
-    
-    if(typeof showFloatingToast === 'function') {
+    if (typeof renderEmpleados === 'function') renderEmpleados();
+
+    if (typeof showFloatingToast === 'function') {
         showFloatingToast(`${name} contratado como ${role}!`);
     } else {
         alert(`${name} fue contratado como ${role}!`);
     }
 }
 
-window.rechazarPostulante = async function(id) {
-    if(!confirm('¿Seguro que quieres rechazar y eliminar a este postulante?')) return;
-    
+window.rechazarPostulante = async function (id) {
+    if (!confirm('¿Seguro que quieres rechazar y eliminar a este postulante?')) return;
+
     if (config.useSupabase) {
         await fetchSupabase(`applicants?id=eq.${id}`, {
             method: 'PATCH',
@@ -1854,7 +1734,7 @@ window.rechazarPostulante = async function(id) {
         applicants = applicants.filter(a => a.id !== id);
         localStorage.setItem('lavadero_applicants', JSON.stringify(applicants));
     }
-    
+
     renderPostulantes();
 }
 
@@ -1875,17 +1755,17 @@ function showQrModal(car) {
     const colorHex = car.color.replace('#', '');
     let baseUrl = window.location.origin + window.location.pathname;
     baseUrl = baseUrl.replace('index.html', '');
-    if(!baseUrl.endsWith('/')) baseUrl += '/';
-    
+    if (!baseUrl.endsWith('/')) baseUrl += '/';
+
     // Calcular pos (Posición en la fila)
     const esperaCars = activeVehicles.filter(v => v.zone === 'espera');
     let pos = esperaCars.findIndex(v => v.id === car.id) + 1;
     if (pos <= 0) pos = 1;
 
     const url = `${baseUrl}cliente.html?n=${encodeURIComponent(car.nickname)}&c=${colorHex}&p=${encodeURIComponent(car.plate || 'SIN PATENTE')}&z=${car.zone}&t=${encodeURIComponent(car.wash_type || 'combo-limpieza-total')}&pos=${pos}&id=${car.id}`;
-    
+
     const qrModal = document.getElementById('modal-ticket-qr');
-    if(!qrModal) return;
+    if (!qrModal) return;
 
     const qrImage = document.getElementById('qr-image');
     const qrLinkText = document.getElementById('qr-link-text');
@@ -1897,7 +1777,7 @@ function showQrModal(car) {
     qrLinkText.innerHTML = `<a href="${url}" target="_blank" style="color: var(--color-cyan); text-decoration: underline; word-break: break-all;">${url}</a>`;
     qrImage.style.cursor = 'pointer';
     qrImage.onclick = () => window.open(url, '_blank');
-    
+
     btnCopy.onclick = () => {
         navigator.clipboard.writeText(url).then(() => {
             showFloatingToast("Enlace del cliente copiado al portapapeles.");
@@ -1910,27 +1790,27 @@ function showQrModal(car) {
 function copyPostularLink() {
     let baseUrl = window.location.origin + window.location.pathname;
     baseUrl = baseUrl.replace('index.html', '');
-    if(!baseUrl.endsWith('/')) baseUrl += '/';
+    if (!baseUrl.endsWith('/')) baseUrl += '/';
     const url = baseUrl + 'postular.html';
-    
+
     navigator.clipboard.writeText(url).then(() => {
         showFloatingToast("Enlace de postulación copiado para WhatsApp.");
     });
 }
 
-window.renderWashMenuOverride = function() {
+window.renderWashMenuOverride = function () {
     const grid = document.getElementById('wash-menu-grid');
     if (!grid) return;
     grid.innerHTML = '';
-    
+
     WASH_PACKAGES.forEach(pkg => {
-        if(pkg.active === false) return;
-        
+        if (pkg.active === false) return;
+
         const card = document.createElement('div');
         const isSelected = selectedWashTypes.includes(pkg.id);
         card.className = 'wash-option-card wash-menu-card ' + (isSelected ? 'selected' : '');
         card.setAttribute('data-id', pkg.id);
-        
+
         card.innerHTML = `
             <div class="check-badge">�S</div>
             <div class="wash-icon">${pkg.icon}</div>
@@ -1939,117 +1819,245 @@ window.renderWashMenuOverride = function() {
                 <div class="wash-price">$${pkg.price.toLocaleString('es-AR')}</div>
             </div>
         `;
-        
+
         card.addEventListener('click', () => {
             if (selectedWashTypes.includes(pkg.id)) {
                 selectedWashTypes = selectedWashTypes.filter(id => id !== pkg.id);
             } else {
                 selectedWashTypes.push(pkg.id);
             }
-            
+
             window.renderWashMenuOverride();
-            
+
             let total = 0;
             selectedWashTypes.forEach(id => {
                 const found = WASH_PACKAGES.find(w => w.id === id);
                 if (found) total += found.price;
             });
-            
+
             if (elInputBudget) {
                 elInputBudget.value = total;
                 elInputBudget.classList.add('pulse-highlight');
                 setTimeout(() => elInputBudget.classList.remove('pulse-highlight'), 500);
             }
         });
-        
+
         grid.appendChild(card);
     });
 }
-setTimeout(() => { if(window.renderWashMenuOverride) window.renderWashMenuOverride(); }, 500);
+setTimeout(() => { if (window.renderWashMenuOverride) window.renderWashMenuOverride(); }, 500);
 
-window.openScannerModal = function() {
+let scannerStream = null;
+
+window.openScannerModal = function () {
     const modal = document.getElementById('modal-scanner-ia');
     const feed = document.querySelector('.scanner-feed');
     const text = document.getElementById('scanner-text');
-    
-    if(!modal) return;
-    
+    const video = document.getElementById('scanner-video');
+    const btnCapture = document.getElementById('btn-capture-scan');
+
+    if (!modal) return;
+
     modal.style.display = 'flex';
     void modal.offsetWidth;
     modal.classList.add('active');
+
+    text.innerText = "INICIANDO CÁMARA...";
     
-    setTimeout(() => {
-        feed.classList.add('scanning-active');
-        text.innerText = "ANALIZANDO VEHÍCULO...";
+    // Cargar Tesseract para IA Local si no existe
+    if (typeof Tesseract === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+        document.head.appendChild(script);
+    }
+
+    // Request camera (Soporta PC y Tablet)
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } })
+            .then(function(stream) {
+                scannerStream = stream;
+                if (video) {
+                    video.srcObject = stream;
+                    video.play();
+                }
+                text.innerText = "ALINEE LA PATENTE Y PRESIONE CAPTURAR";
+                if (btnCapture) btnCapture.style.display = 'inline-block';
+            })
+            .catch(function(err) {
+                console.error("Camera error:", err);
+                text.innerText = "ERROR DE CÁMARA. MODO SIMULACIÓN.";
+                simulateScanner();
+            });
+    } else {
+        text.innerText = "CÁMARA NO SOPORTADA. MODO SIMULACIÓN.";
+        simulateScanner();
+    }
+};
+
+window.closeScannerModal = function () {
+    const modal = document.getElementById('modal-scanner-ia');
+    const btnCapture = document.getElementById('btn-capture-scan');
+    
+    if (scannerStream) {
+        scannerStream.getTracks().forEach(track => track.stop());
+        scannerStream = null;
+    }
+    
+    if (btnCapture) btnCapture.style.display = 'none';
+    if (modal) modal.style.display = 'none';
+};
+
+document.getElementById('btn-capture-scan')?.addEventListener('click', async () => {
+    const video = document.getElementById('scanner-video');
+    const canvas = document.getElementById('scanner-canvas');
+    const text = document.getElementById('scanner-text');
+    const btnCapture = document.getElementById('btn-capture-scan');
+
+    if (!video || !canvas) return;
+
+    // Pause video to "freeze" frame
+    video.pause();
+    btnCapture.style.display = 'none';
+    text.innerText = "ANALIZANDO VEHÍCULO CON IA...";
+    
+    // Draw to canvas with filters to improve OCR
+    const scale = 2; // Scale up image for better OCR accuracy
+    canvas.width = video.videoWidth * scale;
+    canvas.height = video.videoHeight * scale;
+    const ctx = canvas.getContext('2d');
+    
+    // NO aplicar filtros (Gemini necesita ver el color real del auto)
+    // ctx.filter = 'grayscale(100%) contrast(200%) brightness(120%)';
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    const base64Image = canvas.toDataURL('image/jpeg', 0.8);
+
+    try {
+        text.innerText = "IA VISUAL ANALIZANDO VEHÍCULO...";
+        
+        // Remover el prefijo de base64 (data:image/jpeg;base64,)
+        const base64Data = base64Image.split(',')[1];
+        
+        const response = await fetch('/api/scan-vehicle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64Data })
+        });
+
+        const result = await response.json();
+        
+        if (result.error) throw new Error(result.error.message);
+        
+        const textResponse = result.candidates[0].content.parts[0].text;
+        console.log("Respuesta Gemini:", textResponse);
+        
+        // Extraer solo la parte JSON con expresión regular (por si devuelve texto basura)
+        const match = textResponse.match(/\{[\s\S]*\}/);
+        if (!match) throw new Error("No se pudo extraer JSON de la respuesta");
+        
+        const data = JSON.parse(match[0]);
+        
+        text.innerText = "¡VEHÍCULO DETECTADO CON ÉXITO!";
+        
+        // Rellenar campos
+        if (data.brand || data.model) {
+            document.getElementById('input-nickname').value = `${data.brand || ''} ${data.model || ''}`.trim();
+        }
+        
+        if (data.plate) {
+            document.getElementById('input-plate').value = data.plate.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+        }
+        
+        if (data.color) {
+            document.getElementById('input-color').value = data.color.toUpperCase();
+        }
+        
+        if (window.calculateBudget) { window.calculateBudget(); }
         
         setTimeout(() => {
-            text.innerText = "¡VEHÍCULO DETECTADO!";
-            feed.classList.remove('scanning-active');
-            feed.style.background = 'radial-gradient(circle at center, rgba(0,240,255,0.2) 0%, #000 100%)';
-            
+            window.closeScannerModal();
+            if (typeof showFloatingToast === 'function') showFloatingToast("Análisis IA Visual exitoso");
+        }, 2000);
+
+    } catch (err) {
+        console.error("Error analizando con Gemini:", err);
+        text.innerText = "ERROR EN IA VISUAL. USANDO SIMULACIÓN...";
+        simulateScanner();
+    }
+});
+
+function simulateScanner() {
+    const text = document.getElementById('scanner-text');
+    const feed = document.querySelector('.scanner-feed');
+    
+    setTimeout(() => {
+        if (feed) feed.classList.add('scanning-active');
+        if (text) text.innerText = "ANALIZANDO VEHÍCULO...";
+
+        setTimeout(() => {
+            if (text) text.innerText = "¡VEHÍCULO DETECTADO!";
+            if (feed) {
+                feed.classList.remove('scanning-active');
+                feed.style.background = 'radial-gradient(circle at center, rgba(0,240,255,0.2) 0%, #000 100%)';
+            }
+
             const mockCars = [
                 { nick: "Audi A3", plate: "AF432RT", color: "#ffffff", cat: "Auto", img: "assets/car_auto.png" },
                 { nick: "Toyota Hilux", plate: "AD991ZZ", color: "#a8a8a8", cat: "Camioneta", img: "assets/car_camioneta.png" },
-                { nick: "VW Taos", plate: "AE123CD", color: "#1e3a8a", cat: "SUV", img: "assets/car_suv.png" },
                 { nick: "Ford Focus", plate: "AC876HG", color: "#dc2626", cat: "Auto", img: "assets/car_auto.png" },
                 { nick: "RAM 1500", plate: "AE112QQ", color: "#000000", cat: "Camioneta", img: "assets/car_camioneta.png" }
             ];
             const randCar = mockCars[Math.floor(Math.random() * mockCars.length)];
-            
+
             document.getElementById('input-nickname').value = randCar.nick;
             document.getElementById('input-plate').value = randCar.plate;
             document.getElementById('input-color').value = randCar.color;
-            if(document.getElementById('input-category')) {
-                document.getElementById('input-category').value = randCar.cat;
-            }
-            if(document.getElementById('color-hex-label')) {
-                document.getElementById('color-hex-label').innerText = randCar.color;
-            }
+            if (document.getElementById('input-category')) document.getElementById('input-category').value = randCar.cat;
+            if (document.getElementById('color-hex-label')) document.getElementById('color-hex-label').innerText = randCar.color;
 
             const realImg = document.getElementById('scanner-real-image');
             if (realImg) {
                 realImg.src = randCar.img;
                 realImg.style.display = 'block';
-                void realImg.offsetWidth;
-                realImg.style.opacity = '1';
+                setTimeout(() => { realImg.style.opacity = '1'; }, 50);
             }
-            
-            if(window.calculateBudget) { window.calculateBudget(); }
-            
+
+            if (window.calculateBudget) { window.calculateBudget(); }
+
             setTimeout(() => {
-                if(window.closeScannerModal) window.closeScannerModal();
-                else modal.style.display = 'none';
-                if(typeof showFloatingToast === 'function') showFloatingToast("Datos del vehículo cargados por IA.");
-                if (realImg) {
-                    realImg.style.opacity = '0';
-                    setTimeout(() => { realImg.style.display = 'none'; }, 500);
-                }
+                window.closeScannerModal();
+                if (typeof showFloatingToast === 'function') showFloatingToast("Datos simulados cargados.");
             }, 2500);
-            
+
         }, 3000);
     }, 500);
 }
 
 
-// --- GESTI�N DE CATEGORÍAS DE VEHÍCULOS ---
+// --- GESTI N DE CATEGORÍAS DE VEHÍCULOS ---
 const DEFAULT_VEHICLE_CATEGORIES = [
-        { id: 'Auto', percentage: 0, icon: '�xa' },
-        { id: 'SUV', percentage: 10, icon: '�xa"' },
-        { id: 'Camioneta', percentage: 20, icon: '�x:�' }
-    ];
+    { id: 'Auto', percentage: 0, icon: '🚗' },
+    { id: 'Camioneta', percentage: 20, icon: '🚐' }
+];
 
 let VEHICLE_CATEGORIES = [];
 
 function initVehicleCategories() {
-    const saved = localStorage.getItem('lavadero_vehicle_categories');
+    let saved = localStorage.getItem('lavadero_vehicle_categories');
+    
+    // Si los datos están corruptos o incluyen 'SUV', forzamos el reinicio a los defaults
+    if (saved && (saved.includes('xa') || saved.includes('x:') || saved.includes('SUV'))) {
+        localStorage.removeItem('lavadero_vehicle_categories');
+        saved = null;
+    }
+
     if (saved) {
         VEHICLE_CATEGORIES = JSON.parse(saved);
         // Migrate old data that used surcharge
         VEHICLE_CATEGORIES = VEHICLE_CATEGORIES.map(cat => {
             if (cat.percentage === undefined && cat.surcharge !== undefined) {
                 // Convert old fixed surcharge to an approximate percentage or just 10/20
-                if (cat.id === 'SUV') cat.percentage = 10;
-                else if (cat.id === 'Camioneta') cat.percentage = 20;
+                if (cat.id === 'Camioneta') cat.percentage = 20;
                 else cat.percentage = 0;
             }
             return cat;
@@ -2070,7 +2078,7 @@ function updateCategorySelects() {
         VEHICLE_CATEGORIES.forEach(cat => {
             const opt = document.createElement('option');
             opt.value = cat.id;
-            opt.innerText = `${cat.icon} ${cat.id} (${cat.percentage >= 0 ? '+' : ''}${cat.percentage}%)`;
+            opt.innerText = `${cat.icon} ${cat.id}`;
             select.appendChild(opt);
         });
     }
@@ -2080,7 +2088,7 @@ function renderVehicleCategoriesTable() {
     const tbody = document.getElementById('categorias-tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
-    
+
     VEHICLE_CATEGORIES.forEach((cat, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -2095,34 +2103,34 @@ function renderVehicleCategoriesTable() {
     });
 }
 
-window.addVehicleCategory = function() {
+window.addVehicleCategory = function () {
     const id = document.getElementById('new-cat-id').value.trim();
     const perc = parseInt(document.getElementById('new-cat-perc').value) || 0;
-    const icon = document.getElementById('new-cat-icon').value.trim() || '�xa';
-    
+    const icon = document.getElementById('new-cat-icon').value.trim() || '🚗';
+
     if (!id) {
         alert('Debe ingresar un nombre para la categoría.');
         return;
     }
-    
+
     if (VEHICLE_CATEGORIES.some(c => c.id.toLowerCase() === id.toLowerCase())) {
         alert('La categoría ya existe.');
         return;
     }
-    
+
     VEHICLE_CATEGORIES.push({ id, percentage: perc, icon });
     localStorage.setItem('lavadero_vehicle_categories', JSON.stringify(VEHICLE_CATEGORIES));
-    
+
     document.getElementById('new-cat-id').value = '';
     document.getElementById('new-cat-perc').value = '0';
-    
+
     renderVehicleCategoriesTable();
     updateCategorySelects();
-    if(window.calculateBudget) window.calculateBudget();
+    if (window.calculateBudget) window.calculateBudget();
 }
 
-window.deleteVehicleCategory = function(index) {
-    if(VEHICLE_CATEGORIES.length <= 1) {
+window.deleteVehicleCategory = function (index) {
+    if (VEHICLE_CATEGORIES.length <= 1) {
         alert('Debe quedar al menos una categoría.');
         return;
     }
@@ -2130,11 +2138,11 @@ window.deleteVehicleCategory = function(index) {
     localStorage.setItem('lavadero_vehicle_categories', JSON.stringify(VEHICLE_CATEGORIES));
     renderVehicleCategoriesTable();
     updateCategorySelects();
-    if(window.calculateBudget) window.calculateBudget();
+    if (window.calculateBudget) window.calculateBudget();
 }
 
 // Override calculateBudget to use dynamic multipliers
-window.calculateBudget = function() {
+window.calculateBudget = function () {
     let totalBase = 0;
     if (typeof selectedWashTypes !== 'undefined') {
         selectedWashTypes.forEach(id => {
@@ -2142,7 +2150,7 @@ window.calculateBudget = function() {
             if (found) totalBase += found.price;
         });
     }
-    
+
     let multiplier = 1;
     const catInput = document.getElementById('input-category');
     if (catInput && VEHICLE_CATEGORIES) {
@@ -2152,9 +2160,9 @@ window.calculateBudget = function() {
             multiplier = 1 + (cat.percentage / 100);
         }
     }
-    
+
     const finalBudget = Math.round(totalBase * multiplier);
-    
+
     const inputBudget = document.getElementById('input-budget');
     if (inputBudget) {
         inputBudget.value = finalBudget;
@@ -2170,28 +2178,28 @@ setTimeout(() => { initVehicleCategories(); }, 500);
 const ARG_CARS_DB = {
     "Ninguna": { "Desconocido": "Auto" },
     "Volkswagen": {
-        "Gol": "Auto", "Polo": "Auto", "Up!": "Auto", "Vento": "Auto", "Amarok": "Camioneta", "Nivus": "SUV", "Taos": "SUV", "T-Cross": "SUV", "Saveiro": "Camioneta"
+        "Gol": "Auto", "Polo": "Auto", "Up!": "Auto", "Vento": "Auto", "Amarok": "Camioneta", "Nivus": "Camioneta", "Taos": "Camioneta", "T-Cross": "Camioneta", "Saveiro": "Camioneta"
     },
     "Toyota": {
-        "Etios": "Auto", "Yaris": "Auto", "Corolla": "Auto", "Hilux": "Camioneta", "Corolla Cross": "SUV", "SW4": "SUV", "RAV4": "SUV"
+        "Etios": "Auto", "Yaris": "Auto", "Corolla": "Auto", "Hilux": "Camioneta", "Corolla Cross": "Camioneta", "SW4": "Camioneta", "RAV4": "Camioneta"
     },
     "Ford": {
-        "Ka": "Auto", "Fiesta": "Auto", "Focus": "Auto", "Ranger": "Camioneta", "Territory": "SUV", "EcoSport": "SUV", "Maverick": "Camioneta", "Bronco": "SUV"
+        "Ka": "Auto", "Fiesta": "Auto", "Focus": "Auto", "Ranger": "Camioneta", "Territory": "Camioneta", "EcoSport": "Camioneta", "Maverick": "Camioneta", "Bronco": "Camioneta"
     },
     "Peugeot": {
-        "208": "Auto", "2008": "SUV", "3008": "SUV", "Partner": "Camioneta", "308": "Auto"
+        "208": "Auto", "2008": "Camioneta", "3008": "Camioneta", "Partner": "Camioneta", "308": "Auto"
     },
     "Chevrolet": {
-        "Onix": "Auto", "Cruze": "Auto", "Tracker": "SUV", "S10": "Camioneta", "Spin": "SUV", "Montana": "Camioneta"
+        "Onix": "Auto", "Cruze": "Auto", "Tracker": "Camioneta", "S10": "Camioneta", "Spin": "Camioneta", "Montana": "Camioneta"
     },
     "Fiat": {
-        "Cronos": "Auto", "Argo": "Auto", "Toro": "Camioneta", "Pulse": "SUV", "Strada": "Camioneta", "Mobi": "Auto", "Fiorino": "Camioneta"
+        "Cronos": "Auto", "Argo": "Auto", "Toro": "Camioneta", "Pulse": "Camioneta", "Strada": "Camioneta", "Mobi": "Auto", "Fiorino": "Camioneta"
     },
     "Renault": {
-        "Sandero": "Auto", "Logan": "Auto", "Kangoo": "Camioneta", "Duster": "SUV", "Alaskan": "Camioneta", "Stepway": "Auto", "Oroch": "Camioneta"
+        "Sandero": "Auto", "Logan": "Auto", "Kangoo": "Camioneta", "Duster": "Camioneta", "Alaskan": "Camioneta", "Stepway": "Auto", "Oroch": "Camioneta"
     },
     "Jeep": {
-        "Renegade": "SUV", "Compass": "SUV", "Commander": "SUV"
+        "Renegade": "Camioneta", "Compass": "Camioneta", "Commander": "Camioneta"
     },
     "Nissan": {
         "Kicks": "SUV", "Frontier": "Camioneta", "Versa": "Auto", "Sentra": "Auto"
@@ -2214,7 +2222,7 @@ function populateModels() {
     const brandSelect = document.getElementById('input-brand');
     const modelSelect = document.getElementById('input-model');
     if (!brandSelect || !modelSelect) return;
-    
+
     modelSelect.innerHTML = '<option value="">Selecciona Modelo</option>';
     const brand = brandSelect.value;
     if (brand && ARG_CARS_DB[brand]) {
@@ -2232,10 +2240,10 @@ function autoSelectCategory() {
     const modelSelect = document.getElementById('input-model');
     const catSelect = document.getElementById('input-category');
     if (!brandSelect || !modelSelect || !catSelect) return;
-    
+
     const brand = brandSelect.value;
     const model = modelSelect.value;
-    
+
     if (brand && model && ARG_CARS_DB[brand] && ARG_CARS_DB[brand][model]) {
         const size = ARG_CARS_DB[brand][model];
         // Encontrar el option en input-category que coincide con el ID
@@ -2244,7 +2252,7 @@ function autoSelectCategory() {
                 opt.selected = true;
             }
         });
-        if(window.calculateBudget) calculateBudget();
+        if (window.calculateBudget) calculateBudget();
     }
 }
 
@@ -2286,8 +2294,8 @@ function saveFinanzas() {
 function renderFinanzas() {
     const gastosTbody = document.getElementById('gastos-tbody');
     const sueldosTbody = document.getElementById('sueldos-tbody');
-    
-    if(gastosTbody) {
+
+    if (gastosTbody) {
         gastosTbody.innerHTML = '';
         FINANZAS.gastos.forEach(g => {
             const tr = document.createElement('tr');
@@ -2300,8 +2308,8 @@ function renderFinanzas() {
             gastosTbody.appendChild(tr);
         });
     }
-    
-    if(sueldosTbody) {
+
+    if (sueldosTbody) {
         sueldosTbody.innerHTML = '';
         FINANZAS.sueldos.forEach(s => {
             const tr = document.createElement('tr');
@@ -2313,15 +2321,15 @@ function renderFinanzas() {
             sueldosTbody.appendChild(tr);
         });
     }
-    
+
     updateRevenueDisplay();
 }
 
 function populateEmpleadosSueldos() {
     const select = document.getElementById('sueldo-empleado');
-    if(!select) return;
+    if (!select) return;
     select.innerHTML = '<option value="">Seleccione empleado...</option>';
-    
+
     // Extraer empleados unicos del registro
     const unicos = [...new Set(empleados.map(e => e.name))];
     unicos.forEach(emp => {
@@ -2334,13 +2342,13 @@ function populateEmpleadosSueldos() {
 
 document.addEventListener('DOMContentLoaded', () => {
     const formGastos = document.getElementById('form-gastos');
-    if(formGastos) {
+    if (formGastos) {
         formGastos.addEventListener('submit', (e) => {
             e.preventDefault();
             const detalle = document.getElementById('gasto-detalle').value;
             const monto = parseFloat(document.getElementById('gasto-monto').value);
             const estado = document.getElementById('gasto-estado').value;
-            
+
             const newGasto = {
                 fecha: new Date().toLocaleDateString('es-AR'),
                 detalle,
@@ -2351,21 +2359,21 @@ document.addEventListener('DOMContentLoaded', () => {
             saveFinanzas();
             renderFinanzas();
             formGastos.reset();
-            
+
             // Sync Supabase
             if (config.useSupabase) {
                 fetchSupabase('lavadero_gastos', { method: 'POST', body: JSON.stringify(newGasto) });
             }
         });
     }
-    
+
     const formSueldos = document.getElementById('form-sueldos');
-    if(formSueldos) {
+    if (formSueldos) {
         formSueldos.addEventListener('submit', (e) => {
             e.preventDefault();
             const empleado = document.getElementById('sueldo-empleado').value;
             const monto = parseFloat(document.getElementById('sueldo-monto').value);
-            
+
             const newSueldo = {
                 fecha: new Date().toLocaleDateString('es-AR'),
                 empleado_nombre: empleado,
@@ -2379,14 +2387,14 @@ document.addEventListener('DOMContentLoaded', () => {
             saveFinanzas();
             renderFinanzas();
             formSueldos.reset();
-            
+
             // Sync Supabase
             if (config.useSupabase) {
                 fetchSupabase('lavadero_sueldos', { method: 'POST', body: JSON.stringify(newSueldo) });
             }
         });
     }
-    
+
     initFinanzas();
 });
 
@@ -2408,12 +2416,12 @@ function renderAdminPromos() {
     const tbody = document.getElementById('promos-tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
-    
+
     if (APP_PROMOS.length === 0) {
         tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--color-text-dim);">No hay promos publicadas.</td></tr>';
         return;
     }
-    
+
     APP_PROMOS.forEach(promo => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -2431,34 +2439,34 @@ if (formPromo) {
         e.preventDefault();
         const title = document.getElementById('promo-title').value;
         const content = document.getElementById('promo-content').value;
-        
+
         const newPromo = {
             id: Date.now().toString(),
             title: title,
             content: content,
             is_active: true
         };
-        
+
         APP_PROMOS.push(newPromo);
         localStorage.setItem('lavadero_promos', JSON.stringify(APP_PROMOS));
-        
+
         if (config.useSupabase) {
             await fetchSupabase('announcements', {
                 method: 'POST',
                 body: JSON.stringify(newPromo)
             });
         }
-        
+
         renderAdminPromos();
         formPromo.reset();
         showFloatingToast('Promo publicada en la App Cliente');
     });
 }
 
-window.eliminarPromo = async function(id) {
+window.eliminarPromo = async function (id) {
     APP_PROMOS = APP_PROMOS.filter(p => p.id !== id);
     localStorage.setItem('lavadero_promos', JSON.stringify(APP_PROMOS));
-    
+
     if (config.useSupabase) {
         await fetchSupabase(`announcements?id=eq.${id}`, { method: 'DELETE' });
     }
@@ -2473,10 +2481,10 @@ window.addEventListener('storage', (e) => {
         if (!config.useSupabase) {
             const savedVehicles = localStorage.getItem('lavadero_active_vehicles');
             if (savedVehicles) activeVehicles = JSON.parse(savedVehicles);
-            
+
             const savedHistory = localStorage.getItem('lavadero_completed_history');
             if (savedHistory) washHistory = JSON.parse(savedHistory);
-            
+
             if (typeof renderAll === 'function') {
                 renderAll();
             }
@@ -2506,13 +2514,13 @@ function toggleFullscreen(cameraElement) {
 setInterval(() => {
     try {
         if (!activeVehicles) return;
-        
+
         const currentTime = Date.now();
         const SERVICIOS_CON_ASPIRADO = ['combo-limpieza-total', 'combo-vip-gold', 'aspirado-interior'];
-        
+
         let lavadoCars = activeVehicles.filter(v => v.zone === 'lavado');
         let aspiradoCars = activeVehicles.filter(v => v.zone === 'aspirado');
-        
+
         for (let car of lavadoCars) {
             let elapsedMins = (currentTime - new Date(car.entered_at).getTime()) / 60000;
             if (elapsedMins >= 7) {
@@ -2523,14 +2531,14 @@ setInterval(() => {
                 }
             }
         }
-        
+
         for (let car of aspiradoCars) {
             let elapsedMins = (currentTime - new Date(car.entered_at).getTime()) / 60000;
             if (elapsedMins >= 7) {
                 updateVehicleZone(car.id, 'terminado');
             }
         }
-        
+
         lavadoCars = activeVehicles.filter(v => v.zone === 'lavado');
         if (lavadoCars.length === 0) {
             let esperaCars = activeVehicles.filter(v => v.zone === 'espera');

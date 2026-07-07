@@ -1,0 +1,35 @@
+{
+  "id": "/lavadero-lujo-kiosko",
+  "name": "L1DERES Kiosco Autogestión",
+  "short_name": "L1DERES Kiosco",
+  "description": "Kiosco de autogestión para registrar ingresos y servicios en el Lavadero L1DERES.",
+  "start_url": "./kiosko.html?pwa=true",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#0a0a0f",
+  "theme_color": "#c8960c",
+  "orientation": "any",
+  "lang": "es-AR",
+  "categories": ["business", "utilities"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

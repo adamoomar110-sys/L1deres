@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kiosco Autogestión - L1DERES</title>
+    
+    <link rel="manifest" href="manifest-kiosko.json">
+    <meta name="theme-color" content="#c8960c">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            --color-cyan: #06b6d4;
+            --color-yellow: #eab308;
+            --color-lime: #84cc16;
+            --glass-bg: rgba(15, 15, 20, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --card-radius: 20px;
+        }
+        
+        body {
+            background: radial-gradient(circle at top, #1a1a24 0%, #050505 100%);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Persistent Header */
+        .kiosk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 3rem;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .kiosk-logo {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            height: 60px;
+        }
+
+        .kiosk-logo-img {
+            height: 100%;
+            max-height: 60px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(200, 150, 12, 0.4));
+            transition: transform 0.3s ease;
+        }
+
+        .kiosk-logo-img:hover {
+            transform: scale(1.05);
+        }
+
+        .header-info {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .info-pill {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+        .info-pill i { color: var(--color-cyan); }
+        .queue-eta { color: var(--color-yellow); font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 1.1rem;}
+
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 0 15px rgba(37,211,102,0.4);
+            transition: 0.3s;
+        }
+
+
+        /* Main Content - contenedor principal ahora es .kiosk-layout */
+
+        .wizard-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            padding: 3rem;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            z-index: 0;
+        }
+        .step-dot {
+            width: 40px; height: 40px;
+            background: #111;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            z-index: 1;
+            color: #666;
+            transition: 0.3s;
+        }
+        .step-dot.active {
+            border-color: var(--color-cyan);
+            color: var(--color-cyan);
+            box-shadow: 0 0 15px rgba(6,182,212,0.4);
+        }
+        .step-dot.done {
+            background: var(--color-cyan);
+            color: #000;
+            border-color: var(--color-cyan);
+        }
+
+        .step-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .step-content.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .step-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: var(--color-cyan);
+        }
+
+        /* Grids and Cards */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .select-card {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            box-sizing: border-box;
+        }
+        .select-card:hover { background: rgba(255,255,255,0.05); }
+        .select-card.selected {
+            border-color: var(--color-cyan);
+            background: rgba(6,182,212,0.1);
+            box-shadow: 0 0 20px rgba(6,182,212,0.3);
+        }
+        .select-card i { font-size: 3rem; margin-bottom: 1rem; color: #fff; }
+        .select-card h3 { margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.2rem; }
+
+        /* Input Patente */
+        .plate-input-container {
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .plate-input {
+            width: 100%;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-size: 2.5rem;
+            font-family: 'Orbitron', monospace;
+            color: #fff;
+            text-align: center;
+            text-transform: uppercase;
+            outline: none;
+            letter-spacing: 5px;
+            transition: 0.3s;
+            box-sizing: border-box;
+        }
+        .plate-input:focus {
+            border-color: var(--color-cyan);
+            box-shadow: 0 0 15px rgba(6,182,212,0.3);
+        }
+
+        .promo-alert {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            display: none;
+        }
+        .promo-success {
+            background: rgba(132, 204, 22, 0.15);
+            border: 1px solid var(--color-lime);
+            color: var(--color-lime);
+        }
+
+        /* Buttons */
+        .wizard-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 2rem;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.3s;
+        }
+        .btn-prev {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        .btn-next {
+            background: linear-gradient(90deg, #06b6d4, #3b82f6);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(6,182,212,0.3);
+        }
+        .btn:disabled {
+            opacity: 0.5; cursor: not-allowed;
+            background: rgba(255,255,255,0.05); box-shadow: none;
+        }
+
+        /* Resumen Price */
+        .price-display {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--color-lime);
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-top: 10px;
+        }
+        .old-price {
+            text-decoration: line-through;
+            color: #666;
+            font-size: 1rem;
+            margin-right: 10px;
+        }
+
+        /* ── STATUS BAR ── */
+        .status-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .status-pill {
+            flex: 1;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 0.9rem 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .status-pill i {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.4);
+        }
+        .status-pill-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 2px;
+        }
+        .status-pill-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .status-pill-value.yellow { color: var(--color-yellow); }
+        .status-pill-value.cyan   { color: var(--color-cyan); }
+        .status-pill-value.lime   { color: var(--color-lime); }
+        .status-pill-value.red    { color: #ef4444; }
+
+        /* ── ZONA DE ESPERA PANEL ── */
+        .kiosk-layout {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        .kiosk-left {
+            flex: 1;
+            min-width: 0;
+        }
+        .kiosk-right {
+            width: 320px;
+            flex-shrink: 0;
+        }
+        .zona-espera-panel {
+            background: rgba(0,0,0,0.45);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 20px;
+            padding: 1.5rem;
+            position: sticky;
+            top: 100px;
+        }
+        .zona-espera-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            padding-bottom: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        .queue-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .queue-car-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 0.9rem 0.8rem;
+            text-align: center;
+            position: relative;
+        }
+        .queue-car-card.slot-empty {
+            opacity: 0.2;
+            border-style: dashed;
+        }
+        .queue-car-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 3px;
+            line-height: 1.2;
+        }
+        .queue-car-plate {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            margin-bottom: 6px;
+        }
+        .queue-car-time {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fff;
+            background: rgba(0,0,0,0.4);
+            border-radius: 6px;
+            padding: 3px 8px;
+            display: inline-block;
+        }
+        .queue-empty-msg {
+            text-align: center;
+            color: rgba(255,255,255,0.3);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            padding: 2rem 0;
+        }
+
+        /* Responsive: stack en pantallas pequeñas */
+        @media (max-width: 900px) {
+            .kiosk-layout { flex-direction: column; padding: 1rem; }
+            .kiosk-right { width: 100%; }
+            .zona-espera-panel { position: static; }
+        }
+
+        /* Adaptación específica para Teléfonos y Pantallas Medianas/Pequeñas */
+        @media (max-width: 650px) {
+            .kiosk-header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 1rem 1.5rem;
+                align-items: center;
+                text-align: center;
+            }
+            .header-info {
+                flex-direction: column;
+                gap: 8px;
+                width: 100%;
+            }
+            .info-pill, .whatsapp-btn {
+                width: 100%;
+                justify-content: center;
+                box-sizing: border-box;
+            }
+            .kiosk-logo {
+                height: 50px;
+            }
+            .kiosk-logo-img {
+                max-height: 50px;
+            }
+            
+            .wizard-card {
+                padding: 1.5rem 1rem;
+                border-radius: 16px;
+            }
+            .step-indicator {
+                margin-bottom: 1.5rem;
+            }
+            .step-title {
+                font-size: 1.3rem;
+                margin-bottom: 1rem;
+            }
+
+            /* Apilar las opciones de la grilla verticalmente para teléfonos */
+            .grid-3, .grid-2 {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .select-card {
+                min-height: 130px !important; /* Altura más cómoda para móviles en 1 columna */
+                padding: 1.2rem;
+                flex-direction: row; /* Diseño horizontal en móvil */
+                justify-content: flex-start;
+                align-items: center;
+                gap: 20px;
+                text-align: left;
+            }
+            .select-card i {
+                font-size: 2.2rem;
+                margin-bottom: 0;
+            }
+            .select-card h3 {
+                font-size: 1.1rem;
+            }
+            .select-card .price-display {
+                margin-top: 0;
+                margin-left: auto;
+                font-size: 1.2rem;
+            }
+            .select-card .old-price {
+                font-size: 0.85rem;
+            }
+
+            .wizard-actions {
+                margin-top: 2rem;
+                padding-top: 1.5rem;
+            }
+            .btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+                flex: 1;
+                text-align: center;
+            }
+            .btn-prev {
+                margin-right: 0.5rem;
+            }
+            
+            .plate-input {
+                font-size: 1.8rem;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .queue-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="kiosk-header">
+        <div class="kiosk-logo">
+            <img src="logo.png" alt="L1DERES Automatic Car Wash" class="kiosk-logo-img">
+        </div>
+        
+        <div class="header-info">
+            <button id="install-pwa-btn" class="info-pill install-btn" style="display: none; cursor: pointer; background: linear-gradient(135deg, #c8960c, #f5d061); border: 1px solid rgba(255,255,255,0.1); color: #000; font-weight: 800; font-family: 'Outfit', sans-serif; box-shadow: 0 0 15px rgba(200, 150, 12, 0.4);">
+                <i class="fa-solid fa-download" style="color: #000;"></i> Instalar Kiosco
+            </button>
+            <button class="info-pill install-btn" style="cursor: pointer; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Outfit', sans-serif;" onclick="window.location.reload(true)">
+                <i class="fa-solid fa-arrows-rotate"></i> Actualizar
+            </button>
+            <div class="info-pill">
+                <i class="fa-regular fa-clock"></i>
+                Lunes a Sábados 08:00 a 20:00
+            </div>
+            <div class="info-pill">
+                <i class="fa-solid fa-hourglass-half"></i>
+                Espera: <span class="queue-eta" id="global-eta">Calculando...</span>
+            </div>
+            <button id="install-pwa-btn" class="whatsapp-btn" style="background: #06b6d4; display: none; cursor: pointer; border: none; font-family: 'Outfit', sans-serif; font-size: 1rem;"><i class="fa-solid fa-download"></i> Instalar App</button>
+            <a href="https://wa.me/123456789" class="whatsapp-btn" target="_blank">
+                <i class="fa-brands fa-whatsapp"></i> Consultas
+            </a>
+        </div>
+    </header>
+
+    <div class="kiosk-layout">
+
+        <!-- COLUMNA IZQUIERDA: wizard -->
+        <div class="kiosk-left">
+
+            <!-- BARRA DE ESTADO -->
+            <div class="status-bar">
+                <div class="status-pill">
+                    <i class="fa-regular fa-clock"></i>
+                    <div>
+                        <div class="status-pill-label">Demora de Ingreso</div>
+                        <div class="status-pill-value yellow" id="status-demora">~ -- MIN</div>
+                    </div>
+                </div>
+                <div class="status-pill">
+                    <i class="fa-solid fa-signal"></i>
+                    <div>
+                        <div class="status-pill-label">Densidad Cola</div>
+                        <div class="status-pill-value" id="status-densidad">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wizard-card">
+                
+                <!-- Indicador de pasos -->
+                <div class="step-indicator">
+                    <div class="step-dot active" id="dot-1">1</div>
+                    <div class="step-dot" id="dot-2">2</div>
+                    <div class="step-dot" id="dot-3">3</div>
+                    <div class="step-dot" id="dot-4">4</div>
+                    <div class="step-dot" id="dot-5">5</div>
+                </div>
+
+                <!-- PASO 1: Tipo Vehiculo -->
+                <div class="step-content active" id="step-1">
+                    <h2 class="step-title">¿Qué vehículo vas a lavar?</h2>
+                    <div class="grid-3">
+                        <div class="select-card" data-cat="Auto" onclick="selectCat('Auto', 0)">
+                            <i class="fa-solid fa-car"></i>
+                            <h3>Auto</h3>
+                        </div>
+                        <div class="select-card" data-cat="SUV" onclick="selectCat('SUV', 20)">
+                            <i class="fa-solid fa-car-side"></i>
+                            <h3>SUV</h3>
+                        </div>
+                        <div class="select-card" data-cat="Camioneta" onclick="selectCat('Camioneta', 50)">
+                            <i class="fa-solid fa-truck-pickup"></i>
+                            <h3>Camioneta</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 2: Patente -->
+                <div class="step-content" id="step-2">
+                    <h2 class="step-title">Ingresa tu Patente</h2>
+                    <div class="plate-input-container">
+                        <input type="text" id="plate-input" class="plate-input" placeholder="AA123BB" maxlength="7">
+                        <button class="btn btn-next" style="width:100%; margin-top:1rem;" onclick="checkPromo()">Verificar Promociones</button>
+                        <div id="promo-alert" class="promo-alert"></div>
+                    </div>
+                </div>
+
+                <!-- PASO 3: Lavado -->
+                <div class="step-content" id="step-3">
+                    <h2 class="step-title">Selecciona el Servicio</h2>
+                    <div class="grid-2" id="wash-grid"></div>
+                </div>
+
+                <!-- PASO 4: Teléfono -->
+                <div class="step-content" id="step-4">
+                    <h2 class="step-title">Número de WhatsApp</h2>
+                    <div class="plate-input-container">
+                        <input type="tel" id="phone-input" class="plate-input" placeholder="Ej: 1123456789" maxlength="15" oninput="order.phone = this.value; validateStep();" style="text-transform: none; font-family: 'Inter', sans-serif; font-size: 2rem;">
+                        <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">Vinculamos tu WhatsApp a la patente para notificarte cuando el auto esté listo.</p>
+                    </div>
+                </div>
+
+                <!-- PASO 5: Pago -->
+                <div class="step-content" id="step-5">
+                    <h2 class="step-title">Forma de Pago</h2>
+                    <div class="grid-3">
+                        <div class="select-card" data-pay="efectivo" onclick="selectPay('efectivo')">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                            <h3>Efectivo</h3>
+                        </div>
+                        <div class="select-card" data-pay="tarjeta" onclick="selectPay('tarjeta')">
+                            <i class="fa-solid fa-credit-card"></i>
+                            <h3>Tarjeta</h3>
+                        </div>
+                        <div class="select-card" data-pay="transferencia" onclick="selectPay('transferencia')">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                            <h3>MercadoPago</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controles -->
+                <div class="wizard-actions">
+                    <button class="btn btn-prev" id="btn-prev" onclick="prevStep()" style="visibility: hidden;">Atrás</button>
+                    <button class="btn btn-next" id="btn-next" onclick="nextStep()" disabled>Siguiente</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: zonas del lavadero -->
+        <div class="kiosk-right">
+            <div class="zona-espera-panel" style="max-height: calc(100vh - 120px); overflow-y: auto;">
+                <div class="zona-espera-title">1. Ingreso Inteligente</div>
+                <div class="queue-grid" id="grid-pre-espera"></div>
+                <div class="zona-espera-title" style="margin-top: 1.5rem;">2. En Espera</div>
+                <div class="queue-grid" id="grid-espera"></div>
+                <div class="zona-espera-title" style="margin-top: 1.5rem;">3. Lavado / Aspirado</div>
+                <div class="queue-grid" id="grid-lavado"></div>
+                <div class="zona-espera-title" style="margin-top: 1.5rem;">4. Terminado</div>
+                <div class="queue-grid" id="grid-terminado"></div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Config ---
+            const sbUrl = localStorage.getItem('LAVADERO_SB_URL') || 'https://hacmhlyvyyysnvekvhya.supabase.co';
+            const sbKey = localStorage.getItem('LAVADERO_SB_KEY') || 'sb_publishable_oEB1MoOee7lM99mvHCu_aA_T98vg3NA';
+            let supabase = null;
+            try {
+                if (window.supabase) {
+                    supabase = window.supabase.createClient(sbUrl, sbKey);
+                }
+            } catch (e) {
+                console.warn('Supabase init error:', e);
+            }
+
+            let currentStep = 1;
+            const totalSteps = 5;
+
+            // ✅ Exponer al scope global para que los atributos oninput/onclick del HTML puedan acceder
+            window.order = {
+                category: null, surcharge: 0, plate: '', phone: '', hasPromo: false,
+                promoDiscount: 0, washType: null, washName: '', basePrice: 0,
+                finalPrice: 0, payment: null
+            };
+            let order = window.order; // alias local
+
+            let WASH_OPTIONS = {
+                'combo-limpieza-total': { name: 'Combo Limpieza Total', icon: 'fa-star', price: 18000 },
+                'combo-vip-gold':       { name: 'Combo VIP Gold',        icon: 'fa-crown', price: 25000 },
+                'lavado-carroceria':    { name: 'Exterior Simple',        icon: 'fa-droplet', price: 12000 },
+                'lavado-express':       { name: 'Lavado Express',         icon: 'fa-bolt', price: 8000 }
+            };
+
+            async function syncWashPrices() {
+                let parsed = null;
+                
+                if (supabase) {
+                    try {
+                        const { data, error } = await supabase.from('lavadero_precios').select('*');
+                        if (!error && data) {
+                            parsed = data.map(row => ({ id: row.id, title: row.name, price: row.price }));
+                        }
+                    } catch(e) {}
+                }
+                
+                if (!parsed) {
+                    const settingsStr = localStorage.getItem('lavadero_wash_settings');
+                    if (settingsStr) {
+                        try { parsed = JSON.parse(settingsStr); } catch(e) {}
+                    }
+                }
+                
+                if (parsed) {
+                    parsed.forEach(pkg => {
+                        if (WASH_OPTIONS[pkg.id]) {
+                            WASH_OPTIONS[pkg.id].price = pkg.price;
+                            if (pkg.title) WASH_OPTIONS[pkg.id].name = pkg.title;
+                        }
+                    });
+                    
+                    if (currentStep === 3) renderWashGrid();
+                }
+            }
+
+            // --- Zona de Espera ---
+            const SLOT_COUNT = 8;
+            const MINS_PER_CAR = 7;
+
+            async function updateGlobalETA() {
+                let vehicles = [];
+                
+                // 1. Try to fetch from Supabase
+                let fetchedFromSupabase = false;
+                if (supabase) {
+                    try {
+                        const { data, error } = await supabase.from('lavadero_camera_queue').select('*').order('entered_at', { ascending: true });
+                        if (!error && data) {
+                            vehicles = data;
+                            fetchedFromSupabase = true;
+                            // Optionally update localStorage for fallback
+                            localStorage.setItem('lavadero_active_vehicles', JSON.stringify(data));
+                        }
+                    } catch(e) {
+                        console.warn('Supabase fetch failed, falling back to localStorage');
+                    }
+                }
+                
+                // 2. Fallback to localStorage
+                if (!fetchedFromSupabase) {
+                    const vehiclesStr = localStorage.getItem('lavadero_active_vehicles');
+                    if (vehiclesStr) {
+                        try {
+                            const vs = JSON.parse(vehiclesStr);
+                            if (Array.isArray(vs)) vehicles = vs;
+                        } catch(e) {}
+                    }
+                }
+                
+                // Procesar nickname
+                vehicles = vehicles.map(dbCar => {
+                    let extra = {};
+                    try {
+                        if (dbCar.nickname && dbCar.nickname.startsWith('{')) extra = JSON.parse(dbCar.nickname);
+                    } catch(e) {}
+                    return {
+                        ...dbCar,
+                        nickname: extra.name || dbCar.nickname || 'Vehículo',
+                        plate: extra.plate || dbCar.plate || ''
+                    };
+                });
+                
+                const count = vehicles.filter(v => v.zone === 'espera').length;
+                const el = document.getElementById('global-eta');
+                if (el) el.innerText = `Aprox. ${(count + 1) * 7} min`;
+
+                renderQueuePanel(vehicles);
+                renderStatusBar(vehicles);
+                syncWashPrices();
+            }
+            updateGlobalETA();
+            setInterval(updateGlobalETA, 5000);
+
+            // --- Zona de Espera ---
+
+            function renderZoneGrid(gridId, vehicles, emptyMsg, slotCount = 0) {
+                const grid = document.getElementById(gridId);
+                if (!grid) return;
+                
+                if (vehicles.length === 0 && slotCount === 0) {
+                    grid.innerHTML = `<div class="queue-empty-msg" style="grid-column:span 2; padding: 1rem; font-size:0.9rem">
+                        <i class="fa-solid fa-car" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:0.3"></i>
+                        ${emptyMsg}
+                    </div>`;
+                    return;
+                }
+                
+                let html = '';
+                const totalSlots = Math.max(vehicles.length, slotCount);
+                for (let i = 0; i < totalSlots; i++) {
+                    if (i < vehicles.length) {
+                        const car = vehicles[i];
+                        const mins = (gridId === 'grid-espera') ? (i + 1) * MINS_PER_CAR : 0;
+                        const colorHex = car.color || '#06b6d4';
+                        const name = car.nickname || `Auto ${i+1}`;
+                        html += `
+                        <div class="queue-car-card">
+                            <div class="queue-car-name">${name}</div>
+                            ${mins > 0 ? `<div class="queue-car-time">${mins} min</div>` : ''}
+                            <div style="margin-top:0.5rem;display:flex;justify-content:center;gap:10px">
+                                <div style="width:12px;height:12px;border-radius:50%;background:${colorHex}"></div>
+                            </div>
+                        </div>`;
+                    } else if (slotCount > 0) {
+                        html += `<div class="queue-car-card slot-empty"><div style="font-size:1.4rem;opacity:0.4">${i + 1}</div></div>`;
+                    }
+                }
+                grid.innerHTML = html;
+            }
+
+            function renderQueuePanel(vehicles) {
+                const preEspera = vehicles.filter(v => v.zone === 'pre_espera').sort((a, b) => new Date(a.entered_at) - new Date(b.entered_at));
+                const espera = vehicles.filter(v => v.zone === 'espera').sort((a, b) => new Date(a.entered_at) - new Date(b.entered_at));
+                const lavadoAspirado = vehicles.filter(v => v.zone === 'lavado' || v.zone === 'aspirado').sort((a, b) => new Date(a.entered_at) - new Date(b.entered_at));
+                const terminado = vehicles.filter(v => v.zone === 'terminado').sort((a, b) => new Date(b.entered_at) - new Date(a.entered_at));
+
+                renderZoneGrid('grid-pre-espera', preEspera, 'Sin autos en ingreso', 4);
+                renderZoneGrid('grid-espera', espera, 'Sin autos en espera', 8);
+                renderZoneGrid('grid-lavado', lavadoAspirado, 'Sin autos procesándose');
+                renderZoneGrid('grid-terminado', terminado, 'Sin autos terminados');
+            }
+
+            function renderStatusBar(vehicles) {
+                const waiting = vehicles.filter(v => v.zone === 'espera').length;
+                const totalMins = (waiting + 1) * MINS_PER_CAR;
+
+                // Demora
+                const demoraEl = document.getElementById('status-demora');
+                if (demoraEl) demoraEl.innerText = `~ ${totalMins} MINUTOS`;
+
+                // Densidad
+                const densEl = document.getElementById('status-densidad');
+                if (densEl) {
+                    let label, cls;
+                    if (waiting === 0)      { label = 'Libre';  cls = 'lime'; }
+                    else if (waiting <= 2)  { label = 'Baja';   cls = 'cyan'; }
+                    else if (waiting <= 5)  { label = 'Media';  cls = 'yellow'; }
+                    else                    { label = 'Alta';   cls = 'red'; }
+                    densEl.textContent = label;
+                    densEl.className = `status-pill-value ${cls}`;
+                }
+            }
+
+            // Actualizar panel si otra pestaña escribe en localStorage
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'lavadero_active_vehicles') updateGlobalETA();
+            });
+
+            // --- Wizard UI ---
+            function updateUI() {
+                for (let i = 1; i <= totalSteps; i++) {
+                    const dot = document.getElementById('dot-' + i);
+                    if (!dot) continue;
+                    if (i < currentStep) {
+                        dot.className = 'step-dot done';
+                        dot.innerHTML = '<i class="fa-solid fa-check"></i>';
+                    } else if (i === currentStep) {
+                        dot.className = 'step-dot active';
+                        dot.innerHTML = i;
+                    } else {
+                        dot.className = 'step-dot';
+                        dot.innerHTML = i;
+                    }
+                }
+                document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+                const stepEl = document.getElementById('step-' + currentStep);
+                if (stepEl) stepEl.classList.add('active');
+
+                const btnPrev = document.getElementById('btn-prev');
+                if (btnPrev) btnPrev.style.visibility = currentStep > 1 ? 'visible' : 'hidden';
+
+                const btnNext = document.getElementById('btn-next');
+                if (btnNext) btnNext.innerText = currentStep === totalSteps ? 'Confirmar y Finalizar' : 'Siguiente';
+
+                validateStep();
+                if (currentStep === 3) renderWashGrid();
+            }
+
+            // ✅ Exponer al scope global para que los handlers onclick/oninput del HTML puedan acceder
+            window.validateStep = function validateStep() {
+                let isValid = false;
+                if (currentStep === 1) isValid = order.category !== null;
+                if (currentStep === 2) isValid = order.plate.length >= 6;
+                if (currentStep === 3) isValid = order.washType !== null;
+                if (currentStep === 4) isValid = order.phone.length >= 8;
+                if (currentStep === 5) isValid = order.payment !== null;
+                const btn = document.getElementById('btn-next');
+                if (btn) btn.disabled = !isValid;
+            };
+            // Alias local para uso interno
+            function validateStep() { window.validateStep(); }
+
+            // Expose to HTML onclick attributes
+            window.nextStep = function() {
+                if (currentStep === 2 && !order.hasPromo) {
+                    const pi = document.getElementById('plate-input');
+                    if (pi) order.plate = pi.value.trim().toUpperCase();
+                }
+                if (currentStep === totalSteps) {
+                    finishOrder();
+                } else {
+                    currentStep++;
+                    updateUI();
+                }
+            };
+
+            window.prevStep = function() {
+                if (currentStep > 1) { currentStep--; updateUI(); }
+            };
+
+            window.selectCat = function(cat, surcharge) {
+                order.category = cat;
+                order.surcharge = surcharge;
+                document.querySelectorAll('#step-1 .select-card').forEach(el => el.classList.remove('selected'));
+                const card = document.querySelector(`#step-1 .select-card[data-cat="${cat}"]`);
+                if (card) card.classList.add('selected');
+                validateStep();
+                setTimeout(window.nextStep, 400);
+            };
+
+            window.checkPromo = async function() {
+                const plateInput = document.getElementById('plate-input');
+                const alertBox = document.getElementById('promo-alert');
+                if (!plateInput || !alertBox) return;
+                const plate = plateInput.value.trim().toUpperCase();
+                if (plate.length < 6) return;
+
+                try {
+                    if (!supabase) throw new Error('offline');
+                    const { data, error } = await supabase.from('lavadero_clientes').select('*').eq('patente', plate);
+                    if (!error && data && data.length > 0) {
+                        order.hasPromo = true;
+                        order.promoDiscount = 15;
+                        alertBox.className = 'promo-alert promo-success';
+                        alertBox.innerHTML = '<i class="fa-solid fa-gift"></i> ¡Cliente Registrado! Tienes un 15% de descuento hoy.';
+
+                        // ✅ FIX: precargar el teléfono guardado para que el paso 4 no bloquee
+                        const savedPhone = data[0].telefono || '';
+                        if (savedPhone && savedPhone.length >= 8) {
+                            order.phone = savedPhone;
+                            const phoneEl = document.getElementById('phone-input');
+                            if (phoneEl) phoneEl.value = savedPhone;
+                        }
+                    } else {
+                        order.hasPromo = false; order.promoDiscount = 0;
+                        alertBox.className = 'promo-alert';
+                        alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
+                        alertBox.innerHTML = 'Patente ingresada. Continuá para elegir el lavado.';
+                    }
+                } catch(err) {
+                    order.hasPromo = false; order.promoDiscount = 0;
+                    alertBox.className = 'promo-alert';
+                    alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
+                    alertBox.innerHTML = 'Patente guardada. Continuá para elegir el lavado.';
+                }
+                alertBox.style.display = 'block';
+                validateStep();
+            };
+
+            function renderWashGrid() {
+                const grid = document.getElementById('wash-grid');
+                if (!grid) return;
+                grid.innerHTML = '';
+                for (const [id, details] of Object.entries(WASH_OPTIONS)) {
+                    let conRecargo = details.price * (1 + order.surcharge / 100);
+                    let finalPrice = conRecargo;
+                    let oldPriceHTML = '';
+                    if (order.hasPromo && order.promoDiscount > 0) {
+                        finalPrice = conRecargo * (1 - order.promoDiscount / 100);
+                        oldPriceHTML = `<span class="old-price">$${conRecargo.toLocaleString('es-AR')}</span>`;
+                    }
+                    const isSelected = order.washType === id ? 'selected' : '';
+                    grid.innerHTML += `
+                    <div class="select-card ${isSelected}" data-wash="${id}" onclick="selectWash('${id}', '${details.name}', ${finalPrice})">
+                        <i class="fa-solid ${details.icon}"></i>
+                        <h3>${details.name}</h3>
+                        <div class="price-display">${oldPriceHTML}$${finalPrice.toLocaleString('es-AR')}</div>
+                    </div>`;
+                }
+            }
+
+            window.selectWash = function(id, name, finalPrice) {
+                order.washType = id; order.washName = name; order.finalPrice = finalPrice;
+                document.querySelectorAll('#step-3 .select-card').forEach(el => el.classList.remove('selected'));
+                const card = document.querySelector(`#step-3 .select-card[data-wash="${id}"]`);
+                if (card) card.classList.add('selected');
+                validateStep();
+                setTimeout(window.nextStep, 400);
+            };
+
+            window.selectPay = function(pay) {
+                order.payment = pay;
+                document.querySelectorAll('#step-5 .select-card').forEach(el => el.classList.remove('selected'));
+                const card = document.querySelector(`#step-5 .select-card[data-pay="${pay}"]`);
+                if (card) card.classList.add('selected');
+                validateStep();
+            };
+
+            async function finishOrder() {
+                const btnNext = document.getElementById('btn-next');
+                if (btnNext) { btnNext.innerText = 'Procesando...'; btnNext.disabled = true; }
+
+                if (supabase && order.phone && order.phone.length >= 8) {
+                    try {
+                        const { error } = await supabase.from('lavadero_clientes').upsert([{ patente: order.plate, telefono: order.phone }], { onConflict: 'patente' });
+                        if (error) console.warn('Supabase upsert error:', error);
+                    } catch(e) { console.warn('Error upsert cliente:', e); }
+                }
+
+                // Generar ID compatible con el dashboard (string UUID)
+                const carId = crypto.randomUUID ? crypto.randomUUID() : `kiosko-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                const trackingId = Math.floor(Math.random() * 900) + 100;
+
+                // Nickname como JSON (mismo formato que tablet_ingreso y addVehicle del panel)
+                const nicknamePayload = JSON.stringify({
+                    name: `Vehículo ${order.plate}`,
+                    plate: order.plate,
+                    budget: order.finalPrice,
+                    wash_type: order.washType,
+                    description: `Servicio: ${order.washName}. Pago: ${order.payment}.`,
+                    isPaid: order.payment !== 'efectivo',
+                    paymentMethod: order.payment
+                });
+
+                const carObj = {
+                    id: carId,
+                    tracking_id: trackingId,
+                    nickname: nicknamePayload,
+                    zone: 'pre_espera',
+                    color: '#06b6d4',
+                    entered_at: new Date().toISOString()
+                };
+
+                // Objeto local enriquecido para localStorage y posición en cola
+                const localCarObj = {
+                    id: carId,
+                    tracking_id: trackingId,
+                    plate: order.plate,
+                    nickname: `Vehículo ${order.plate}`,
+                    zone: 'pre_espera',
+                    color: '#06b6d4',
+                    wash_type: order.washType,
+                    budget: order.finalPrice,
+                    payment: order.payment,
+                    entered_at: new Date().toISOString()
+                };
+
+                let supabaseOk = false;
+                try {
+                    if (supabase) {
+                        const { error } = await supabase.from('lavadero_camera_queue').insert([carObj]);
+                        if (error) {
+                            console.warn('Supabase insert error:', error);
+                        } else {
+                            supabaseOk = true;
+                            console.log('✅ Vehículo registrado en Supabase OK');
+                        }
+                    }
+                } catch(e) { console.warn('Supabase insert failed:', e); }
+
+                if (!supabaseOk) {
+                    // Fallback a localStorage si Supabase falla
+                    const localVehicles = JSON.parse(localStorage.getItem('lavadero_active_vehicles') || '[]');
+                    localVehicles.push(localCarObj);
+                    localStorage.setItem('lavadero_active_vehicles', JSON.stringify(localVehicles));
+                    console.warn('⚠️ Guardado solo en localStorage (Supabase no disponible)');
+                }
+
+                const ticketUrl = `cliente.html?n=${encodeURIComponent(localCarObj.nickname)}&p=${encodeURIComponent(localCarObj.plate)}&z=pre_espera&t=${encodeURIComponent(localCarObj.wash_type)}&pos=1&id=${carId}&pay=${encodeURIComponent(order.payment)}`;
+                setTimeout(() => { window.location.href = ticketUrl; }, 800);
+            }
+
+            // --- Bind plate input ---
+            const plateInput = document.getElementById('plate-input');
+            if (plateInput) {
+                plateInput.addEventListener('input', (e) => {
+                    order.plate = e.target.value.toUpperCase();
+                    e.target.value = order.plate;
+                    validateStep();
+                    const alertBox = document.getElementById('promo-alert');
+                    if (alertBox) alertBox.style.display = 'none';
+                    order.hasPromo = false;
+                    order.promoDiscount = 0;
+                });
+            }
+
+            // --- Service Worker & PWA Install Logic ---
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(reg => console.log('Service Worker del Kiosko registrado:', reg.scope))
+                        .catch(err => console.error('Error al registrar Service Worker:', err));
+                });
+            }
+
+            let deferredPrompt;
+            const installBtn = document.getElementById('install-pwa-btn');
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                if (installBtn) {
+                    installBtn.style.display = 'flex';
+                }
+            });
+
+            if (installBtn) {
+                installBtn.addEventListener('click', async () => {
+                    if (!deferredPrompt) return;
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`Instalación del Kiosko: ${outcome}`);
+                    deferredPrompt = null;
+                    installBtn.style.display = 'none';
+                });
+            }
+
+            window.addEventListener('appinstalled', () => {
+                console.log('Kiosko instalado como PWA.');
+                if (installBtn) installBtn.style.display = 'none';
+            });
+
+        });
+    </script>
+
+    <footer style="text-align: center; padding: 16px; font-size: 0.75em; color: rgba(255, 255, 255, 0.4); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero Estética Vehicular
+    </footer>
+
+</body>
+</html>

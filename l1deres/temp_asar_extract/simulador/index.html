@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lavadero Omar - Edición GTA</title>
+    <!-- Fuentes para el estilo GTA -->
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Teko:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- AUDIO ELEMENTS -->
+    <audio id="audio-alert" src="assets/alert.wav" preload="auto"></audio>
+    <audio id="audio-scan" src="assets/scan.wav" preload="auto"></audio>
+    <audio id="audio-cash" src="assets/cash.wav" preload="auto"></audio>
+
+    <!-- PANTALLA DE BIENVENIDA -->
+    <div id="welcome-screen" class="screen active">
+        <div class="welcome-content">
+            <h1 class="gta-title">OMAR'S <br> CAR WASH</h1>
+            <p class="subtitle">SISTEMA LPR & GESTIÓN DE COLAS</p>
+            <button id="start-btn" class="gta-btn">ABRIR LAVADERO</button>
+        </div>
+        <div class="gta-footer">
+            <p>Desarrollado para los proyectos de Omar - Todos los derechos reservados &copy; 2026</p>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE ESCÁNER IA (LPR) -->
+    <div id="lpr-scanner-screen" class="screen">
+        <div class="scanner-hud">
+            <div class="camera-feed-mockup">
+                <video id="webcam-feed" autoplay playsinline muted></video>
+                <div class="target-box"></div>
+                <div class="scan-line"></div>
+                <div class="camera-info">CAM 01 - ESCÁNER DE INGRESO <span class="blink-rec">REC</span></div>
+            </div>
+            <div class="data-typing-box">
+                <p id="typing-text">> Analizando vehículo entrante...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA PRINCIPAL (3 COLUMNAS) -->
+    <div id="main-screen" class="screen">
+        
+        <!-- PANEL IZQUIERDO: COLA DE ESPERA -->
+        <div id="queue-panel" class="side-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-list-check"></i> COLA DE ESPERA</h2>
+                <span class="badge" id="queue-count">0</span>
+            </div>
+            <div class="panel-list" id="queue-list">
+                <!-- Los autos en espera se cargarán aquí -->
+            </div>
+            <div id="add-car-controls" class="mt-20">
+                <select id="car-type-select" class="gta-select">
+                    <option value="random">Auto Aleatorio</option>
+                    <option value="VW Gol">VW Gol (Auto)</option>
+                    <option value="Ford EcoSport">Ford EcoSport (Auto)</option>
+                    <option value="Renault Kangoo">Renault Kangoo (Utilitario)</option>
+                    <option value="BMW X5">BMW X5 (Camioneta)</option>
+                    <option value="Toyota Hilux">Toyota Hilux (Camioneta)</option>
+                    <option value="VW Amarok">VW Amarok (Camioneta)</option>
+                </select>
+                <select id="wash-type-select" class="gta-select mt-10">
+                    <option value="random">Lavado Aleatorio</option>
+                    <option value="Básico">Básico (x1)</option>
+                    <option value="Premium">Premium (x1.5)</option>
+                    <option value="VIP">VIP (x2)</option>
+                </select>
+                <button id="add-car-btn" class="gta-btn small-btn mt-10" style="width: 100%; font-size: 1.2rem;">+ SIMULAR LLEGADA</button>
+            </div>
+        </div>
+
+        <!-- PANEL CENTRAL: TÚNEL DE LAVADO Y HUD -->
+        <div id="center-panel">
+            <!-- HUD Superior -->
+            <div id="hud-top">
+                <div class="hud-top-left">
+                    <div class="mission-text">Misión Actual:</div>
+                    <div class="mission-name" id="current-mission">Esperando Vehículo...</div>
+                    <div class="timer-box">
+                        <i class="fa-regular fa-clock"></i> TIEMPO RESTANTE: <span id="hud-timer">00:00</span>
+                    </div>
+                    <div class="car-details-card mt-20" id="active-car-details" style="display: none;">
+                        <div class="detail-row"><i class="fa-solid fa-car"></i> <span id="hud-car-model">--</span></div>
+                        <div class="detail-row"><i class="fa-solid fa-id-card"></i> <span id="hud-car-plate">--</span></div>
+                        <div class="detail-row highlight"><i class="fa-solid fa-qrcode"></i> <span id="hud-car-order">--</span></div>
+                    </div>
+                </div>
+
+                <div class="hud-top-right">
+                    <div class="stars-container" id="dirt-stars">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <div class="stars-label">SUCIEDAD INICIAL</div>
+                </div>
+            </div>
+
+            <!-- ESCENARIO DEL TÚNEL DE LAVADO -->
+            <div id="tunnel-container">
+                <div class="tunnel-background">
+                    <!-- Estaciones del lavadero -->
+                    <div class="station station-scan"><div class="scanner-beam"></div></div>
+                    <div class="station station-soap"><div class="bubbles"></div></div>
+                    <div class="station station-water"><div class="water-spray"></div></div>
+                    <div class="station station-dry"><div class="fans"></div></div>
+                </div>
+                
+                <!-- Auto que se mueve -->
+                <div id="animated-car">
+                    <!-- Se inyecta la imagen acá -->
+                </div>
+            </div>
+            
+            <!-- Barra de Controles Manuales -->
+            <div class="control-bar">
+                <button id="btn-prev" class="gta-btn small-btn control-btn"><i class="fa-solid fa-backward"></i> RETROCEDER</button>
+                <button id="btn-pause" class="gta-btn small-btn control-btn"><i class="fa-solid fa-pause"></i> PAUSAR AUTO</button>
+                <button id="btn-next" class="gta-btn small-btn control-btn">AVANZAR <i class="fa-solid fa-forward"></i></button>
+            </div>
+
+        </div>
+
+        <!-- PANEL DERECHO: TERMINADOS -->
+        <div id="finished-panel" class="side-panel">
+            <div class="panel-header">
+                <h2><i class="fa-solid fa-check-double"></i> LISTOS P/ ENTREGAR</h2>
+                <span class="badge badge-green" id="finished-count">0</span>
+            </div>
+            <div class="panel-list" id="finished-list">
+                <!-- Los autos terminados se cargarán aquí -->
+            </div>
+            <div class="money-container">
+                <div class="money-label">RECAUDACIÓN</div>
+                <div class="money-text" id="total-revenue">$0</div>
+            </div>
+        </div>
+
+        <div class="gta-footer main-footer">
+            <button id="toggle-view-btn" class="gta-btn small-btn" style="margin-bottom: 5px; font-size: 1rem; padding: 5px 10px;">CAMBIAR A VISTA CLIENTE</button>
+            <p>Desarrollado para los proyectos de Omar - Todos los derechos reservados &copy; 2026</p>
+        </div>
+    </div>
+
+    <!-- MODAL DE TICKET -->
+    <div id="ticket-modal" class="modal-overlay">
+        <div class="ticket-container">
+            <h3 class="ticket-header">LAVADERO OMAR</h3>
+            <p class="ticket-subtitle">COMPROBANTE VIRTUAL</p>
+            <div class="ticket-divider">-------------------------</div>
+            <div class="ticket-row"><span>VEHÍCULO:</span> <span id="ticket-model">--</span></div>
+            <div class="ticket-row"><span>PATENTE:</span> <span id="ticket-plate">--</span></div>
+            <div class="ticket-row"><span>TIPO LAVADO:</span> <span id="ticket-type">--</span></div>
+            <div class="ticket-divider">-------------------------</div>
+            <div class="ticket-row total"><span>TOTAL:</span> <span id="ticket-price">--</span></div>
+            <div class="ticket-footer">¡GRACIAS POR SU VISITA!</div>
+            <button id="close-ticket-btn" class="gta-btn small-btn mt-20" style="width: 100%;">IMPRIMIR Y CERRAR</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+
+    <footer class="app-footer" style="text-align: center; padding: 20px; font-size: 0.8em; color: rgba(255, 255, 255, 0.5); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 40px;">
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. <br>
+        Lavadero Estética Vehicular
+    </footer>
+
+</body>
+</html>

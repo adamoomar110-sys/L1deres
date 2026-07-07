@@ -10,6 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Mercado Pago SDK (Placeholder) -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    
     <link rel="stylesheet" href="style.css">
     <style>
         :root {
@@ -494,11 +497,7 @@
 
             <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">3. Forma de Pago</p>
             <div id="config-pay-grid" class="wash-menu-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
-                <div class="wash-menu-card" data-pay="efectivo" onclick="selectPayment(this, 'efectivo')">
-                    <div class="check-badge">✓</div>
-                    <div class="wash-card-icon" style="font-size: 1.5rem; margin-bottom: 5px;">💵</div>
-                    <div class="wash-card-title" style="font-size: 0.7rem;">Efectivo</div>
-                </div>
+
                 <div class="wash-menu-card" data-pay="tarjeta" onclick="selectPayment(this, 'tarjeta')">
                     <div class="check-badge">✓</div>
                     <div class="wash-card-icon" style="font-size: 1.5rem; margin-bottom: 5px;">💳</div>
@@ -554,7 +553,7 @@
             for (const [id, details] of Object.entries(WASH_DETAILS)) {
                 htmlStr += `<span class="ticker-item">🔹 ${details.name}: $${details.price.toLocaleString('es-AR')}</span>`;
             }
-            htmlStr += `<span class="ticker-item" style="color: #fff">💳 Aceptamos Efectivo, Transferencia y Tarjetas</span>`;
+            htmlStr += `<span class="ticker-item" style="color: #fff">💳 Aceptamos Transferencia y Tarjetas</span>`;
             
             // Duplicar para que el loop sea más fluido
             ticker.innerHTML = htmlStr + htmlStr;
@@ -613,13 +612,18 @@
         // Lógica de Selección de Configuración
         
         let VEHICLE_CATEGORIES = [];
-        const savedCatSettings = localStorage.getItem('lavadero_vehicle_categories');
+        let savedCatSettings = localStorage.getItem('lavadero_vehicle_categories');
+        
+        if (savedCatSettings && (savedCatSettings.includes('SUV') || savedCatSettings.includes('xa') || savedCatSettings.includes('x:'))) {
+            localStorage.removeItem('lavadero_vehicle_categories');
+            savedCatSettings = null;
+        }
+
         if (savedCatSettings) {
             VEHICLE_CATEGORIES = JSON.parse(savedCatSettings);
         } else {
             VEHICLE_CATEGORIES = [
                 { id: 'Auto', surcharge: 0, icon: '🚗' },
-                { id: 'SUV', surcharge: 20, icon: '🚙' },
                 { id: 'Camioneta', surcharge: 50, icon: '🛻' }
             ];
         }
@@ -636,7 +640,7 @@
                 <div class="wash-menu-card" data-cat="${cat.id}" onclick="selectCat(this, '${cat.id}', ${cat.surcharge})">
                     <div class="check-badge">✓</div>
                     <div class="wash-card-icon" style="font-size: 1.5rem;">${cat.icon}</div>
-                    <div class="wash-card-title" style="font-size: 0.65rem;">${cat.id} ${cat.surcharge > 0 ? '(+'+cat.surcharge+'%)' : ''}</div>
+                    <div class="wash-card-title" style="font-size: 0.65rem;">${cat.id}</div>
                 </div>
                 `;
             });
@@ -696,7 +700,7 @@
             }
         }
 
-        function confirmarConfiguracion() {
+        async function confirmarConfiguracion() {
             if (!pendingCats) { alert('Por favor, selecciona qué vehículo tienes.'); return; }
             if (pendingTypeIds.length === 0) { alert('Por favor, selecciona al menos un tipo de lavado.'); return; }
             
@@ -708,6 +712,47 @@
             
             pendingType = pendingTypeIds.join(',');
             
+            // Si elige tarjeta, iniciar flujo de Mercado Pago
+            if (pendingPay === 'tarjeta' || pendingPay === 'mercadopago') {
+                const btn = document.querySelector('.btn-primary');
+                const originalText = btn.innerText;
+                btn.innerText = 'Redirigiendo a Mercado Pago...';
+                btn.disabled = true;
+
+                try {
+                    // Placeholder del Token Público (Reemplazar con el tuyo)
+                    const mp = new MercadoPago('APP_USR-pon-aqui-tu-public-key-real', { locale: 'es-AR' });
+                    
+                    // Llamamos a nuestra API para crear la preferencia
+                    const res = await fetch('/api/mercadopago/preference', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            washId: pendingType,
+                            title: 'Lavado ' + pendingCats,
+                            price: 25000, // TODO: Calcular dinámico
+                            plate: 'Generico'
+                        })
+                    });
+                    
+                    const data = await res.json();
+                    
+                    if (data.init_point) {
+                        window.location.href = data.init_point;
+                    } else {
+                        alert('Error al iniciar Mercado Pago. Modo simulación activado.');
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    }
+                    return; // Detenemos aquí porque MP tomará el control
+                } catch (error) {
+                    console.error('Error MP:', error);
+                    alert('Simulación de Mercado Pago: En producción esto abrirá la pasarela segura.');
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            }
+
             const newUrl = new URL(window.location);
             newUrl.searchParams.set('cat', pendingCats);
             newUrl.searchParams.set('t', pendingType);
@@ -716,6 +761,7 @@
 
             type = pendingType;
             payment = pendingPay;
+
             
             if (phoneInput && plate !== 'SIN PATENTE') {
                 const phone = phoneInput.value.trim();

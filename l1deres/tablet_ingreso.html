@@ -236,8 +236,8 @@
                 <label>Categoría</label>
                 <select id="in-category" onchange="onCategoryChange()">
                     <option value="lavado" data-price="0">💦 Lavado</option>
-                    <option value="secado" data-price="5000">💨 Secado ($5.000)</option>
-                    <option value="lavado_secado" data-price="5000">✨ Lavado y Secado (+ $5.000)</option>
+                    <option value="lavado_interior" data-price="0">✨ Lavado + Interior</option>
+                    <option value="interior" data-price="8000">💨 Interior</option>
                 </select>
             </div>
             
@@ -255,8 +255,7 @@
 
             <label style="display:block; margin-bottom:0.5rem; color: var(--color-text-dim); font-weight:600;">Medio de Pago</label>
             <div class="payment-methods">
-                <div class="pay-method active" onclick="selectPay('efectivo')" id="pay-efectivo">💵 Efectivo</div>
-                <div class="pay-method" onclick="selectPay('qr')" id="pay-qr">📱 Código QR</div>
+                <div class="pay-method active" onclick="selectPay('qr')" id="pay-qr">📱 Código QR</div>
                 <div class="pay-method" onclick="selectPay('tarjeta')" id="pay-tarjeta">💳 Tarjeta</div>
             </div>
 
@@ -278,7 +277,7 @@
         // Reloj
         setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleTimeString('es-AR'), 1000);
 
-        let selectedPayment = 'efectivo';
+        let selectedPayment = 'qr';
         let currentPrice = 0;
         let washPackages = [];
 
@@ -292,19 +291,28 @@
             if (saved) {
                 washPackages = JSON.parse(saved);
             } else {
-                // Fallback completo con emojis correctos
-                washPackages = [
-                    { id: 'combo-limpieza-total', title: 'Limpieza Total', icon: '🌀', price: 18000 },
-                    { id: 'combo-vip-gold',       title: 'VIP Gold',       icon: '🏆', price: 25000 },
-                    { id: 'lavado-carroceria',    title: 'Exterior Simple', icon: '🚗', price: 12000 },
-                    { id: 'aspirado-interior',    title: 'Interior Pro',    icon: '💨', price: 10000 },
-                    { id: 'lavado-express',       title: 'Express',        icon: '⚡', price: 8000  },
-                    { id: 'lavado-motor',         title: 'Motor Vapor',    icon: '🔥', price: 15000 },
-                    { id: 'encerado-acrilico',    title: 'Encerado',       icon: '🛡️', price: 22000 },
-                    { id: 'lavado-chasis',        title: 'Chasis',         icon: '🔩', price: 28000 },
-                    { id: 'pulido-opticas',       title: 'Ópticas',        icon: '💡', price: 16000 },
-                    { id: 'tratamiento-ceramico', title: 'Cerámico 9H',    icon: '💎', price: 65000 }
-                ];
+                const cat = document.getElementById('in-category').value;
+                if (cat === 'lavado') {
+                    washPackages = [
+                        { id: 'lavado-autos', title: 'Autos', icon: '🚗', price: 10000 },
+                        { id: 'lavado-utilitarios', title: 'Utilitarios', icon: '🚙', price: 12000 },
+                        { id: 'lavado-pickup', title: 'Pick-up', icon: '🛻', price: 15000 }
+                    ];
+                } else if (cat === 'lavado_interior') {
+                    washPackages = [
+                        { id: 'completo-autos', title: 'Autos', icon: '🚗', price: 15000 },
+                        { id: 'completo-utilitarios', title: 'Utilitarios', icon: '🚙', price: 18000 },
+                        { id: 'completo-pickup', title: 'Pick-up', icon: '🛻', price: 22000 }
+                    ];
+                } else if (cat === 'interior') {
+                    washPackages = [
+                        { id: 'interior-autos', title: 'Autos', icon: '🚗', price: 5000 },
+                        { id: 'interior-utilitarios', title: 'Utilitarios', icon: '🚙', price: 7000 },
+                        { id: 'interior-pickup', title: 'Pick-up', icon: '🛻', price: 9000 }
+                    ];
+                } else {
+                    washPackages = [];
+                }
             }
 
             const select = document.getElementById('in-service');
@@ -319,26 +327,22 @@
         function onCategoryChange() {
             const catSelect = document.getElementById('in-category');
             const washGroup = document.getElementById('wash-options-group');
-            if (catSelect.value === 'secado') {
-                washGroup.style.display = 'none';
-            } else {
-                washGroup.style.display = 'block';
-            }
+            // Ya no ocultamos las opciones de lavado para interior
+            washGroup.style.display = 'block';
+            loadServices();
             updatePrice();
         }
 
         function updatePrice() {
             const catSelect = document.getElementById('in-category');
-            const catOpt = catSelect.options[catSelect.selectedIndex];
-            let price = parseInt(catOpt.getAttribute('data-price'));
+            const select = document.getElementById('in-service');
+            let price = 0;
             
-            if (catSelect.value !== 'secado') {
-                const select = document.getElementById('in-service');
-                if (select.selectedIndex >= 0) {
-                    const opt = select.options[select.selectedIndex];
-                    price += parseInt(opt.getAttribute('data-price'));
-                }
+            if (select && select.selectedIndex >= 0) {
+                const opt = select.options[select.selectedIndex];
+                price = parseInt(opt.getAttribute('data-price'));
             }
+            
             currentPrice = price;
             document.getElementById('in-price').value = `$${currentPrice.toLocaleString('es-AR')}`;
         }
@@ -408,7 +412,7 @@
 
                     // Seleccionar método de pago
                     if (onlineReg.payment_method) {
-                        let mappedPay = 'efectivo';
+                        let mappedPay = 'qr';
                         if (onlineReg.payment_method === 'transferencia' || onlineReg.payment_method === 'qr') {
                             mappedPay = 'qr';
                         } else if (onlineReg.payment_method === 'tarjeta') {
@@ -463,11 +467,7 @@
             
             overlay.style.display = 'flex';
 
-            if(selectedPayment === 'efectivo') {
-                title.innerText = "Abonar en Caja";
-                content.innerHTML = `<h1 style="font-size: 4rem; margin:0;">$${currentPrice.toLocaleString('es-AR')}</h1><p>Reciba el dinero y presione Confirmar.</p><button class="btn btn-primary" style="padding:1rem 2rem; font-size:1.2rem; margin-top:1rem;" onclick="finishIngreso()">CONFIRMAR EFECTIVO</button>`;
-            } 
-            else if (selectedPayment === 'qr') {
+            if (selectedPayment === 'qr') {
                 title.innerText = "Escanea el código QR";
                 content.innerHTML = `
                     <div class="qr-mock">

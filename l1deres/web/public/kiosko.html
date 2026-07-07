@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kiosco Autogestión - L1DERES</title>
-    
+
     <link rel="manifest" href="manifest-kiosko.json">
     <meta name="theme-color" content="#c8960c">
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
     <style>
         :root {
             --color-cyan: #06b6d4;
@@ -24,7 +27,7 @@
             --glass-border: rgba(255, 255, 255, 0.05);
             --card-radius: 20px;
         }
-        
+
         body {
             background: radial-gradient(circle at top, #1a1a24 0%, #050505 100%);
             color: #fff;
@@ -41,7 +44,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 1.2rem 3rem;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--glass-border);
             position: sticky;
@@ -76,8 +79,8 @@
         }
 
         .info-pill {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 0.5rem 1rem;
             border-radius: 12px;
             display: flex;
@@ -85,8 +88,17 @@
             gap: 10px;
             font-size: 0.9rem;
         }
-        .info-pill i { color: var(--color-cyan); }
-        .queue-eta { color: var(--color-yellow); font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 1.1rem;}
+
+        .info-pill i {
+            color: var(--color-cyan);
+        }
+
+        .queue-eta {
+            color: var(--color-yellow);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
 
         .whatsapp-btn {
             background: #25D366;
@@ -98,7 +110,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 0 15px rgba(37,211,102,0.4);
+            box-shadow: 0 0 15px rgba(37, 211, 102, 0.4);
             transition: 0.3s;
         }
 
@@ -113,7 +125,7 @@
             padding: 3rem;
             width: 100%;
             max-width: 800px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
             position: relative;
             overflow: hidden;
         }
@@ -124,31 +136,40 @@
             margin-bottom: 2.5rem;
             position: relative;
         }
+
         .step-indicator::before {
             content: '';
             position: absolute;
-            top: 50%; left: 0; right: 0;
+            top: 50%;
+            left: 0;
+            right: 0;
             height: 2px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             z-index: 0;
         }
+
         .step-dot {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             background: #111;
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-family: 'Orbitron', sans-serif;
             font-weight: bold;
             z-index: 1;
             color: #666;
             transition: 0.3s;
         }
+
         .step-dot.active {
             border-color: var(--color-cyan);
             color: var(--color-cyan);
-            box-shadow: 0 0 15px rgba(6,182,212,0.4);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
         }
+
         .step-dot.done {
             background: var(--color-cyan);
             color: #000;
@@ -159,11 +180,21 @@
             display: none;
             animation: fadeIn 0.4s ease;
         }
-        .step-content.active { display: block; }
-        
+
+        .step-content.active {
+            display: block;
+        }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
 
         .step-title {
@@ -181,6 +212,7 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
         }
+
         .grid-2 {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -188,8 +220,8 @@
         }
 
         .select-card {
-            background: rgba(0,0,0,0.4);
-            border: 2px solid rgba(255,255,255,0.05);
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.05);
             border-radius: 16px;
             padding: 2rem;
             text-align: center;
@@ -204,14 +236,28 @@
             gap: 15px;
             box-sizing: border-box;
         }
-        .select-card:hover { background: rgba(255,255,255,0.05); }
+
+        .select-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
         .select-card.selected {
             border-color: var(--color-cyan);
-            background: rgba(6,182,212,0.1);
-            box-shadow: 0 0 20px rgba(6,182,212,0.3);
+            background: rgba(6, 182, 212, 0.1);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
         }
-        .select-card i { font-size: 3rem; margin-bottom: 1rem; color: #fff; }
-        .select-card h3 { margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.2rem; }
+
+        .select-card i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .select-card h3 {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+        }
 
         /* Input Patente */
         .plate-input-container {
@@ -219,10 +265,11 @@
             max-width: 400px;
             margin: 0 auto;
         }
+
         .plate-input {
             width: 100%;
-            background: rgba(0,0,0,0.6);
-            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 1.5rem;
             font-size: 2.5rem;
@@ -235,9 +282,10 @@
             transition: 0.3s;
             box-sizing: border-box;
         }
+
         .plate-input:focus {
             border-color: var(--color-cyan);
-            box-shadow: 0 0 15px rgba(6,182,212,0.3);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
         }
 
         .promo-alert {
@@ -247,6 +295,7 @@
             font-family: 'Outfit', sans-serif;
             display: none;
         }
+
         .promo-success {
             background: rgba(132, 204, 22, 0.15);
             border: 1px solid var(--color-lime);
@@ -258,7 +307,7 @@
             display: flex;
             justify-content: space-between;
             margin-top: 3rem;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding-top: 2rem;
         }
 
@@ -272,18 +321,23 @@
             border: none;
             transition: 0.3s;
         }
+
         .btn-prev {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             color: #fff;
         }
+
         .btn-next {
             background: linear-gradient(90deg, #06b6d4, #3b82f6);
             color: #fff;
-            box-shadow: 0 10px 20px rgba(6,182,212,0.3);
+            box-shadow: 0 10px 20px rgba(6, 182, 212, 0.3);
         }
+
         .btn:disabled {
-            opacity: 0.5; cursor: not-allowed;
-            background: rgba(255,255,255,0.05); box-shadow: none;
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: none;
         }
 
         /* Resumen Price */
@@ -294,6 +348,7 @@
             font-weight: 900;
             margin-top: 10px;
         }
+
         .old-price {
             text-decoration: line-through;
             color: #666;
@@ -307,39 +362,55 @@
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
+
         .status-pill {
             flex: 1;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 14px;
             padding: 0.9rem 1.4rem;
             display: flex;
             align-items: center;
             gap: 1rem;
         }
+
         .status-pill i {
             font-size: 1.3rem;
-            color: rgba(255,255,255,0.4);
+            color: rgba(255, 255, 255, 0.4);
         }
+
         .status-pill-label {
             font-family: 'Outfit', sans-serif;
             font-size: 0.65rem;
             font-weight: 700;
             letter-spacing: 2px;
             text-transform: uppercase;
-            color: rgba(255,255,255,0.45);
+            color: rgba(255, 255, 255, 0.45);
             margin-bottom: 2px;
         }
+
         .status-pill-value {
             font-family: 'Orbitron', sans-serif;
             font-size: 1.1rem;
             font-weight: 700;
             color: #fff;
         }
-        .status-pill-value.yellow { color: var(--color-yellow); }
-        .status-pill-value.cyan   { color: var(--color-cyan); }
-        .status-pill-value.lime   { color: var(--color-lime); }
-        .status-pill-value.red    { color: #ef4444; }
+
+        .status-pill-value.yellow {
+            color: var(--color-yellow);
+        }
+
+        .status-pill-value.cyan {
+            color: var(--color-cyan);
+        }
+
+        .status-pill-value.lime {
+            color: var(--color-lime);
+        }
+
+        .status-pill-value.red {
+            color: #ef4444;
+        }
 
         /* ── ZONA DE ESPERA PANEL ── */
         .kiosk-layout {
@@ -352,50 +423,58 @@
             padding: 2rem;
             box-sizing: border-box;
         }
+
         .kiosk-left {
             flex: 1;
             min-width: 0;
         }
+
         .kiosk-right {
             width: 320px;
             flex-shrink: 0;
         }
+
         .zona-espera-panel {
-            background: rgba(0,0,0,0.45);
-            border: 1px solid rgba(255,255,255,0.07);
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.07);
             border-radius: 20px;
             padding: 1.5rem;
             position: sticky;
             top: 100px;
         }
+
         .zona-espera-title {
             font-family: 'Outfit', sans-serif;
             font-size: 0.7rem;
             font-weight: 800;
             letter-spacing: 3px;
             text-transform: uppercase;
-            color: rgba(255,255,255,0.4);
-            border-bottom: 1px solid rgba(255,255,255,0.07);
+            color: rgba(255, 255, 255, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
             padding-bottom: 0.8rem;
             margin-bottom: 1rem;
         }
+
         .queue-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0.75rem;
         }
+
         .queue-car-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             padding: 0.9rem 0.8rem;
             text-align: center;
             position: relative;
         }
+
         .queue-car-card.slot-empty {
             opacity: 0.2;
             border-style: dashed;
         }
+
         .queue-car-name {
             font-family: 'Outfit', sans-serif;
             font-size: 0.8rem;
@@ -404,24 +483,27 @@
             margin-bottom: 3px;
             line-height: 1.2;
         }
+
         .queue-car-plate {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.65rem;
             margin-bottom: 6px;
         }
+
         .queue-car-time {
             font-family: 'Orbitron', sans-serif;
             font-size: 0.85rem;
             font-weight: 700;
             color: #fff;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             border-radius: 6px;
             padding: 3px 8px;
             display: inline-block;
         }
+
         .queue-empty-msg {
             text-align: center;
-            color: rgba(255,255,255,0.3);
+            color: rgba(255, 255, 255, 0.3);
             font-family: 'Outfit', sans-serif;
             font-size: 0.85rem;
             padding: 2rem 0;
@@ -429,9 +511,18 @@
 
         /* Responsive: stack en pantallas pequeñas */
         @media (max-width: 900px) {
-            .kiosk-layout { flex-direction: column; padding: 1rem; }
-            .kiosk-right { width: 100%; }
-            .zona-espera-panel { position: static; }
+            .kiosk-layout {
+                flex-direction: column;
+                padding: 1rem;
+            }
+
+            .kiosk-right {
+                width: 100%;
+            }
+
+            .zona-espera-panel {
+                position: static;
+            }
         }
 
         /* Adaptación específica para Teléfonos y Pantallas Medianas/Pequeñas */
@@ -443,62 +534,76 @@
                 align-items: center;
                 text-align: center;
             }
+
             .header-info {
                 flex-direction: column;
                 gap: 8px;
                 width: 100%;
             }
-            .info-pill, .whatsapp-btn {
+
+            .info-pill,
+            .whatsapp-btn {
                 width: 100%;
                 justify-content: center;
                 box-sizing: border-box;
             }
+
             .kiosk-logo {
                 height: 50px;
             }
+
             .kiosk-logo-img {
                 max-height: 50px;
             }
-            
+
             .wizard-card {
                 padding: 1.5rem 1rem;
                 border-radius: 16px;
             }
+
             .step-indicator {
                 margin-bottom: 1.5rem;
             }
+
             .step-title {
                 font-size: 1.3rem;
                 margin-bottom: 1rem;
             }
 
             /* Apilar las opciones de la grilla verticalmente para teléfonos */
-            .grid-3, .grid-2 {
+            .grid-3,
+            .grid-2 {
                 grid-template-columns: 1fr;
                 gap: 0.8rem;
             }
 
             .select-card {
-                min-height: 130px !important; /* Altura más cómoda para móviles en 1 columna */
+                min-height: 130px !important;
+                /* Altura más cómoda para móviles en 1 columna */
                 padding: 1.2rem;
-                flex-direction: row; /* Diseño horizontal en móvil */
+                flex-direction: row;
+                /* Diseño horizontal en móvil */
                 justify-content: flex-start;
                 align-items: center;
                 gap: 20px;
                 text-align: left;
             }
+
             .select-card i {
                 font-size: 2.2rem;
                 margin-bottom: 0;
             }
+
             .select-card h3 {
                 font-size: 1.1rem;
             }
+
             .select-card .price-display {
                 margin-top: 0;
                 margin-left: auto;
                 font-size: 1.2rem;
             }
+
             .select-card .old-price {
                 font-size: 0.85rem;
             }
@@ -507,16 +612,18 @@
                 margin-top: 2rem;
                 padding-top: 1.5rem;
             }
+
             .btn {
                 padding: 0.8rem 1.5rem;
                 font-size: 1rem;
                 flex: 1;
                 text-align: center;
             }
+
             .btn-prev {
                 margin-right: 0.5rem;
             }
-            
+
             .plate-input {
                 font-size: 1.8rem;
                 padding: 1rem;
@@ -528,21 +635,24 @@
                 grid-template-columns: 1fr;
             }
         }
-
     </style>
 </head>
+
 <body>
 
     <header class="kiosk-header">
         <div class="kiosk-logo">
             <img src="logo.png" alt="L1DERES Automatic Car Wash" class="kiosk-logo-img">
         </div>
-        
+
         <div class="header-info">
-            <button id="install-pwa-btn" class="info-pill install-btn" style="display: none; cursor: pointer; background: linear-gradient(135deg, #c8960c, #f5d061); border: 1px solid rgba(255,255,255,0.1); color: #000; font-weight: 800; font-family: 'Outfit', sans-serif; box-shadow: 0 0 15px rgba(200, 150, 12, 0.4);">
+            <button id="install-pwa-btn" class="info-pill install-btn"
+                style="display: none; cursor: pointer; background: linear-gradient(135deg, #c8960c, #f5d061); border: 1px solid rgba(255,255,255,0.1); color: #000; font-weight: 800; font-family: 'Outfit', sans-serif; box-shadow: 0 0 15px rgba(200, 150, 12, 0.4);">
                 <i class="fa-solid fa-download" style="color: #000;"></i> Instalar Kiosco
             </button>
-            <button class="info-pill install-btn" style="cursor: pointer; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Outfit', sans-serif;" onclick="window.location.reload(true)">
+            <button class="info-pill install-btn"
+                style="cursor: pointer; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Outfit', sans-serif;"
+                onclick="window.location.reload(true)">
                 <i class="fa-solid fa-arrows-rotate"></i> Actualizar
             </button>
             <div class="info-pill">
@@ -553,7 +663,9 @@
                 <i class="fa-solid fa-hourglass-half"></i>
                 Espera: <span class="queue-eta" id="global-eta">Calculando...</span>
             </div>
-            <button id="install-pwa-btn" class="whatsapp-btn" style="background: #06b6d4; display: none; cursor: pointer; border: none; font-family: 'Outfit', sans-serif; font-size: 1rem;"><i class="fa-solid fa-download"></i> Instalar App</button>
+            <button id="install-pwa-btn" class="whatsapp-btn"
+                style="background: #06b6d4; display: none; cursor: pointer; border: none; font-family: 'Outfit', sans-serif; font-size: 1rem;"><i
+                    class="fa-solid fa-download"></i> Instalar App</button>
             <a href="https://wa.me/123456789" class="whatsapp-btn" target="_blank">
                 <i class="fa-brands fa-whatsapp"></i> Consultas
             </a>
@@ -584,7 +696,7 @@
             </div>
 
             <div class="wizard-card">
-                
+
                 <div class="step-indicator">
                     <div class="step-dot active" id="dot-1">1</div>
                     <div class="step-dot" id="dot-2">2</div>
@@ -597,7 +709,8 @@
                     <h2 class="step-title">Ingresa tu Patente</h2>
                     <div class="plate-input-container">
                         <input type="text" id="plate-input" class="plate-input" placeholder="AA123BB" maxlength="7">
-                        <button class="btn btn-next" style="width:100%; margin-top:1rem;" onclick="checkPromo()">Verificar Promociones</button>
+                        <button class="btn btn-next" style="width:100%; margin-top:1rem;"
+                            onclick="checkPromo()">Verificar Promociones</button>
                         <div id="promo-alert" class="promo-alert"></div>
                     </div>
                 </div>
@@ -611,7 +724,8 @@
                             <h3>Lavado</h3>
                             <div class="price-display">Exterior</div>
                         </div>
-                        <div class="select-card" data-cat="lavado_interior" onclick="selectCategory('lavado_interior', 'Lavado + Interior')">
+                        <div class="select-card" data-cat="lavado_interior"
+                            onclick="selectCategory('lavado_interior', 'Lavado + Interior')">
                             <i class="fa-solid fa-sparkles"></i>
                             <h3>Lavado + Interior</h3>
                             <div class="price-display">Completo</div>
@@ -622,8 +736,9 @@
                             <div class="price-display">Solo Interior</div>
                         </div>
                     </div>
-                    
-                    <h2 class="step-title" id="wash-options-title" style="display:none; font-size: 1.5rem;">Opciones de Lavado</h2>
+
+                    <h2 class="step-title" id="wash-options-title" style="display:none; font-size: 1.5rem;">Opciones de
+                        Lavado</h2>
                     <div class="grid-2" id="wash-grid" style="display:none;"></div>
                 </div>
 
@@ -631,8 +746,11 @@
                 <div class="step-content" id="step-3">
                     <h2 class="step-title">Número de WhatsApp</h2>
                     <div class="plate-input-container">
-                        <input type="tel" id="phone-input" class="plate-input" placeholder="Ej: 1123456789" maxlength="15" oninput="order.phone = this.value; validateStep();" style="text-transform: none; font-family: 'Inter', sans-serif; font-size: 2rem;">
-                        <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">Vinculamos tu WhatsApp a la patente para notificarte cuando el auto esté listo.</p>
+                        <input type="tel" id="phone-input" class="plate-input" placeholder="Ej: 1123456789"
+                            maxlength="15" oninput="order.phone = this.value; validateStep();"
+                            style="text-transform: none; font-family: 'Inter', sans-serif; font-size: 2rem;">
+                        <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">Vinculamos tu WhatsApp a la patente
+                            para notificarte cuando el auto esté listo.</p>
                     </div>
                 </div>
 
@@ -640,10 +758,7 @@
                 <div class="step-content" id="step-3">
                     <h2 class="step-title">Forma de Pago</h2>
                     <div class="grid-3">
-                        <div class="select-card" data-pay="efectivo" onclick="selectPay('efectivo')">
-                            <i class="fa-solid fa-money-bill-wave"></i>
-                            <h3>Efectivo</h3>
-                        </div>
+
                         <div class="select-card" data-pay="tarjeta" onclick="selectPay('tarjeta')">
                             <i class="fa-solid fa-credit-card"></i>
                             <h3>Tarjeta</h3>
@@ -657,7 +772,8 @@
 
                 <!-- Controles -->
                 <div class="wizard-actions">
-                    <button class="btn btn-prev" id="btn-prev" onclick="prevStep()" style="visibility: hidden;">Atrás</button>
+                    <button class="btn btn-prev" id="btn-prev" onclick="prevStep()"
+                        style="visibility: hidden;">Atrás</button>
                     <button class="btn btn-next" id="btn-next" onclick="nextStep()" disabled>Siguiente</button>
                 </div>
 
@@ -712,23 +828,23 @@
 
             async function syncWashPrices() {
                 let parsed = null;
-                
+
                 if (supabase) {
                     try {
                         const { data, error } = await supabase.from('lavadero_precios').select('*');
                         if (!error && data) {
                             parsed = data.map(row => ({ id: row.id, title: row.name, price: row.price }));
                         }
-                    } catch(e) {}
+                    } catch (e) { }
                 }
-                
+
                 if (!parsed) {
                     const settingsStr = localStorage.getItem('lavadero_wash_settings');
                     if (settingsStr) {
-                        try { parsed = JSON.parse(settingsStr); } catch(e) {}
+                        try { parsed = JSON.parse(settingsStr); } catch (e) { }
                     }
                 }
-                
+
                 if (parsed) {
                     parsed.forEach(pkg => {
                         if (WASH_OPTIONS[pkg.id]) {
@@ -736,7 +852,7 @@
                             if (pkg.title) WASH_OPTIONS[pkg.id].name = pkg.title;
                         }
                     });
-                    
+
                     if (currentStep === 3) renderWashGrid();
                 }
             }
@@ -747,7 +863,7 @@
 
             async function updateGlobalETA() {
                 let vehicles = [];
-                
+
                 // 1. Try to fetch from Supabase
                 let fetchedFromSupabase = false;
                 if (supabase) {
@@ -759,11 +875,11 @@
                             // Optionally update localStorage for fallback
                             localStorage.setItem('lavadero_active_vehicles', JSON.stringify(data));
                         }
-                    } catch(e) {
+                    } catch (e) {
                         console.warn('Supabase fetch failed, falling back to localStorage');
                     }
                 }
-                
+
                 // 2. Fallback to localStorage
                 if (!fetchedFromSupabase) {
                     const vehiclesStr = localStorage.getItem('lavadero_active_vehicles');
@@ -771,23 +887,23 @@
                         try {
                             const vs = JSON.parse(vehiclesStr);
                             if (Array.isArray(vs)) vehicles = vs;
-                        } catch(e) {}
+                        } catch (e) { }
                     }
                 }
-                
+
                 // Procesar nickname
                 vehicles = vehicles.map(dbCar => {
                     let extra = {};
                     try {
                         if (dbCar.nickname && dbCar.nickname.startsWith('{')) extra = JSON.parse(dbCar.nickname);
-                    } catch(e) {}
+                    } catch (e) { }
                     return {
                         ...dbCar,
                         nickname: extra.name || dbCar.nickname || 'Vehículo',
                         plate: extra.plate || dbCar.plate || ''
                     };
                 });
-                
+
                 const count = vehicles.filter(v => v.zone === 'espera').length;
                 const el = document.getElementById('global-eta');
                 if (el) el.innerText = `Aprox. ${(count + 1) * 7} min`;
@@ -804,7 +920,7 @@
             function renderZoneGrid(gridId, vehicles, emptyMsg, slotCount = 0) {
                 const grid = document.getElementById(gridId);
                 if (!grid) return;
-                
+
                 if (vehicles.length === 0 && slotCount === 0) {
                     grid.innerHTML = `<div class="queue-empty-msg" style="grid-column:span 2; padding: 1rem; font-size:0.9rem">
                         <i class="fa-solid fa-car" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:0.3"></i>
@@ -812,7 +928,7 @@
                     </div>`;
                     return;
                 }
-                
+
                 let html = '';
                 const totalSlots = Math.max(vehicles.length, slotCount);
                 for (let i = 0; i < totalSlots; i++) {
@@ -820,7 +936,7 @@
                         const car = vehicles[i];
                         const mins = (gridId === 'grid-espera') ? (i + 1) * MINS_PER_CAR : 0;
                         const colorHex = car.color || '#06b6d4';
-                        const name = car.nickname || `Auto ${i+1}`;
+                        const name = car.nickname || `Auto ${i + 1}`;
                         html += `
                         <div class="queue-car-card">
                             <div class="queue-car-name">${name}</div>
@@ -860,10 +976,10 @@
                 const densEl = document.getElementById('status-densidad');
                 if (densEl) {
                     let label, cls;
-                    if (waiting === 0)      { label = 'Libre';  cls = 'lime'; }
-                    else if (waiting <= 2)  { label = 'Baja';   cls = 'cyan'; }
-                    else if (waiting <= 5)  { label = 'Media';  cls = 'yellow'; }
-                    else                    { label = 'Alta';   cls = 'red'; }
+                    if (waiting === 0) { label = 'Libre'; cls = 'lime'; }
+                    else if (waiting <= 2) { label = 'Baja'; cls = 'cyan'; }
+                    else if (waiting <= 5) { label = 'Media'; cls = 'yellow'; }
+                    else { label = 'Alta'; cls = 'red'; }
                     densEl.textContent = label;
                     densEl.className = `status-pill-value ${cls}`;
                 }
@@ -918,7 +1034,7 @@
             function validateStep() { window.validateStep(); }
 
             // Expose to HTML onclick attributes
-            window.nextStep = function() {
+            window.nextStep = function () {
                 if (currentStep === 1 && !order.hasPromo) {
                     const pi = document.getElementById('plate-input');
                     if (pi) order.plate = pi.value.trim().toUpperCase();
@@ -931,15 +1047,15 @@
                 }
             };
 
-            window.prevStep = function() {
+            window.prevStep = function () {
                 if (currentStep > 1) { currentStep--; updateUI(); }
             };
 
-            window.selectCat = function(cat, surcharge) {
+            window.selectCat = function (cat, surcharge) {
                 // Obsoleto pero dejamos la function por si acaso
             };
 
-            window.checkPromo = async function() {
+            window.checkPromo = async function () {
                 const plateInput = document.getElementById('plate-input');
                 const alertBox = document.getElementById('promo-alert');
                 if (!plateInput || !alertBox) return;
@@ -968,7 +1084,7 @@
                         alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
                         alertBox.innerHTML = 'Patente ingresada. Continuá para elegir el lavado.';
                     }
-                } catch(err) {
+                } catch (err) {
                     order.hasPromo = false; order.promoDiscount = 0;
                     alertBox.className = 'promo-alert';
                     alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
@@ -984,7 +1100,7 @@
                 grid.innerHTML = '';
                 const options = WASH_OPTIONS[order.washCategory];
                 if (!options) return;
-                
+
                 for (const details of options) {
                     let finalPrice = details.price;
                     let oldPriceHTML = '';
@@ -1002,14 +1118,14 @@
                 }
             }
 
-            window.selectCategory = function(catId, catName) {
+            window.selectCategory = function (catId, catName) {
                 order.washCategory = catId;
                 order.catName = catName;
-                
+
                 // Limpiar selección
                 document.querySelectorAll('#category-grid .select-card').forEach(el => el.classList.remove('selected'));
                 document.querySelector(`#category-grid .select-card[data-cat="${catId}"]`).classList.add('selected');
-                
+
                 if (catId === 'interior') {
                     document.getElementById('wash-grid').style.display = 'grid';
                     document.getElementById('wash-options-title').style.display = 'block';
@@ -1024,22 +1140,21 @@
                     validateStep();
                 }
             };
-            
-            window.selectWash = function(id, name, washPrice) {
-                order.washType = id; 
-                order.washName = name; 
-                
+
+            window.selectWash = function (id, name, washPrice) {
+                order.washType = id;
+                order.washName = name;
+
                 let finalPrice = washPrice;
                 if (order.hasPromo && order.promoDiscount > 0) {
                     finalPrice = washPrice * (1 - order.promoDiscount / 100);
                 }
                 order.finalPrice = finalPrice;
-                
+
                 // Mapear el tamaño del vehículo a order.category para el ticket
                 if (name.includes('Auto')) order.category = 'Auto';
-                else if (name.includes('Utilitario')) order.category = 'SUV';
-                else if (name.includes('Pick-up')) order.category = 'Camioneta';
-                
+                else if (name.includes('Utilitario') || name.includes('Pick-up')) order.category = 'Camioneta';
+
                 document.querySelectorAll('#wash-grid .select-card').forEach(el => el.classList.remove('selected'));
                 const card = document.querySelector(`#wash-grid .select-card[data-wash="${id}"]`);
                 if (card) card.classList.add('selected');
@@ -1047,7 +1162,7 @@
                 setTimeout(window.nextStep, 400);
             };
 
-            window.selectPay = function(pay) {
+            window.selectPay = function (pay) {
                 order.payment = pay;
                 document.querySelectorAll('#step-5 .select-card').forEach(el => el.classList.remove('selected'));
                 const card = document.querySelector(`#step-5 .select-card[data-pay="${pay}"]`);
@@ -1063,7 +1178,7 @@
                     try {
                         const { error } = await supabase.from('lavadero_clientes').upsert([{ patente: order.plate, telefono: order.phone }], { onConflict: 'patente' });
                         if (error) console.warn('Supabase upsert error:', error);
-                    } catch(e) { console.warn('Error upsert cliente:', e); }
+                    } catch (e) { console.warn('Error upsert cliente:', e); }
                 }
 
                 // Generar ID compatible con el dashboard (string UUID)
@@ -1078,7 +1193,7 @@
                     category: order.washCategory,
                     wash_type: order.washType,
                     description: `Servicio: ${order.washName}. Pago: ${order.payment}.`,
-                    isPaid: order.payment !== 'efectivo',
+                    isPaid: true,
                     paymentMethod: order.payment
                 });
 
@@ -1116,7 +1231,7 @@
                             console.log('✅ Vehículo registrado en Supabase OK');
                         }
                     }
-                } catch(e) { console.warn('Supabase insert failed:', e); }
+                } catch (e) { console.warn('Supabase insert failed:', e); }
 
                 if (!supabaseOk) {
                     // Fallback a localStorage si Supabase falla
@@ -1183,9 +1298,11 @@
         });
     </script>
 
-    <footer style="text-align: center; padding: 16px; font-size: 0.75em; color: rgba(255, 255, 255, 0.4); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+    <footer
+        style="text-align: center; padding: 16px; font-size: 0.75em; color: rgba(255, 255, 255, 0.4); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.06);">
         &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero Estética Vehicular
     </footer>
 
 </body>
+
 </html>

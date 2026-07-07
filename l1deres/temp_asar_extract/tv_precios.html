@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precios - Lavadero Estética Vehicular</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 240, 255, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(20, 255, 0, 0.05), transparent 25%);
+        }
+
+        .header {
+            padding: 2rem 4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .brand h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            margin: 0;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #fff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand p {
+            font-family: var(--font-sans);
+            color: var(--color-cyan);
+            letter-spacing: 6px;
+            font-size: 1.2rem;
+            margin: 5px 0 0 0;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 3rem 4rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            overflow: hidden;
+        }
+
+        .category-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            animation: slideUp 1s ease forwards;
+            opacity: 0;
+        }
+
+        .category-column:nth-child(1) { animation-delay: 0.2s; }
+        .category-column:nth-child(2) { animation-delay: 0.4s; }
+        .category-column:nth-child(3) { animation-delay: 0.6s; }
+
+        .category-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--color-lime);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(20, 255, 0, 0.3);
+            border-bottom: 2px solid rgba(20, 255, 0, 0.2);
+            padding-bottom: 0.5rem;
+        }
+
+        .price-card {
+            background: var(--color-panel-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .price-card.premium {
+            border-color: rgba(0, 240, 255, 0.3);
+            background: linear-gradient(180deg, rgba(9, 9, 11, 0.9) 0%, rgba(0, 240, 255, 0.05) 100%);
+        }
+
+        .price-card.premium::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--color-cyan);
+            box-shadow: 0 0 15px var(--color-cyan);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .service-title {
+            font-family: var(--font-sans);
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .service-price {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        .service-items {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .service-items li {
+            font-family: var(--font-sans);
+            font-size: 1.1rem;
+            color: var(--color-text-dim);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .service-items li::before {
+            content: '✓';
+            color: var(--color-lime);
+            font-weight: bold;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.5);
+            font-size: 1rem;
+            color: var(--color-text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="brand">
+            <h1>LAVADERO</h1>
+            <p>Estética Vehicular</p>
+        </div>
+        <div>
+            <!-- Reloj -->
+            <div id="clock" style="font-family: var(--font-display); font-size: 2.5rem; color: var(--color-cyan); font-weight: 700;">--:--</div>
+        </div>
+    </header>
+
+    <main class="main-content" id="pricing-grid">
+        <!-- Generado dinámicamente -->
+        <div class="category-column" id="col-lavados">
+            <h2 class="category-title">Lavados</h2>
+        </div>
+        <div class="category-column" id="col-combos">
+            <h2 class="category-title">Combos Premium</h2>
+        </div>
+        <div class="category-column" id="col-estetica">
+            <h2 class="category-title">Estética Especial</h2>
+        </div>
+    </main>
+
+    
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+    <script>
+        // Actualizar Reloj
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('clock').innerText = timeString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Renderizar Precios basados en la configuración global
+        function renderPrices() {
+            const colLavados = document.getElementById('col-lavados');
+            const colCombos = document.getElementById('col-combos');
+            const colEstetica = document.getElementById('col-estetica');
+
+            // Limpiar listado (mantener solo títulos)
+            colLavados.innerHTML = '<h2 class="category-title">Lavados</h2>';
+            colCombos.innerHTML = '<h2 class="category-title">Combos Premium</h2>';
+            colEstetica.innerHTML = '<h2 class="category-title">Estética Especial</h2>';
+
+            WASH_PACKAGES.forEach(pkg => {
+                const card = document.createElement('div');
+                card.className = \`price-card \${pkg.category === 'combos' || pkg.category === 'estetica' ? 'premium' : ''}\`;
+                
+                let itemsHtml = '';
+                pkg.items.forEach(item => {
+                    itemsHtml += \`<li>\${item}</li>\`;
+                });
+
+                card.innerHTML = \`
+                    <div class="card-header">
+                        <h3 class="service-title">\${pkg.icon} \${pkg.title}</h3>
+                        <div class="service-price">$\${pkg.price.toLocaleString('es-AR')}</div>
+                    </div>
+                    <ul class="service-items">
+                        \${itemsHtml}
+                    </ul>
+                \`;
+
+                if (pkg.category === 'lavados') colLavados.appendChild(card);
+                else if (pkg.category === 'combos') colCombos.appendChild(card);
+                else colEstetica.appendChild(card);
+            });
+        }
+
+        // Ejecutar tras un breve delay para asegurar que app.js cargó WASH_PACKAGES
+        setTimeout(renderPrices, 500);
+    </script>
+
+    <footer class="app-footer" style="text-align: center; padding: 20px; font-size: 0.8em; color: rgba(255, 255, 255, 0.5); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 40px;">
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. <br>
+        Lavadero Estética Vehicular
+    </footer>
+
+</body>
+</html>

@@ -255,8 +255,7 @@
 
             <label style="display:block; margin-bottom:0.5rem; color: var(--color-text-dim); font-weight:600;">Medio de Pago</label>
             <div class="payment-methods">
-                <div class="pay-method active" onclick="selectPay('efectivo')" id="pay-efectivo">💵 Efectivo</div>
-                <div class="pay-method" onclick="selectPay('qr')" id="pay-qr">📱 Código QR</div>
+                <div class="pay-method active" onclick="selectPay('qr')" id="pay-qr">📱 Código QR</div>
                 <div class="pay-method" onclick="selectPay('tarjeta')" id="pay-tarjeta">💳 Tarjeta</div>
             </div>
 
@@ -278,7 +277,7 @@
         // Reloj
         setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleTimeString('es-AR'), 1000);
 
-        let selectedPayment = 'efectivo';
+        let selectedPayment = 'qr';
         let currentPrice = 0;
         let washPackages = [];
 
@@ -413,7 +412,7 @@
 
                     // Seleccionar método de pago
                     if (onlineReg.payment_method) {
-                        let mappedPay = 'efectivo';
+                        let mappedPay = 'qr';
                         if (onlineReg.payment_method === 'transferencia' || onlineReg.payment_method === 'qr') {
                             mappedPay = 'qr';
                         } else if (onlineReg.payment_method === 'tarjeta') {
@@ -468,11 +467,7 @@
             
             overlay.style.display = 'flex';
 
-            if(selectedPayment === 'efectivo') {
-                title.innerText = "Abonar en Caja";
-                content.innerHTML = `<h1 style="font-size: 4rem; margin:0;">$${currentPrice.toLocaleString('es-AR')}</h1><p>Reciba el dinero y presione Confirmar.</p><button class="btn btn-primary" style="padding:1rem 2rem; font-size:1.2rem; margin-top:1rem;" onclick="finishIngreso()">CONFIRMAR EFECTIVO</button>`;
-            } 
-            else if (selectedPayment === 'qr') {
+            if (selectedPayment === 'qr') {
                 title.innerText = "Escanea el código QR";
                 content.innerHTML = `
                     <div class="qr-mock">
