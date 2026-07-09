@@ -11,7 +11,7 @@ const SYNC_STORE_NAME = 'sync-store';
 const DB_NAME = 'lavadero-offline-db';
 const OFFLINE_URL = './offline.html';
 
-// Assets crÃ­ticos que se cachean en la instalaciÃ³n
+// Assets críticos que se cachean en la instalación
 const STATIC_ASSETS = [
   './cliente.html',
   './pwa_cliente.html',
@@ -84,7 +84,7 @@ async function syncPendingRequests() {
   });
 }
 
-// â”€â”€â”€ Install: cachear assets estÃ¡ticos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Install: cachear assets estáticos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 self.addEventListener('install', event => {
   console.log(`[SW] Instalando ${CACHE_NAME}...`);
@@ -98,7 +98,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// â”€â”€â”€ Activate: limpiar cachÃ©s viejos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Activate: limpiar cachés viejos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 self.addEventListener('activate', event => {
   console.log(`[SW] Activando ${CACHE_NAME}...`);
@@ -107,7 +107,7 @@ self.addEventListener('activate', event => {
       Promise.all(
         keys.map(key => {
           if (key !== CACHE_NAME && key !== DYNAMIC_CACHE) {
-            console.log('[SW] Eliminando cachÃ© viejo:', key);
+            console.log('[SW] Eliminando caché viejo:', key);
             return caches.delete(key);
           }
         })
@@ -140,7 +140,7 @@ self.addEventListener('fetch', event => {
             self.registration.sync.register('sync-supabase-data');
           }
 
-          return new Response(JSON.stringify({ status: 'queued_offline', message: 'Request guardado para sincronizar cuando haya conexiÃ³n.' }), {
+          return new Response(JSON.stringify({ status: 'queued_offline', message: 'Request guardado para sincronizar cuando haya conexión.' }), {
             status: 202,
             headers: { 'Content-Type': 'application/json' }
           });
@@ -161,7 +161,7 @@ self.addEventListener('fetch', event => {
             }
             return networkRes;
           }).catch(() => {
-            console.log('[SW] Offline: sirviendo API desde cachÃ©');
+            console.log('[SW] Offline: sirviendo API desde caché');
           });
           return cached || fetchPromise;
         })
@@ -186,7 +186,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // GET assets locales â†’ Network First, fallback a cachÃ©
+  // GET assets locales â†’ Network First, fallback a caché
   event.respondWith(
     fetch(request).then(networkRes => {
       if (networkRes && networkRes.status === 200) {
@@ -196,7 +196,7 @@ self.addEventListener('fetch', event => {
     }).catch(() => {
       return caches.match(request).then(cached => {
         if (cached) return cached;
-        // Si es navegaciÃ³n a una pÃ¡gina HTML, mostrar offline.html
+        // Si es navegación a una página HTML, mostrar offline.html
         if (request.mode === 'navigate') {
           return caches.match(OFFLINE_URL);
         }
@@ -220,7 +220,7 @@ self.addEventListener('sync', event => {
 self.addEventListener('push', event => {
   const data = event.data
     ? event.data.json()
-    : { title: 'L1DERES Car Wash', body: 'Â¡Tu auto estÃ¡ listo! ðŸš—âœ¨' };
+    : { title: 'L1DERES Car Wash', body: '¡Tu auto está listo! 🚗âœ¨' };
 
   const options = {
     body: data.body,
@@ -231,7 +231,7 @@ self.addEventListener('push', event => {
     renotify: true,
     data: { url: data.url || './cliente.html' },
     actions: [
-      { action: 'ver', title: 'Ver estado ðŸš—' },
+      { action: 'ver', title: 'Ver estado 🚗' },
       { action: 'cerrar', title: 'Cerrar' }
     ]
   };

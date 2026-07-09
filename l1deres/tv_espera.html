@@ -144,11 +144,31 @@
             if(inProg.length === 0) listProg.innerHTML = '<div class="empty-msg">No hay vehículos en proceso.</div>';
             if(ready.length === 0) listReady.innerHTML = '<div class="empty-msg">No hay vehículos para retirar.</div>';
 
+            // Helper: extrae nombre visible (enmascarado para privacidad)
+            function getDisplayName(v) {
+                let nickname = v.nickname;
+                // Si nickname es un string JSON, parsearlo
+                if (typeof nickname === 'string' && nickname.trim().startsWith('{')) {
+                    try { nickname = JSON.parse(nickname); } catch(e) { nickname = null; }
+                }
+                // Si es objeto, extraer plate y name
+                if (nickname && typeof nickname === 'object') {
+                    const plate = nickname.plate || v.plate || '';
+                    if (plate) return '***' + plate.slice(-3);
+                    return nickname.name || 'Auto';
+                }
+                // Si es string simple con valor
+                if (typeof nickname === 'string' && nickname.trim()) return nickname;
+                // Fallback: enmascarar patente del campo plate
+                if (v.plate) return '***' + v.plate.slice(-3);
+                return 'Auto';
+            }
+
             inProg.forEach(v => {
                 listProg.innerHTML += `
                     <div class="ticket-item">
-                        <span class="ticket-number">#${v.tracking_id}</span>
-                        <span>${v.nickname || (v.plate ? '***' + v.plate.slice(-3) : 'Auto')}</span>
+                        <span class="ticket-number">#${v.tracking_id || v.id || ''}</span>
+                        <span>${getDisplayName(v)}</span>
                     </div>
                 `;
             });
@@ -156,8 +176,8 @@
             ready.forEach(v => {
                 listReady.innerHTML += `
                     <div class="ticket-item">
-                        <span class="ticket-number">#${v.tracking_id}</span>
-                        <span>${v.nickname || (v.plate ? '***' + v.plate.slice(-3) : 'Auto')}</span>
+                        <span class="ticket-number">#${v.tracking_id || v.id || ''}</span>
+                        <span>${getDisplayName(v)}</span>
                     </div>
                 `;
             });

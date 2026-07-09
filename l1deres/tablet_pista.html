@@ -791,8 +791,8 @@
                     const activeVehicles = data.map(dbCar => {
                         let parsedNickname = 'Vehículo';
                         try {
-                            const parsed = JSON.parse(dbCar.nickname);
-                            parsedNickname = parsed.name || 'Vehículo';
+                            const parsed = dbCar.nickname ? JSON.parse(dbCar.nickname) : null;
+                            parsedNickname = (parsed && parsed.name) ? parsed.name : (dbCar.nickname || 'Vehículo');
                         } catch(e) { parsedNickname = dbCar.nickname || 'Vehículo'; }
 
                         return {
