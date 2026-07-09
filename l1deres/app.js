@@ -2286,9 +2286,9 @@ document.addEventListener('DOMContentLoaded', () => {
             formGastos.reset();
 
             // Sync Supabase
-            if (config.useSupabase) {
-                fetchSupabase('lavadero_gastos', { method: 'POST', body: JSON.stringify(newGasto) });
-            }
+            // if (config.useSupabase) {
+            //     fetchSupabase('lavadero_gastos', { method: 'POST', body: JSON.stringify(newGasto) });
+            // }
         });
     }
 
@@ -2314,9 +2314,9 @@ document.addEventListener('DOMContentLoaded', () => {
             formSueldos.reset();
 
             // Sync Supabase
-            if (config.useSupabase) {
-                fetchSupabase('lavadero_sueldos', { method: 'POST', body: JSON.stringify(newSueldo) });
-            }
+            // if (config.useSupabase) {
+            //     fetchSupabase('lavadero_sueldos', { method: 'POST', body: JSON.stringify(newSueldo) });
+            // }
         });
     }
 
