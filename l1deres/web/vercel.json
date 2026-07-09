@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/pwa_cliente.html", "destination": "/pwa_cliente.html" },
+    { "source": "/tablet_pista.html", "destination": "/tablet_pista.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*\\.html)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
+  ]
+}
