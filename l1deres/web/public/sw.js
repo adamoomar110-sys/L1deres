@@ -15,7 +15,7 @@ const OFFLINE_URL = './offline.html';
 const STATIC_ASSETS = [
   './cliente.html',
   './kiosko.html',
-  './tablet_ingreso.html',
+  './tablet_pista.html',
   './app.js',
   './estilos.css',
   './manifest.json',

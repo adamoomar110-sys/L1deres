@@ -1787,16 +1787,6 @@ function showQrModal(car) {
     qrModal.style.display = 'flex';
 }
 
-function copyPostularLink() {
-    let baseUrl = window.location.origin + window.location.pathname;
-    baseUrl = baseUrl.replace('index.html', '');
-    if (!baseUrl.endsWith('/')) baseUrl += '/';
-    const url = baseUrl + 'postular.html';
-
-    navigator.clipboard.writeText(url).then(() => {
-        showFloatingToast("Enlace de postulación copiado para WhatsApp.");
-    });
-}
 
 window.renderWashMenuOverride = function () {
     const grid = document.getElementById('wash-menu-grid');
@@ -1847,191 +1837,75 @@ window.renderWashMenuOverride = function () {
 }
 setTimeout(() => { if (window.renderWashMenuOverride) window.renderWashMenuOverride(); }, 500);
 
-let scannerStream = null;
-
 window.openScannerModal = function () {
     const modal = document.getElementById('modal-scanner-ia');
-    const feed = document.querySelector('.scanner-feed');
-    const text = document.getElementById('scanner-text');
-    const video = document.getElementById('scanner-video');
     const btnCapture = document.getElementById('btn-capture-scan');
-
+    
     if (!modal) return;
-
+    
     modal.style.display = 'flex';
     void modal.offsetWidth;
     modal.classList.add('active');
-
-    text.innerText = "INICIANDO CÁMARA...";
     
-    // Cargar Tesseract para IA Local si no existe
-    if (typeof Tesseract === 'undefined') {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-        document.head.appendChild(script);
+    if (btnCapture) {
+        btnCapture.style.display = 'inline-block';
+        btnCapture.innerText = "📸 Capturar Foto";
     }
 
-    // Request camera (Soporta PC y Tablet)
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } })
-            .then(function(stream) {
-                scannerStream = stream;
-                if (video) {
-                    video.srcObject = stream;
-                    video.play();
-                }
-                text.innerText = "ALINEE LA PATENTE Y PRESIONE CAPTURAR";
-                if (btnCapture) btnCapture.style.display = 'inline-block';
-            })
-            .catch(function(err) {
-                console.error("Camera error:", err);
-                text.innerText = "ERROR DE CÁMARA. MODO SIMULACIÓN.";
-                simulateScanner();
-            });
-    } else {
-        text.innerText = "CÁMARA NO SOPORTADA. MODO SIMULACIÓN.";
-        simulateScanner();
-    }
+    startCameraIA('scanner-video', 'scanner-icon', 'scanner-text');
 };
 
 window.closeScannerModal = function () {
     const modal = document.getElementById('modal-scanner-ia');
     const btnCapture = document.getElementById('btn-capture-scan');
     
-    if (scannerStream) {
-        scannerStream.getTracks().forEach(track => track.stop());
-        scannerStream = null;
-    }
+    stopCameraIA();
     
     if (btnCapture) btnCapture.style.display = 'none';
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => modal.style.display = 'none', 300);
+    }
 };
 
 document.getElementById('btn-capture-scan')?.addEventListener('click', async () => {
     const video = document.getElementById('scanner-video');
     const canvas = document.getElementById('scanner-canvas');
-    const text = document.getElementById('scanner-text');
     const btnCapture = document.getElementById('btn-capture-scan');
 
     if (!video || !canvas) return;
 
-    // Pause video to "freeze" frame
-    video.pause();
     btnCapture.style.display = 'none';
-    text.innerText = "ANALIZANDO VEHÍCULO CON IA...";
     
-    // Draw to canvas with filters to improve OCR
-    const scale = 2; // Scale up image for better OCR accuracy
-    canvas.width = video.videoWidth * scale;
-    canvas.height = video.videoHeight * scale;
-    const ctx = canvas.getContext('2d');
-    
-    // NO aplicar filtros (Gemini necesita ver el color real del auto)
-    // ctx.filter = 'grayscale(100%) contrast(200%) brightness(120%)';
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    const base64Image = canvas.toDataURL('image/jpeg', 0.8);
-
-    try {
-        text.innerText = "IA VISUAL ANALIZANDO VEHÍCULO...";
-        
-        // Remover el prefijo de base64 (data:image/jpeg;base64,)
-        const base64Data = base64Image.split(',')[1];
-        
-        const response = await fetch('/api/scan-vehicle', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: base64Data })
-        });
-
-        const result = await response.json();
-        
-        if (result.error) throw new Error(result.error.message);
-        
-        const textResponse = result.candidates[0].content.parts[0].text;
-        console.log("Respuesta Gemini:", textResponse);
-        
-        // Extraer solo la parte JSON con expresión regular (por si devuelve texto basura)
-        const match = textResponse.match(/\{[\s\S]*\}/);
-        if (!match) throw new Error("No se pudo extraer JSON de la respuesta");
-        
-        const data = JSON.parse(match[0]);
-        
-        text.innerText = "¡VEHÍCULO DETECTADO CON ÉXITO!";
-        
-        // Rellenar campos
-        if (data.brand || data.model) {
-            document.getElementById('input-nickname').value = `${data.brand || ''} ${data.model || ''}`.trim();
-        }
-        
-        if (data.plate) {
-            document.getElementById('input-plate').value = data.plate.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-        }
-        
-        if (data.color) {
-            document.getElementById('input-color').value = data.color.toUpperCase();
-        }
-        
-        if (window.calculateBudget) { window.calculateBudget(); }
-        
-        setTimeout(() => {
-            window.closeScannerModal();
-            if (typeof showFloatingToast === 'function') showFloatingToast("Análisis IA Visual exitoso");
-        }, 2000);
-
-    } catch (err) {
-        console.error("Error analizando con Gemini:", err);
-        text.innerText = "ERROR EN IA VISUAL. USANDO SIMULACIÓN...";
-        simulateScanner();
-    }
-});
-
-function simulateScanner() {
-    const text = document.getElementById('scanner-text');
-    const feed = document.querySelector('.scanner-feed');
-    
-    setTimeout(() => {
-        if (feed) feed.classList.add('scanning-active');
-        if (text) text.innerText = "ANALIZANDO VEHÍCULO...";
-
-        setTimeout(() => {
-            if (text) text.innerText = "¡VEHÍCULO DETECTADO!";
-            if (feed) {
-                feed.classList.remove('scanning-active');
-                feed.style.background = 'radial-gradient(circle at center, rgba(0,240,255,0.2) 0%, #000 100%)';
+    captureAndProcessIA(video, canvas, 'scanner-text', 'scanner-laser', function(result) {
+        if (result.success) {
+            document.getElementById('scanner-text').innerText = "¡VEHÍCULO DETECTADO CON ÉXITO!";
+            
+            if (result.model) {
+                document.getElementById('input-nickname').value = result.model;
             }
-
-            const mockCars = [
-                { nick: "Audi A3", plate: "AF432RT", color: "#ffffff", cat: "Auto", img: "assets/car_auto.png" },
-                { nick: "Toyota Hilux", plate: "AD991ZZ", color: "#a8a8a8", cat: "Camioneta", img: "assets/car_camioneta.png" },
-                { nick: "Ford Focus", plate: "AC876HG", color: "#dc2626", cat: "Auto", img: "assets/car_auto.png" },
-                { nick: "RAM 1500", plate: "AE112QQ", color: "#000000", cat: "Camioneta", img: "assets/car_camioneta.png" }
-            ];
-            const randCar = mockCars[Math.floor(Math.random() * mockCars.length)];
-
-            document.getElementById('input-nickname').value = randCar.nick;
-            document.getElementById('input-plate').value = randCar.plate;
-            document.getElementById('input-color').value = randCar.color;
-            if (document.getElementById('input-category')) document.getElementById('input-category').value = randCar.cat;
-            if (document.getElementById('color-hex-label')) document.getElementById('color-hex-label').innerText = randCar.color;
-
-            const realImg = document.getElementById('scanner-real-image');
-            if (realImg) {
-                realImg.src = randCar.img;
-                realImg.style.display = 'block';
-                setTimeout(() => { realImg.style.opacity = '1'; }, 50);
+            if (result.plate) {
+                document.getElementById('input-plate').value = result.plate;
             }
-
+            if (result.color) {
+                document.getElementById('input-color').value = result.color;
+            }
+            
             if (window.calculateBudget) { window.calculateBudget(); }
-
+            
             setTimeout(() => {
                 window.closeScannerModal();
-                if (typeof showFloatingToast === 'function') showFloatingToast("Datos simulados cargados.");
-            }, 2500);
-
-        }, 3000);
-    }, 500);
-}
+                if (typeof showFloatingToast === 'function') showFloatingToast("Análisis IA Visual exitoso");
+            }, 2000);
+        } else {
+            document.getElementById('scanner-text').innerText = "ERROR EN IA VISUAL.";
+            setTimeout(() => {
+                window.closeScannerModal();
+                if (typeof showFloatingToast === 'function') showFloatingToast("No se pudo detectar el vehículo.", "error");
+            }, 2000);
+        }
+    });
+});
 
 
 // --- GESTI N DE CATEGORÍAS DE VEHÍCULOS ---

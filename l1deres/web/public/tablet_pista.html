@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tablet de Pista - Lavadero</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="camera_ia.js"></script>
+    <style>
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            margin: 0; padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            font-family: var(--font-sans);
+        }
+        .header {
+            padding: 1rem 2rem;
+            background: rgba(9, 9, 11, 0.9);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-family: var(--font-display);
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--color-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-left: 2rem;
+        }
+        .tab-btn {
+            background: transparent;
+            color: var(--color-text-dim);
+            border: 1px solid transparent;
+            padding: 0.5rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            font-family: var(--font-display);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--color-cyan);
+            border-color: var(--color-cyan);
+        }
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Estilos de Ingreso */
+        .main-container-ingreso {
+            display: flex;
+            gap: 2rem;
+            flex: 1;
+            height: 100%;
+        }
+        .panel {
+            background: var(--color-panel-bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 1rem;
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .scanner-placeholder {
+            flex: 1;
+            background: rgba(0,0,0,0.5);
+            border: 2px dashed var(--color-cyan);
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .scanner-placeholder:hover {
+            background: rgba(0, 240, 255, 0.05);
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-dim);
+            font-weight: 600;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            border-radius: 0.5rem;
+            font-size: 1.1rem;
+        }
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .pay-method {
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid transparent;
+            border-radius: 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .pay-method.active {
+            border-color: var(--color-lime);
+            background: rgba(20, 255, 0, 0.1);
+            color: var(--color-lime);
+        }
+        .btn-large {
+            padding: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            width: 100%;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            border: none;
+            background: var(--color-cyan);
+            color: #fff;
+            transition: all 0.3s;
+        }
+        .btn-large:hover { background: #00c0cc; }
+        
+        /* Scanner Anim */
+        .scan-line {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: var(--color-cyan);
+            box-shadow: 0 0 15px var(--color-cyan);
+            animation: scan 2s infinite linear;
+            display: none;
+        }
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+
+        /* Overlay de pago */
+        .payment-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .qr-mock {
+            width: 300px; height: 300px;
+            background: white;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin: 1rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .qr-mock img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(132, 204, 22, 0.95);
+            border: 1px solid var(--color-lime);
+            color: #000;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s forwards, fadeOut 0.3s 3.7s forwards;
+            font-family: var(--font-sans);
+        }
+        @keyframes slideIn {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Estilos de Taller */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .car-card {
+            background: var(--color-panel-bg);
+            border: 2px solid rgba(255,255,255,0.05);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .car-card.in-wash {
+            border-color: rgba(0, 240, 255, 0.4);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.1);
+        }
+        .plate-badge {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+        .btn-action {
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+        .btn-blue { background: var(--color-cyan); color: #fff; }
+        .btn-green { background: var(--color-lime); color: #000; }
+        .btn-yellow { background: #facc15; color: #000; }
+        .btn-action:hover { filter: brightness(1.2); }
+        .tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .tag {
+            background: rgba(255,255,255,0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>
+            📱 Tablet de Pista
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('recepcion')">Recepción</button>
+                <button class="tab-btn" onclick="switchTab('taller')">Taller</button>
+            </div>
+        </h1>
+        <div id="clock">--:--</div>
+    </header>
+
+    <!-- PESTAÑA: RECEPCIÓN -->
+    <div class="tab-content active" id="tab-recepcion">
+        <div class="main-container-ingreso">
+            <div class="panel">
+                <h2 style="margin-top:0; color: var(--color-lime);">1. Datos del Vehículo</h2>
+                <div class="datos-vehiculo-flex" style="display: flex; gap: 1.5rem; flex: 1; align-items: stretch;">
+                    <div class="scanner-placeholder" id="btn-scan" onclick="startCameraIA('camera-video', 'camera-icon', 'camera-text')" style="flex: 1; max-width: 220px; height: 100%; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #000; cursor: pointer;">
+                        <video id="camera-video" autoplay playsinline style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none;" onclick="captureAndProcessIA(this, document.getElementById('camera-canvas'), 'camera-text', 'scan-line', handleCameraResult); event.stopPropagation();"></video>
+                        <canvas id="camera-canvas" style="display: none;"></canvas>
+                        
+                        <div id="camera-overlay" style="z-index: 10; text-align: center; pointer-events: none; width: 100%;">
+                            <div class="scan-line" id="scan-line"></div>
+                            <div style="font-size: 3.5rem; margin-bottom: 0.5rem;" id="camera-icon">📷</div>
+                            <h3 style="font-size: 1.1rem; text-align: center; padding: 0 10px; margin: 0.5rem 0;" id="camera-text">Encender Cámara</h3>
+                            <p style="color: var(--color-text-dim); font-size: 0.8rem; text-align: center; padding: 0 10px; margin: 0;">Escaneará la Patente</p>
+                        </div>
+                    </div>
+
+                    <div style="flex: 2; display: flex; flex-direction: column; justify-content: center; gap: 1.5rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Patente</label>
+                            <input type="text" id="in-plate" placeholder="Ej: AA123ZZ">
+                        </div>
+                        <div style="display:flex; gap:1rem;">
+                            <div class="form-group" style="flex:1; margin-bottom: 0;">
+                                <label>Modelo / Apodo</label>
+                                <input type="text" id="in-model" placeholder="Ej: Toyota Hilux">
+                            </div>
+                            <div class="form-group" style="width: 100px; margin-bottom: 0;">
+                                <label>Color</label>
+                                <input type="color" id="in-color" value="#ffffff" style="padding:0; height: 3.5rem; cursor:pointer;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2 style="margin-top:0; color: var(--color-lime);">2. Servicio y Pago</h2>
+                
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="in-category" onchange="onCategoryChange()">
+                        <option value="lavado" data-price="0">💦 Lavado</option>
+                        <option value="lavado_interior" data-price="0">✨ Lavado + Interior</option>
+                        <option value="interior" data-price="8000">💨 Interior</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="wash-options-group">
+                    <label>Opciones de Lavado</label>
+                    <select id="in-service" onchange="updatePrice()">
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Precio Final</label>
+                    <input type="text" id="in-price" readonly style="font-family: var(--font-display); font-size: 2rem; color: var(--color-cyan); font-weight: bold;">
+                </div>
+
+                <label style="display:block; margin-bottom:0.5rem; color: var(--color-text-dim); font-weight:600;">Medio de Pago</label>
+                <div class="payment-methods">
+                    <div class="pay-method active" onclick="selectPay('qr')" id="pay-qr">📱 Código QR</div>
+                    <div class="pay-method" onclick="selectPay('tarjeta')" id="pay-tarjeta">💳 Tarjeta</div>
+                </div>
+
+                <button class="btn-large" onclick="processPayment()">IMPRIMIR TICKET E INGRESAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PESTAÑA: TALLER -->
+    <div class="tab-content" id="tab-taller">
+        <h2 style="color: var(--color-text-dim); margin-top:0;">Vehículos en Proceso</h2>
+        <div class="grid" id="cars-grid">
+            <!-- Generado dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Overlay de Procesamiento de Pago -->
+    <div class="payment-overlay" id="pay-overlay">
+        <h2 style="color:var(--color-cyan); font-family: var(--font-display);" id="pay-title">Procesando Pago...</h2>
+        <div id="pay-content">
+        </div>
+        <p style="margin-top: 2rem; color: var(--color-text-dim);">Por favor, siga las instrucciones.</p>
+        <button class="btn btn-secondary" onclick="cancelPayment()" style="margin-top: 2rem;">Cancelar</button>
+    </div>
+
+    <script>
+        // LÓGICA DE TABS
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // LÓGICA COMPARTIDA Y DE RECEPCIÓN
+        const PANEL_CONFIG = {
+            supabaseUrl: 'https://hacmhlyvyyysnvekvhya.supabase.co',
+            supabaseKey: 'sb_publishable_oEB1MoOee7lM99mvHCu_aA_T98vg3NA',
+            queueTable: 'lavadero_camera_queue'
+        };
+
+        setInterval(() => {
+            const el = document.getElementById('clock');
+            if (el) el.innerText = new Date().toLocaleTimeString('es-AR');
+        }, 1000);
+
+        let selectedPayment = 'qr';
+        let currentPrice = 0;
+        let washPackages = [];
+        let detectedOnlineId = null;
+
+        function showToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            if (type === 'error') {
+                toast.style.background = 'rgba(239, 68, 68, 0.95)';
+                toast.style.borderColor = '#ef4444';
+                toast.style.color = '#fff';
+            }
+            toast.innerHTML = `<span>${msg}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3700);
+        }
+
+        function loadServices() {
+            let saved = localStorage.getItem('lavadero_wash_settings');
+            if (saved && (saved.includes('ðŸ') || saved.includes('Í') || saved.includes('â\x80'))) {
+                localStorage.removeItem('lavadero_wash_settings');
+                saved = null;
+            }
+            if (saved) {
+                washPackages = JSON.parse(saved);
+            } else {
+                const cat = document.getElementById('in-category').value;
+                if (cat === 'lavado') {
+                    washPackages = [
+                        { id: 'lavado-autos', title: 'Autos', icon: '🚗', price: 10000 },
+                        { id: 'lavado-utilitarios', title: 'Utilitarios', icon: '🚙', price: 12000 },
+                        { id: 'lavado-pickup', title: 'Pick-up', icon: '🛻', price: 15000 }
+                    ];
+                } else if (cat === 'lavado_interior') {
+                    washPackages = [
+                        { id: 'completo-autos', title: 'Autos', icon: '🚗', price: 15000 },
+                        { id: 'completo-utilitarios', title: 'Utilitarios', icon: '🚙', price: 18000 },
+                        { id: 'completo-pickup', title: 'Pick-up', icon: '🛻', price: 22000 }
+                    ];
+                } else if (cat === 'interior') {
+                    washPackages = [
+                        { id: 'interior-autos', title: 'Autos', icon: '🚗', price: 5000 },
+                        { id: 'interior-utilitarios', title: 'Utilitarios', icon: '🚙', price: 7000 },
+                        { id: 'interior-pickup', title: 'Pick-up', icon: '🛻', price: 9000 }
+                    ];
+                } else {
+                    washPackages = [];
+                }
+            }
+
+            const select = document.getElementById('in-service');
+            select.innerHTML = '';
+            washPackages.forEach(p => {
+                select.innerHTML += `<option value="${p.id}" data-price="${p.price}">${p.icon} ${p.title} ($${p.price.toLocaleString('es-AR')})</option>`;
+            });
+            updatePrice();
+        }
+
+        function onCategoryChange() {
+            loadServices();
+            updatePrice();
+        }
+
+        function updatePrice() {
+            const select = document.getElementById('in-service');
+            let price = 0;
+            if (select && select.selectedIndex >= 0) {
+                const opt = select.options[select.selectedIndex];
+                price = parseInt(opt.getAttribute('data-price'));
+            }
+            currentPrice = price;
+            document.getElementById('in-price').value = `$${currentPrice.toLocaleString('es-AR')}`;
+        }
+
+        function selectPay(method) {
+            selectedPayment = method;
+            document.querySelectorAll('.pay-method').forEach(el => el.classList.remove('active'));
+            document.getElementById(`pay-${method}`).classList.add('active');
+        }
+
+        async function checkOnlinePreRegistration(plate) {
+            if (!plate || plate.trim().length < 6) {
+                detectedOnlineId = null;
+                return;
+            }
+            const cleanPlate = plate.trim().toUpperCase();
+            const localConfig = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            const url_base = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseUrl : PANEL_CONFIG.supabaseUrl;
+            const key = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseKey : PANEL_CONFIG.supabaseKey;
+            const table = localConfig.queueTable || PANEL_CONFIG.queueTable;
+
+            try {
+                const res = await fetch(`${url_base}/rest/v1/${table}?plate=eq.${cleanPlate}&status=eq.waiting&order=entered_at.desc&limit=1`, {
+                    method: 'GET',
+                    headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' }
+                });
+                if (!res.ok) throw new Error("Error en la consulta");
+
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    const onlineReg = data[0];
+                    detectedOnlineId = onlineReg.id;
+
+                    document.getElementById('in-model').value = onlineReg.model || `Vehículo ${onlineReg.plate}`;
+                    if (onlineReg.wash_type) {
+                        const selectService = document.getElementById('in-service');
+                        selectService.value = onlineReg.wash_type;
+                        updatePrice();
+                    }
+                    if (onlineReg.payment_method) {
+                        let mappedPay = 'qr';
+                        if (onlineReg.payment_method === 'transferencia' || onlineReg.payment_method === 'qr') mappedPay = 'qr';
+                        else if (onlineReg.payment_method === 'tarjeta') mappedPay = 'tarjeta';
+                        selectPay(mappedPay);
+                    }
+                    showToast(`✅ ¡Pre-registro Online Detectado para la patente ${cleanPlate}!`, 'success');
+                } else {
+                    detectedOnlineId = null;
+                }
+            } catch (err) {
+                detectedOnlineId = null;
+            }
+        }
+
+        function handleCameraResult(result) {
+            if (result.success && result.plate) {
+                document.getElementById('in-plate').value = result.plate;
+                document.getElementById('in-model').value = result.model || "Vehículo Detectado";
+                document.getElementById('in-color').value = result.color;
+                showToast("¡Patente detectada exitosamente!");
+                checkOnlinePreRegistration(result.plate);
+            } else if (result.plate) {
+                document.getElementById('in-plate').value = result.plate;
+                document.getElementById('in-model').value = result.model || "Vehículo Detectado";
+                document.getElementById('in-color').value = result.color;
+                showToast("Detección parcial. Revise los datos.");
+            } else {
+                document.getElementById('in-color').value = result.color;
+                showToast("No se encontró una patente legible. Ingrese manual.", "error");
+            }
+        }
+
+        function processPayment() {
+            const plate = document.getElementById('in-plate').value;
+            const model = document.getElementById('in-model').value;
+            if(!plate || !model) {
+                alert("Por favor escanea o ingresa la patente y modelo primero.");
+                return;
+            }
+            const overlay = document.getElementById('pay-overlay');
+            const title = document.getElementById('pay-title');
+            const content = document.getElementById('pay-content');
+            overlay.style.display = 'flex';
+
+            if (selectedPayment === 'qr') {
+                title.innerText = "Escanea el código QR";
+                content.innerHTML = `
+                    <div class="qr-mock"><img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=lavadero_pago_${currentPrice}" alt="QR"></div>
+                    <button class="btn btn-primary" style="padding:1rem 2rem; font-size:1.2rem;" onclick="finishIngreso()">SIMULAR PAGO RECIBIDO</button>
+                `;
+            } else {
+                title.innerText = "Acerque la Tarjeta al Posnet";
+                content.innerHTML = `<div style="font-size: 5rem; animation: pulse 1s infinite;">💳</div>`;
+                setTimeout(() => { if(overlay.style.display === 'flex') finishIngreso(); }, 3000);
+            }
+        }
+
+        function cancelPayment() { document.getElementById('pay-overlay').style.display = 'none'; }
+
+        function finishIngreso() {
+            const car = {
+                id: detectedOnlineId || generateUUID(),
+                tracking_id: Math.floor(Math.random() * 900) + 100,
+                nickname: document.getElementById('in-model').value,
+                plate: document.getElementById('in-plate').value.toUpperCase(),
+                color: document.getElementById('in-color').value,
+                zone: 'espera',
+                budget: currentPrice,
+                wash_type: document.getElementById('in-category').value === 'secado' ? 'secado-solo' : document.getElementById('in-service').value,
+                category: document.getElementById('in-category').value,
+                description: `Pago vía: ${selectedPayment.toUpperCase()}`,
+                entered_at: new Date().toISOString()
+            };
+
+            const saved = localStorage.getItem('lavadero_active_vehicles');
+            const activeVehicles = saved ? JSON.parse(saved) : [];
+            activeVehicles.push(car);
+            localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
+            
+            window.dispatchEvent(new Event('storage'));
+            pushVehicleToSupabase(car, detectedOnlineId);
+            cancelPayment();
+            alert(`¡Ticket #${car.tracking_id} Generado!\nEl vehículo ya entró a la cola.`);
+
+            document.getElementById('in-plate').value = '';
+            document.getElementById('in-model').value = '';
+            document.getElementById('in-color').value = '#ffffff';
+            detectedOnlineId = null;
+        }
+
+        function queueForSync(payload) {
+            const queue = JSON.parse(localStorage.getItem('lavadero_offline_queue') || '[]');
+            queue.push(payload);
+            localStorage.setItem('lavadero_offline_queue', JSON.stringify(queue));
+        }
+
+        async function processOfflineQueue() {
+            if (!navigator.onLine) return;
+            const queue = JSON.parse(localStorage.getItem('lavadero_offline_queue') || '[]');
+            if (queue.length === 0) return;
+            const localConfig = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            const url_base = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseUrl : PANEL_CONFIG.supabaseUrl;
+            const key = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseKey : PANEL_CONFIG.supabaseKey;
+            const table = localConfig.queueTable || PANEL_CONFIG.queueTable;
+
+            const pending = [];
+            for (const payload of queue) {
+                try {
+                    const res = await fetch(`${url_base}/rest/v1/${table}`, {
+                        method: 'POST',
+                        headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!res.ok) throw new Error("Fallo sync");
+                } catch(err) { pending.push(payload); }
+            }
+            localStorage.setItem('lavadero_offline_queue', JSON.stringify(pending));
+        }
+
+        window.addEventListener('online', processOfflineQueue);
+        setInterval(processOfflineQueue, 15000);
+
+        async function pushVehicleToSupabase(car, isUpdateId = null) {
+            const localConfig = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            const url_base = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseUrl : PANEL_CONFIG.supabaseUrl;
+            const key = (localConfig.supabaseUrl && localConfig.supabaseKey) ? localConfig.supabaseKey : PANEL_CONFIG.supabaseKey;
+            const table = localConfig.queueTable || PANEL_CONFIG.queueTable;
+
+            const nicknamePayload = JSON.stringify({
+                name: car.nickname, plate: car.plate, budget: car.budget, wash_type: car.wash_type, description: car.description
+            });
+
+            const payload = isUpdateId ? {
+                nickname: nicknamePayload, color: car.color, zone: car.zone, entered_at: car.entered_at, status: 'active'
+            } : {
+                id: car.id, tracking_id: car.tracking_id, nickname: nicknamePayload, color: car.color, zone: car.zone, entered_at: car.entered_at
+            };
+
+            if (!navigator.onLine) {
+                if(!isUpdateId) queueForSync(payload);
+                return;
+            }
+
+            try {
+                const url = isUpdateId ? `${url_base}/rest/v1/${table}?id=eq.${isUpdateId}` : `${url_base}/rest/v1/${table}`;
+                const method = isUpdateId ? 'PATCH' : 'POST';
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok && !isUpdateId) queueForSync(payload);
+            } catch (err) {
+                if(!isUpdateId) queueForSync(payload);
+            }
+        }
+
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        document.getElementById('in-plate').addEventListener('input', (e) => {
+            const val = e.target.value.toUpperCase();
+            e.target.value = val;
+            if (val.length >= 6) checkOnlinePreRegistration(val);
+            else detectedOnlineId = null;
+        });
+
+        loadServices();
+
+        // LÓGICA DE TALLER
+        function loadCars() {
+            const saved = localStorage.getItem('lavadero_active_vehicles');
+            const activeVehicles = saved ? JSON.parse(saved) : [];
+            const grid = document.getElementById('cars-grid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            const visibleCars = activeVehicles.filter(v => v.zone !== 'terminado');
+
+            if(visibleCars.length === 0) {
+                grid.innerHTML = '<p style="color: gray;">No hay vehículos pendientes.</p>';
+                return;
+            }
+
+            visibleCars.forEach(car => {
+                const isWashing = car.zone === 'lavado';
+                let actions = '';
+                if (car.zone === 'reservado') {
+                    actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'pre_espera')">📱 Confirmar Reserva</button>`;
+                } else if (car.zone === 'pre_espera') {
+                    actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'espera')">Aceptar en Fila</button>`;
+                } else if(car.zone === 'espera') {
+                    if (car.category === 'interior' || car.wash_type === 'interior-solo' || car.wash_type === 'aspirado-interior') {
+                        actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'aspirado')">Ingresar a Interior 💨</button>`;
+                    } else {
+                        actions = `<button class="btn-action btn-blue" onclick="changeZone('${car.id}', 'lavado')">Ingresar a Lavado 💧</button>`;
+                    }
+                } else if(car.zone === 'lavado') {
+                    actions = `
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.5rem;">
+                            <button class="btn-action btn-yellow" onclick="changeZone('${car.id}', 'aspirado')">Pasar a Aspirado</button>
+                            <button class="btn-action btn-yellow" onclick="toggleExtra('${car.id}', 'lustre')">Lustre Extra</button>
+                        </div>
+                        <button class="btn-action btn-green" onclick="changeZone('${car.id}', 'terminado')">✔ Marcar Terminado</button>
+                    `;
+                } else if(car.zone === 'aspirado') {
+                    actions = `<button class="btn-action btn-green" onclick="changeZone('${car.id}', 'terminado')">✔ Marcar Terminado</button>`;
+                }
+
+                const extrasHtml = `
+                    ${car.extra_aspirado ? '<span class="tag">🧹 Aspirado Listo</span>' : ''}
+                    ${car.extra_lustre ? '<span class="tag">✨ Lustre Aplicado</span>' : ''}
+                `;
+
+                grid.innerHTML += `
+                    <div class="car-card ${isWashing ? 'in-wash' : ''}">
+                        <div style="display:flex; justify-content: space-between; align-items:center;">
+                            <strong>${car.nickname}</strong>
+                            <div style="width:20px; height:20px; border-radius:50%; background-color:${car.color}; border:2px solid #fff;"></div>
+                        </div>
+                        <div class="plate-badge">${car.plate || 'S/N'}</div>
+                        <div style="font-size: 0.9rem; color: var(--color-text-dim);">${car.description || 'Sin notas'}</div>
+                        <div class="tags">${extrasHtml}</div>
+                        <div style="flex:1;"></div>
+                        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                            ${actions}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function changeZone(id, targetZone) {
+            const saved = localStorage.getItem('lavadero_active_vehicles');
+            if(!saved) return;
+            const activeVehicles = JSON.parse(saved);
+            const car = activeVehicles.find(v => v.id === id);
+            if(car) {
+                car.zone = targetZone;
+                localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
+                window.dispatchEvent(new Event('storage'));
+                pushZoneToSupabase(id, targetZone);
+                loadCars();
+            }
+        }
+
+        function toggleExtra(id, extraType) {
+            const saved = localStorage.getItem('lavadero_active_vehicles');
+            if(!saved) return;
+            const activeVehicles = JSON.parse(saved);
+            const car = activeVehicles.find(v => v.id === id);
+            if(car) {
+                if(extraType === 'aspirado') car.extra_aspirado = !car.extra_aspirado;
+                if(extraType === 'lustre') car.extra_lustre = !car.extra_lustre;
+                localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
+                window.dispatchEvent(new Event('storage'));
+                loadCars();
+            }
+        }
+
+        window.addEventListener('storage', (e) => {
+            if(e.key === 'lavadero_active_vehicles') loadCars();
+        });
+
+        async function fetchFromSupabaseTaller() {
+            const config = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            const url_base = (config.supabaseUrl && config.supabaseKey) ? config.supabaseUrl : PANEL_CONFIG.supabaseUrl;
+            const key = (config.supabaseUrl && config.supabaseKey) ? config.supabaseKey : PANEL_CONFIG.supabaseKey;
+            const table = config.queueTable || PANEL_CONFIG.queueTable;
+            
+            try {
+                const url = `${url_base}/rest/v1/${table}?select=*&order=entered_at.asc`;
+                const response = await fetch(url, { headers: { 'apikey': key, 'Authorization': `Bearer ${key}` } });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const activeVehicles = data.map(dbCar => {
+                        let parsedNickname = 'Vehículo';
+                        try {
+                            const parsed = JSON.parse(dbCar.nickname);
+                            parsedNickname = parsed.name || 'Vehículo';
+                        } catch(e) { parsedNickname = dbCar.nickname || 'Vehículo'; }
+
+                        return {
+                            id: dbCar.id,
+                            tracking_id: dbCar.tracking_id || Math.floor(Math.random() * 100),
+                            nickname: parsedNickname,
+                            plate: dbCar.plate || '',
+                            color: dbCar.color || '#06b6d4',
+                            zone: dbCar.zone || 'espera',
+                            budget: dbCar.budget || 0,
+                            description: dbCar.description || ''
+                        };
+                    });
+                    localStorage.setItem('lavadero_active_vehicles', JSON.stringify(activeVehicles));
+                    loadCars();
+                }
+            } catch (err) { }
+        }
+        
+        async function pushZoneToSupabase(id, zone) {
+            const config = JSON.parse(localStorage.getItem('lavadero_config') || '{}');
+            const url_base = (config.supabaseUrl && config.supabaseKey) ? config.supabaseUrl : PANEL_CONFIG.supabaseUrl;
+            const key = (config.supabaseUrl && config.supabaseKey) ? config.supabaseKey : PANEL_CONFIG.supabaseKey;
+            const table = config.queueTable || PANEL_CONFIG.queueTable;
+
+            try {
+                const url = `${url_base}/rest/v1/${table}?id=eq.${id}`;
+                await fetch(url, {
+                    method: 'PATCH',
+                    headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ zone: zone })
+                });
+            } catch (err) { }
+        }
+        
+        setInterval(fetchFromSupabaseTaller, 8000);
+        fetchFromSupabaseTaller();
+        loadCars();
+
+    </script>
+</body>
+</html>

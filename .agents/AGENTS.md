@@ -22,11 +22,10 @@ Este proyecto tiene una estructura de **doble directorio**. Los archivos fuente 
 | `kiosko.html` | Pantalla kiosko público |
 | `cliente.html` | Landing page del cliente |
 | `app_cliente.html` | Tracking en vivo del cliente (se conecta directo a Supabase) |
-| `tablet_ingreso.html` | Tablet de recepción |
-| `tablet_taller.html` | Tablet del taller operativo |
+| `tablet_pista.html` | Tablet unificada de pista (recepción y taller) |
+| `camera_ia.js` | Lógica central unificada de cámara con IA Visual (Gemini) |
 | `tv_espera.html` | Monitor de sala de espera |
 | `tv_precios.html` | Cartelería de precios |
-| `postular.html` | Formulario de postulación de empleados |
 | `offline.html` | Fallback del service worker |
 | `sw.js` | Service worker para PWA |
 | `manifest-kiosko.json` | Manifest PWA del kiosko |
@@ -34,7 +33,7 @@ Este proyecto tiene una estructura de **doble directorio**. Los archivos fuente 
 ### Comando de sincronización obligatorio antes de cada push:
 
 ```powershell
-Copy-Item -Path index.html, app.js, estilos.css, logo.png, kiosko.html, cliente.html, app_cliente.html, tablet_ingreso.html, tablet_taller.html, tv_espera.html, tv_precios.html, postular.html, offline.html, sw.js, manifest-kiosko.json -Destination web/public/ -Force
+Copy-Item -Path index.html, app.js, estilos.css, logo.png, kiosko.html, cliente.html, app_cliente.html, tablet_pista.html, tv_espera.html, tv_precios.html, offline.html, sw.js, manifest-kiosko.json, camera_ia.js -Destination web/public/ -Force
 ```
 
 ---
