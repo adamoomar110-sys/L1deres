@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kiosco AutogestiÃ³n - L1DERES</title>
+    <title>Kiosco Autogestión - L1DERES</title>
 
     <link rel="manifest" href="manifest-pwa_cliente.json">
     <meta name="theme-color" content="#c8960c">
@@ -717,7 +717,7 @@
 
                 <!-- PASO 2: Lavado -->
                 <div class="step-content" id="step-2">
-                    <h2 class="step-title">Selecciona la CategorÃ­a</h2>
+                    <h2 class="step-title">Seleccioná el Servicio</h2>
                     <div class="grid-3" id="category-grid" style="margin-bottom: 2rem;">
                         <div class="select-card" data-cat="lavado" onclick="selectCategory('lavado', 'Lavado')">
                             <i class="fa-solid fa-droplet"></i>
@@ -737,33 +737,34 @@
                         </div>
                     </div>
 
-                    <h2 class="step-title" id="wash-options-title" style="display:none; font-size: 1.5rem;">Opciones de
-                        Lavado</h2>
+                    <h2 class="step-title" id="wash-options-title" style="display:none; font-size: 1.5rem;">Opciones de Lavado</h2>
                     <div class="grid-2" id="wash-grid" style="display:none;"></div>
                 </div>
 
-                <!-- PASO 3: TelÃ©fono -->
+                <!-- PASO 3: Teléfono -->
                 <div class="step-content" id="step-3">
-                    <h2 class="step-title">NÃºmero de WhatsApp</h2>
+                    <h2 class="step-title">Número de WhatsApp</h2>
                     <div class="plate-input-container">
                         <input type="tel" id="phone-input" class="plate-input" placeholder="Ej: 1123456789"
                             maxlength="15" oninput="order.phone = this.value; validateStep();"
                             style="text-transform: none; font-family: 'Inter', sans-serif; font-size: 2rem;">
-                        <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">Vinculamos tu WhatsApp a la patente
-                            para notificarte cuando el auto estÃ© listo.</p>
+                        <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">Vinculamos tu WhatsApp a la patente para notificarte cuando el auto esté listo.</p>
                     </div>
                 </div>
 
-                <!-- PASO 3: Pago -->
-                <div class="step-content" id="step-3">
+                <!-- PASO 4: Forma de Pago -->
+                <div class="step-content" id="step-4">
                     <h2 class="step-title">Forma de Pago</h2>
                     <div class="grid-3">
-
+                        <div class="select-card" data-pay="efectivo" onclick="selectPay('efectivo')">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                            <h3>Efectivo</h3>
+                        </div>
                         <div class="select-card" data-pay="tarjeta" onclick="selectPay('tarjeta')">
                             <i class="fa-solid fa-credit-card"></i>
                             <h3>Tarjeta</h3>
                         </div>
-                        <div class="select-card" data-pay="transferencia" onclick="selectPay('transferencia')">
+                        <div class="select-card" data-pay="mercadopago" onclick="selectPay('mercadopago')">
                             <i class="fa-solid fa-mobile-screen-button"></i>
                             <h3>MercadoPago</h3>
                         </div>
@@ -812,7 +813,24 @@
                 console.warn('Supabase init error:', e);
             }
 
+            const totalSteps = 4;
             let currentStep = 1;
+
+            // Estado del pedido
+            const order = {
+                plate: '',
+                washCategory: null,
+                catName: '',
+                washType: null,
+                washName: '',
+                finalPrice: 0,
+                phone: '',
+                payment: null,
+                hasPromo: false,
+                promoDiscount: 0,
+                promoId: null
+            };
+            window.order = order; // exponer globalmente para los oninput del HTML
             let WASH_OPTIONS = {
                 'lavado': [
                     { id: 'lavado-simple', name: 'Lavado Simple', icon: 'fa-droplet', price: 10000 },
@@ -1017,7 +1035,7 @@
                 if (btnNext) btnNext.innerText = currentStep === totalSteps ? 'Confirmar y Finalizar' : 'Siguiente';
 
                 validateStep();
-                if (currentStep === 3) renderWashGrid();
+                if (currentStep === 2) renderWashGrid();
             }
 
             // âœ… Exponer al scope global para que los handlers onclick/oninput del HTML puedan acceder
@@ -1062,33 +1080,79 @@
                 const plate = plateInput.value.trim().toUpperCase();
                 if (plate.length < 6) return;
 
+                order.plate = plate;
+                order.hasPromo = false;
+                order.promoDiscount = 0;
+                order.promoId = null;
+
+                alertBox.className = 'promo-alert';
+                alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;display:block;';
+                alertBox.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verificando...';
+
                 try {
                     if (!supabase) throw new Error('offline');
-                    const { data, error } = await supabase.from('lavadero_clientes').select('*').eq('patente', plate);
-                    if (!error && data && data.length > 0) {
-                        order.hasPromo = true;
-                        order.promoDiscount = 15;
-                        alertBox.className = 'promo-alert promo-success';
-                        alertBox.innerHTML = '<i class="fa-solid fa-gift"></i> Â¡Cliente Registrado! Tienes un 15% de descuento hoy.';
 
-                        // âœ… FIX: precargar el telÃ©fono guardado para que el paso 4 no bloquee
-                        const savedPhone = data[0].telefono || '';
-                        if (savedPhone && savedPhone.length >= 8) {
-                            order.phone = savedPhone;
+                    // 1. Buscar en tabla de promociones (nueva)
+                    const { data: promoData, error: promoError } = await supabase
+                        .from('lavadero_promociones')
+                        .select('*')
+                        .eq('patente', plate)
+                        .eq('activa', true)
+                        .single();
+
+                    if (!promoError && promoData) {
+                        // Verificar que no expiró y no agotó usos
+                        const noExpirado = !promoData.vencimiento || new Date(promoData.vencimiento) > new Date();
+                        const tieneUsos = !promoData.max_usos || promoData.usos < promoData.max_usos;
+
+                        if (noExpirado && tieneUsos) {
+                            order.hasPromo = true;
+                            order.promoDiscount = promoData.descuento || 15;
+                            order.promoId = promoData.id;
+                            alertBox.className = 'promo-alert promo-success';
+                            alertBox.innerHTML = `<i class="fa-solid fa-tag"></i> ¡Tenés una promo activa! <strong>${order.promoDiscount}% OFF</strong> — ${promoData.motivo || 'Promoción especial'}`;
+                            alertBox.style.cssText = '';
+
+                            // Precargar teléfono si está guardado en clientes
+                            const { data: cliData } = await supabase.from('lavadero_clientes').select('telefono').eq('patente', plate).single();
+                            if (cliData && cliData.telefono && cliData.telefono.length >= 8) {
+                                order.phone = cliData.telefono;
+                                const phoneEl = document.getElementById('phone-input');
+                                if (phoneEl) phoneEl.value = cliData.telefono;
+                            }
+                            alertBox.style.display = 'block';
+                            validateStep();
+                            return;
+                        }
+                    }
+
+                    // 2. Fallback: buscar en lavadero_clientes (cliente frecuente)
+                    const { data: clientData, error: clientError } = await supabase
+                        .from('lavadero_clientes')
+                        .select('*')
+                        .eq('patente', plate)
+                        .single();
+
+                    if (!clientError && clientData) {
+                        order.hasPromo = true;
+                        order.promoDiscount = 10;
+                        alertBox.className = 'promo-alert promo-success';
+                        alertBox.innerHTML = '<i class="fa-solid fa-star"></i> ¡Cliente frecuente! <strong>10% OFF</strong> por ser cliente registrado.';
+                        alertBox.style.cssText = '';
+
+                        // Precargar teléfono
+                        if (clientData.telefono && clientData.telefono.length >= 8) {
+                            order.phone = clientData.telefono;
                             const phoneEl = document.getElementById('phone-input');
-                            if (phoneEl) phoneEl.value = savedPhone;
+                            if (phoneEl) phoneEl.value = clientData.telefono;
                         }
                     } else {
-                        order.hasPromo = false; order.promoDiscount = 0;
-                        alertBox.className = 'promo-alert';
                         alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
-                        alertBox.innerHTML = 'Patente ingresada. ContinuÃ¡ para elegir el lavado.';
+                        alertBox.innerHTML = '✓ Patente registrada. Continuá para elegir el servicio.';
                     }
                 } catch (err) {
-                    order.hasPromo = false; order.promoDiscount = 0;
-                    alertBox.className = 'promo-alert';
                     alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
-                    alertBox.innerHTML = 'Patente guardada. ContinuÃ¡ para elegir el lavado.';
+                    alertBox.innerHTML = '✓ Patente guardada. Continuá para elegir el servicio.';
                 }
                 alertBox.style.display = 'block';
                 validateStep();
@@ -1164,21 +1228,40 @@
 
             window.selectPay = function (pay) {
                 order.payment = pay;
-                document.querySelectorAll('#step-5 .select-card').forEach(el => el.classList.remove('selected'));
-                const card = document.querySelector(`#step-5 .select-card[data-pay="${pay}"]`);
+                document.querySelectorAll('#step-4 .select-card').forEach(el => el.classList.remove('selected'));
+                const card = document.querySelector(`#step-4 .select-card[data-pay="${pay}"]`);
                 if (card) card.classList.add('selected');
                 validateStep();
+                // Auto avanzar al confirmar
+                setTimeout(window.nextStep, 400);
             };
 
             async function finishOrder() {
                 const btnNext = document.getElementById('btn-next');
                 if (btnNext) { btnNext.innerText = 'Procesando...'; btnNext.disabled = true; }
 
-                if (supabase && order.phone && order.phone.length >= 8) {
+                if (supabase) {
                     try {
-                        const { error } = await supabase.from('lavadero_clientes').upsert([{ patente: order.plate, telefono: order.phone }], { onConflict: 'patente' });
-                        if (error) console.warn('Supabase upsert error:', error);
-                    } catch (e) { console.warn('Error upsert cliente:', e); }
+                        // 1. Guardar/actualizar cliente con teléfono
+                        if (order.phone && order.phone.length >= 8) {
+                            const { error } = await supabase.from('lavadero_clientes').upsert(
+                                [{ patente: order.plate, telefono: order.phone }],
+                                { onConflict: 'patente' }
+                            );
+                            if (error) console.warn('Supabase upsert clientes:', error);
+                        }
+
+                        // 2. Incrementar uso de promo si se aplicó una de lavadero_promociones
+                        if (order.promoId) {
+                            await supabase.rpc('incrementar_uso_promo', { promo_id: order.promoId })
+                                .catch(() => {
+                                    // Fallback manual si no existe la función RPC
+                                    supabase.from('lavadero_promociones')
+                                        .update({ usos: supabase.raw('usos + 1'), actualizado_at: new Date().toISOString() })
+                                        .eq('id', order.promoId);
+                                });
+                        }
+                    } catch (e) { console.warn('Error finishOrder Supabase:', e); }
                 }
 
                 // Generar ID compatible con el dashboard (string UUID)
@@ -1187,7 +1270,7 @@
 
                 // Nickname como JSON (mismo formato que tablet_ingreso y addVehicle del panel)
                 const nicknamePayload = JSON.stringify({
-                    name: `VehÃ­culo ${order.plate}`,
+                    name: `Vehículo ${order.plate}`,
                     plate: order.plate,
                     budget: order.finalPrice,
                     category: order.washCategory,
@@ -1211,7 +1294,7 @@
                     id: carId,
                     tracking_id: trackingId,
                     plate: order.plate,
-                    nickname: `VehÃ­culo ${order.plate}`,
+                    nickname: `Vehículo ${order.plate}`,
                     zone: 'pre_espera',
                     color: '#06b6d4',
                     wash_type: order.washType,
@@ -1337,7 +1420,7 @@
 
     <footer
         style="text-align: center; padding: 16px; font-size: 0.75em; color: rgba(255, 255, 255, 0.4); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.06);">
-        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero EstÃ©tica Vehicular
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero Estética Vehicular
     </footer>
 
 </body>
