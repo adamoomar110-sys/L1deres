@@ -203,47 +203,63 @@
 
     
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js"></script>
     <script>
-        // Actualizar Reloj
+        // Reloj
         function updateClock() {
             const now = new Date();
-            const timeString = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('clock').innerText = timeString;
+            document.getElementById('clock').innerText = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Renderizar Precios basados en la configuración global
+        // Paquetes de lavado por defecto (fallback si no hay localStorage)
+        const DEFAULT_PACKAGES = [
+            { id: 'lavado-simple', title: 'Lavado Simple', icon: '💧', price: 10000, category: 'lavados', items: ['Lavado exterior a presión', 'Secado manual microfibra', 'Brillo básico de cubiertas'] },
+            { id: 'lavado-especial', title: 'Lavado Especial', icon: '⭐', price: 15000, category: 'lavados', items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Silicona de gomas y plásticos', 'Perfumado'] },
+            { id: 'lavado-vip', title: 'Lavado VIP', icon: '👑', price: 20000, category: 'lavados', items: ['Lavado pH neutro artesanal', 'Secado perfecto con paños', 'Silicona premium', 'Perfumado de lujo'] },
+            { id: 'combo-limpieza-total', title: 'Combo Limpieza Total', icon: '🌀', price: 18000, category: 'combos', items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales', 'Silicona y perfumado'] },
+            { id: 'combo-vip-gold', title: 'Combo VIP Gold', icon: '🏆', price: 25000, category: 'combos', items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor'] },
+            { id: 'estetica-basica', title: 'Estética Básica', icon: '✨', price: 30000, category: 'estetica', items: ['Pulido a máquina', 'Limpieza de plásticos exteriores', 'Sellador de pintura'] },
+            { id: 'estetica-completa', title: 'Estética Completa', icon: '💎', price: 50000, category: 'estetica', items: ['Corrección de pintura', 'Encerado Carnauba', 'Tratamiento de cueros', 'Ozono y perfumado'] }
+        ];
+
+        // Cargar paquetes desde localStorage (sincronizado por panel admin) o usar defaults
+        function loadPackages() {
+            try {
+                const saved = localStorage.getItem('lavadero_wash_settings');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                }
+            } catch(e) {}
+            return DEFAULT_PACKAGES;
+        }
+
+        // Renderizar precios
         function renderPrices() {
             const colLavados = document.getElementById('col-lavados');
             const colCombos = document.getElementById('col-combos');
             const colEstetica = document.getElementById('col-estetica');
 
-            // Limpiar listado (mantener solo títulos)
             colLavados.innerHTML = '<h2 class="category-title">Lavados</h2>';
             colCombos.innerHTML = '<h2 class="category-title">Combos Premium</h2>';
             colEstetica.innerHTML = '<h2 class="category-title">Estética Especial</h2>';
 
-            WASH_PACKAGES.forEach(pkg => {
-                const card = document.createElement('div');
-                card.className = `price-card ${pkg.category === 'combos' || pkg.category === 'estetica' ? 'premium' : ''}`;
-                
-                let itemsHtml = '';
-                pkg.items.forEach(item => {
-                    itemsHtml += `<li>${item}</li>`;
-                });
+            const packages = loadPackages();
 
-                card.innerHTML = `
-                    <div class="card-header">
-                        <h3 class="service-title">${pkg.icon} ${pkg.title}</h3>
-                        <div class="service-price">$${pkg.price.toLocaleString('es-AR')}</div>
-                    </div>
-                    <ul class="service-items">
-                        ${itemsHtml}
-                    </ul>
-                `;
+            packages.forEach(pkg => {
+                const card = document.createElement('div');
+                card.className = 'price-card' + (pkg.category === 'combos' || pkg.category === 'estetica' ? ' premium' : '');
+
+                const items = Array.isArray(pkg.items) ? pkg.items : [];
+                const itemsHtml = items.map(item => '<li>' + item + '</li>').join('');
+
+                card.innerHTML =
+                    '<div class="card-header">' +
+                        '<h3 class="service-title">' + (pkg.icon || '') + ' ' + (pkg.title || '') + '</h3>' +
+                        '<div class="service-price">$' + (pkg.price || 0).toLocaleString('es-AR') + '</div>' +
+                    '</div>' +
+                    '<ul class="service-items">' + itemsHtml + '</ul>';
 
                 if (pkg.category === 'lavados') colLavados.appendChild(card);
                 else if (pkg.category === 'combos') colCombos.appendChild(card);
@@ -251,8 +267,37 @@
             });
         }
 
-        // Ejecutar tras un breve delay para asegurar que app.js cargó WASH_PACKAGES
-        setTimeout(renderPrices, 500);
+        // También intentar desde Supabase para datos en tiempo real
+        async function syncFromSupabase() {
+            try {
+                const SUPABASE_URL = 'https://hacmhlyvyyysnvekvhya.supabase.co';
+                const SUPABASE_KEY = 'sb_publishable_oEB1MoOee7lM99mvHCu_aA_T98vg3NA';
+                const res = await fetch(SUPABASE_URL + '/rest/v1/lavadero_precios?select=*', {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        // Mapear columnas de Supabase a formato local
+                        const mapped = data.map(row => ({
+                            id: row.id,
+                            title: row.name || row.title || row.id,
+                            icon: row.icon || '💧',
+                            price: row.price || 0,
+                            category: row.category || 'lavados',
+                            items: Array.isArray(row.items) ? row.items : []
+                        }));
+                        localStorage.setItem('lavadero_wash_settings', JSON.stringify(mapped));
+                        renderPrices();
+                    }
+                }
+            } catch(e) { /* sin conexión, usar localStorage */ }
+        }
+
+        renderPrices();
+        syncFromSupabase();
+        // Refrescar cada 2 minutos
+        setInterval(syncFromSupabase, 120000);
     </script>
 
     <footer class="app-footer" style="text-align: center; padding: 20px; font-size: 0.8em; color: rgba(255, 255, 255, 0.5); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 40px;">
