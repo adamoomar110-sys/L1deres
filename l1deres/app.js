@@ -485,7 +485,7 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
     }
 
     const newCar = {
-        id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
+        crypto.randomUUID(),
         tracking_id: Math.floor(Math.random() * 900) + 100,
         nickname,
         plate: uppercasePlate,
@@ -1354,7 +1354,7 @@ if (formInsumo) {
             }
             showFloatingToast(`Stock actualizado: ${existingInsumo.name}`);
         } else {
-            const newIns = { id: Date.now(), name, stock: stockToAdd };
+            const newIns = { id: crypto.randomUUID(), name, stock: stockToAdd };
             insumos.push(newIns);
             localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
 
@@ -1389,7 +1389,7 @@ function renderInsumos() {
         ];
 
         predefinidos.forEach((nombre, idx) => {
-            insumos.push({ id: Date.now() + idx, name: nombre, stock: 123 });
+            insumos.push({ id: crypto.randomUUID(), name: nombre, stock: 123 });
         });
         localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
 
@@ -1664,7 +1664,7 @@ window.contratarPostulante = async function (id, name) {
     // Mover a empleados
     const savedEmp = localStorage.getItem('lavadero_empleados');
     let empList = savedEmp ? JSON.parse(savedEmp) : [];
-    empList.push({ id: Date.now(), name: name, role: role });
+    empList.push({ id: crypto.randomUUID(), name: name, role: role });
     localStorage.setItem('lavadero_empleados', JSON.stringify(empList));
 
     if (config.useSupabase) {
@@ -2287,7 +2287,7 @@ if (formPromo) {
         const content = document.getElementById('promo-content').value;
 
         const newPromo = {
-            id: Date.now().toString(),
+            id: crypto.randomUUID(),
             title: title,
             content: content,
             is_active: true
