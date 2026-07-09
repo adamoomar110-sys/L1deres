@@ -128,6 +128,22 @@
 
         let lastReadyCount = 0;
 
+                function getCleanNickname(v) {
+            let name = '';
+            if (v.nickname) {
+                try {
+                    const parsed = JSON.parse(v.nickname);
+                    name = parsed.name || '';
+                } catch(e) {
+                    name = v.nickname;
+                }
+            }
+            if (!name && v.plate) {
+                return '***' + v.plate.slice(-3);
+            }
+            return name || 'Auto';
+        }
+
         function loadBoard() {
             const saved = localStorage.getItem('lavadero_active_vehicles');
             const activeVehicles = saved ? JSON.parse(saved) : [];

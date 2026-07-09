@@ -1090,11 +1090,11 @@ function startRealtimeTicker() {
 
 // Modal Toggle
 
-elBtnCloseModal.addEventListener('click', () => {
+if (elBtnCloseModal) elBtnCloseModal.addEventListener('click', () => {
     elModalConfig.classList.remove('active');
 });
 
-elModalConfig.addEventListener('click', (e) => {
+if (elModalConfig) elModalConfig.addEventListener('click', (e) => {
     if (e.target === elModalConfig) {
         elModalConfig.classList.remove('active');
     }
@@ -1126,7 +1126,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 // Guardar Configuración
-elBtnSaveConfig.addEventListener('click', async () => {
+if (elBtnSaveConfig) elBtnSaveConfig.addEventListener('click', async () => {
     config.useSupabase = elCheckUseSupabase.checked;
     config.supabaseUrl = elSupabaseUrl.value.trim();
     config.supabaseKey = elSupabaseKey.value.trim();
@@ -1164,7 +1164,7 @@ elBtnSaveConfig.addEventListener('click', async () => {
     }
 });
 
-elBtnClearHistory.addEventListener('click', async () => {
+if (elBtnClearHistory) elBtnClearHistory.addEventListener('click', async () => {
     if (confirm("�Est�s completamente seguro de borrar todo el historial y estad�sticas de recaudaci�n?")) {
         washHistory = [];
         saveStateLocally(false);
@@ -1187,7 +1187,7 @@ elBtnClearHistory.addEventListener('click', async () => {
 // --- INICIALIZACI�N ---
 
 // Cambiar color label
-elInputColor.addEventListener('input', (e) => {
+if (elInputColor) elInputColor.addEventListener('input', (e) => {
     elColorHexLabel.innerText = e.target.value.toUpperCase();
 });
 
@@ -1245,7 +1245,7 @@ if (elInputPlate) {
 }
 
 // Formulario de Registro
-elFormRegister.addEventListener('submit', (e) => {
+if (elFormRegister) elFormRegister.addEventListener('submit', (e) => {
     e.preventDefault();
     const nickname = elInputNickname.value.trim();
     const plate = elInputPlate.value.trim();
@@ -1334,7 +1334,7 @@ const formInsumo = document.getElementById('form-insumo');
 const tbodyInsumos = document.getElementById('insumos-tbody');
 
 if (formInsumo) {
-    formInsumo.addEventListener('submit', async (e) => {
+    if (formInsumo) formInsumo.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('ins-name').value.trim();
         const stockToAdd = parseInt(document.getElementById('ins-stock').value) || 0;
@@ -1481,7 +1481,7 @@ const tbodyPrecios = document.getElementById('precios-tbody');
 const btnResetPrecios = document.getElementById('btn-reset-precios');
 
 if (btnResetPrecios) {
-    btnResetPrecios.addEventListener('click', () => {
+    if (btnResetPrecios) btnResetPrecios.addEventListener('click', () => {
         if (confirm('ï¿½Restaurar precios y paquetes a sus valores por defecto?')) {
             WASH_PACKAGES = JSON.parse(JSON.stringify(DEFAULT_WASH_OPTIONS));
             localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
@@ -2189,7 +2189,7 @@ function populateEmpleadosSueldos() {
 document.addEventListener('DOMContentLoaded', () => {
     const formGastos = document.getElementById('form-gastos');
     if (formGastos) {
-        formGastos.addEventListener('submit', (e) => {
+        if (formGastos) formGastos.addEventListener('submit', (e) => {
             e.preventDefault();
             const detalle = document.getElementById('gasto-detalle').value;
             const monto = parseFloat(document.getElementById('gasto-monto').value);
@@ -2215,7 +2215,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formSueldos = document.getElementById('form-sueldos');
     if (formSueldos) {
-        formSueldos.addEventListener('submit', (e) => {
+        if (formSueldos) formSueldos.addEventListener('submit', (e) => {
             e.preventDefault();
             const empleado = document.getElementById('sueldo-empleado').value;
             const monto = parseFloat(document.getElementById('sueldo-monto').value);
@@ -2281,7 +2281,7 @@ function renderAdminPromos() {
 
 const formPromo = document.getElementById('form-promo');
 if (formPromo) {
-    formPromo.addEventListener('submit', async (e) => {
+    if (formPromo) formPromo.addEventListener('submit', async (e) => {
         e.preventDefault();
         const title = document.getElementById('promo-title').value;
         const content = document.getElementById('promo-content').value;

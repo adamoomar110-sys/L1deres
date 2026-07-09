@@ -1038,7 +1038,7 @@
                 if (currentStep === 2) renderWashGrid();
             }
 
-            // âœ… Exponer al scope global para que los handlers onclick/oninput del HTML puedan acceder
+            // ✅ Exponer al scope global para que los handlers onclick/oninput del HTML puedan acceder
             window.validateStep = function validateStep() {
                 let isValid = false;
                 if (currentStep === 1) isValid = order.plate.length >= 6;
@@ -1311,7 +1311,7 @@
                             console.warn('Supabase insert error:', error);
                         } else {
                             supabaseOk = true;
-                            console.log('âœ… Vehículo registrado en Supabase OK');
+                            console.log('✅ Vehículo registrado en Supabase OK');
                         }
                     }
                 } catch (e) { console.warn('Supabase insert failed:', e); }
