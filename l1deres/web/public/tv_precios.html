@@ -228,22 +228,22 @@
 
             WASH_PACKAGES.forEach(pkg => {
                 const card = document.createElement('div');
-                card.className = \`price-card \${pkg.category === 'combos' || pkg.category === 'estetica' ? 'premium' : ''}\`;
+                card.className = `price-card ${pkg.category === 'combos' || pkg.category === 'estetica' ? 'premium' : ''}`;
                 
                 let itemsHtml = '';
                 pkg.items.forEach(item => {
-                    itemsHtml += \`<li>\${item}</li>\`;
+                    itemsHtml += `<li>${item}</li>`;
                 });
 
-                card.innerHTML = \`
+                card.innerHTML = `
                     <div class="card-header">
-                        <h3 class="service-title">\${pkg.icon} \${pkg.title}</h3>
-                        <div class="service-price">$\${pkg.price.toLocaleString('es-AR')}</div>
+                        <h3 class="service-title">${pkg.icon} ${pkg.title}</h3>
+                        <div class="service-price">$${pkg.price.toLocaleString('es-AR')}</div>
                     </div>
                     <ul class="service-items">
-                        \${itemsHtml}
+                        ${itemsHtml}
                     </ul>
-                \`;
+                `;
 
                 if (pkg.category === 'lavados') colLavados.appendChild(card);
                 else if (pkg.category === 'combos') colCombos.appendChild(card);

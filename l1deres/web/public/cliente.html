@@ -570,11 +570,16 @@
         }
 
         if (savedCatSettings) {
-            VEHICLE_CATEGORIES = JSON.parse(savedCatSettings);
+            const parsed = JSON.parse(savedCatSettings);
+            // Normalizar: app.js guarda 'percentage', pero aquí se usa 'surcharge'
+            VEHICLE_CATEGORIES = parsed.map(cat => ({
+                ...cat,
+                surcharge: cat.surcharge !== undefined ? cat.surcharge : (cat.percentage !== undefined ? cat.percentage : 0)
+            }));
         } else {
             VEHICLE_CATEGORIES = [
-                { id: 'Auto', surcharge: 0, icon: 'ðŸš—' },
-                { id: 'Camioneta', surcharge: 50, icon: 'ðŸ›»' }
+                { id: 'Auto', surcharge: 0, icon: '🚗' },
+                { id: 'Camioneta', surcharge: 50, icon: '🚐' }
             ];
         }
 
