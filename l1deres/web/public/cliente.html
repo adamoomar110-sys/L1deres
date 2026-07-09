@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi Auto - Lavadero EstÃ©tica Vehicular</title>
+    <title>Mi Auto - Lavadero Estética Vehicular</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -71,7 +71,7 @@
             position: relative;
         }
         
-        /* Luz detrÃ¡s del header */
+        /* Luz detrás del header */
         .client-header::before {
             content: '';
             position: absolute;
@@ -449,13 +449,13 @@
 
     <div class="premium-card">
         <div class="client-header">
-            <!-- BotÃ³n Volver al Kiosco Top Left -->
+            <!-- Botón Volver al Kiosco Top Left -->
             <a href="pwa_cliente.html" style="position: absolute; top: -10px; left: -10px; background: rgba(255,255,255,0.1); color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); z-index: 10; transition: transform 0.2s ease;" title="Volver al Inicio">
                 <i class="fa-solid fa-house"></i>
             </a>
 
-            <!-- BotÃ³n de WhatsApp Top Right -->
-            <a href="https://wa.me/5491100000000?text=Hola,%20tengo%20una%20consulta%20sobre%20mi%20vehÃ­culo" target="_blank" style="position: absolute; top: -10px; right: -10px; background: #25D366; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); z-index: 10; transition: transform 0.2s ease;">
+            <!-- Botón de WhatsApp Top Right -->
+            <a href="https://wa.me/5491100000000?text=Hola,%20tengo%20una%20consulta%20sobre%20mi%20vehículo" target="_blank" style="position: absolute; top: -10px; right: -10px; background: #25D366; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); z-index: 10; transition: transform 0.2s ease;">
                 <i class="fa-brands fa-whatsapp" style="font-size: 1.5rem;"></i>
             </a>
 
@@ -515,7 +515,7 @@
                     <span id="service-price">-</span>
                 </div>
                 <div id="service-items">
-                    <!-- items se inyectan dinÃ¡micamente -->
+                    <!-- items se inyectan dinámicamente -->
                 </div>
                 <div id="payment-status">
                     <span style="color: rgba(255,255,255,0.5);">Forma de Pago</span>
@@ -528,12 +528,12 @@
 
     <div class="client-footer">
         <p>&copy; 2026 <span>Aura</span>. Todos los derechos reservados.</p>
-        <p style="margin-top: 4px;">Lavadero EstÃ©tica Vehicular</p>
+        <p style="margin-top: 4px;">Lavadero Estética Vehicular</p>
     </div>
 
     <script>
 
-        // Cargar configuraciÃ³n de localStorage si existe (modo compartido en el mismo dispositivo)
+        // Cargar configuración de localStorage si existe (modo compartido en el mismo dispositivo)
         let WASH_DETAILS = {};
         const savedSettings = localStorage.getItem('lavadero_wash_settings');
         
@@ -549,11 +549,11 @@
         } else {
             // Fallback por defecto si no hay localStorage
             WASH_DETAILS = {
-                'combo-limpieza-total': { name: 'Combo Limpieza Total Ã°Å¸Å’â‚¬', price: 18000, items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clÃ¡sico'] },
-                'combo-vip-gold': { name: 'Combo VIP Gold Ã°Å¸Â â€ ', price: 25000, items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileÃ±a', 'Aspirado con vapor'] },
-                'lavado-carroceria': { name: 'Lavado Exterior Simple ðŸš—', price: 12000, items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumÃ¡ticos'] },
-                'aspirado-interior': { name: 'Aspirado e Interior Pro Ã°Å¸â€™Â¨', price: 10000, items: ['Aspirado butacas y paneles', 'DesinfecciÃ³n de contacto', 'Acondicionado de plÃ¡sticos'] },
-                'lavado-express': { name: 'Lavado Express âš¡', price: 8000, items: ['Lavado exterior a presiÃ³n', 'Secado rÃ¡pido', 'Brillo bÃ¡sico de cubiertas'] }
+                'combo-limpieza-total': { name: 'Combo Limpieza Total 🌀', price: 18000, items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clásico'] },
+                'combo-vip-gold': { name: 'Combo VIP Gold 🏆', price: 25000, items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor'] },
+                'lavado-carroceria': { name: 'Lavado Exterior Simple 🚗', price: 12000, items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumáticos'] },
+                'aspirado-interior': { name: 'Aspirado e Interior Pro 💨', price: 10000, items: ['Aspirado butacas y paneles', 'Desinfección de contacto', 'Acondicionado de plásticos'] },
+                'lavado-express': { name: 'Lavado Express ⚡', price: 8000, items: ['Lavado exterior a presión', 'Secado rápido', 'Brillo básico de cubiertas'] }
             };
         }
 
@@ -586,11 +586,11 @@
 
         // Parsear URL parameters
         const urlParams = new URLSearchParams(window.location.search);
-        const nick = urlParams.get('n') || 'Tu VehÃ­culo';
+        const nick = urlParams.get('n') || 'Tu Vehículo';
         const color = urlParams.get('c') ? '#' + urlParams.get('c') : '#06b6d4';
         const plate = urlParams.get('p') || 'SIN PATENTE';
         let zone = urlParams.get('z') || 'espera';
-        let pos = parseInt(urlParams.get('pos') || '1'); // PosiciÃ³n en cola
+        let pos = parseInt(urlParams.get('pos') || '1'); // Posición en cola
         let type = urlParams.get('t') || '';
         let payment = urlParams.get('pay') || '';
         const carId = urlParams.get('id') || null;
@@ -659,10 +659,10 @@
 
                 document.getElementById('queue-number').innerText = '#' + pos;
                 if (zone === 'pre_espera') {
-                    document.getElementById('queue-subtitle').innerText = 'Esperando confirmaciÃ³n en Kiosco';
+                    document.getElementById('queue-subtitle').innerText = 'Esperando confirmación en Kiosco';
                     etaText.innerHTML = `<strong style="color:var(--color-yellow); font-size:1.1em;">Ingreso detectado</strong><br>Por favor, confirma tu servicio.`;
                 } else {
-                    document.getElementById('queue-subtitle').innerText = pos === 1 ? 'Â¡Eres el prÃ³ximo!' : 'Autos delante tuyo';
+                    document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
 
                     const waitTotalSecs = remainingWashingSecs + (pos * 7 * 60);
                     const mins = Math.floor(waitTotalSecs / 60);
@@ -701,7 +701,7 @@
                 queueCard.style.display = 'none';
                 progressCard.style.display = 'none';
                 displayContainer.classList.remove('in-wash');
-                etaText.innerHTML = '<strong style="color:var(--color-lime); font-size:1.1em;">Â¡Impecable!</strong><br>Te esperamos en la salida.';
+                etaText.innerHTML = '<strong style="color:var(--color-lime); font-size:1.1em;">¡Impecable!</strong><br>Te esperamos en la salida.';
             }
         }
 

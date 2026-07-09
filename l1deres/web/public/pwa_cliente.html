@@ -509,7 +509,7 @@
             padding: 2rem 0;
         }
 
-        /* Responsive: stack en pantallas pequeÃ±as */
+        /* Responsive: stack en pantallas pequeñas */
         @media (max-width: 900px) {
             .kiosk-layout {
                 flex-direction: column;
@@ -525,7 +525,7 @@
             }
         }
 
-        /* AdaptaciÃ³n especÃ­fica para TelÃ©fonos y Pantallas Medianas/PequeÃ±as */
+        /* Adaptación específica para Teléfonos y Pantallas Medianas/Pequeñas */
         @media (max-width: 650px) {
             .kiosk-header {
                 flex-direction: column;
@@ -570,7 +570,7 @@
                 margin-bottom: 1rem;
             }
 
-            /* Apilar las opciones de la grilla verticalmente para telÃ©fonos */
+            /* Apilar las opciones de la grilla verticalmente para teléfonos */
             .grid-3,
             .grid-2 {
                 grid-template-columns: 1fr;
@@ -579,10 +579,10 @@
 
             .select-card {
                 min-height: 130px !important;
-                /* Altura mÃ¡s cÃ³moda para mÃ³viles en 1 columna */
+                /* Altura más cómoda para móviles en 1 columna */
                 padding: 1.2rem;
                 flex-direction: row;
-                /* DiseÃ±o horizontal en mÃ³vil */
+                /* Diseño horizontal en móvil */
                 justify-content: flex-start;
                 align-items: center;
                 gap: 20px;
@@ -657,7 +657,7 @@
             </button>
             <div class="info-pill">
                 <i class="fa-regular fa-clock"></i>
-                Lunes a SÃ¡bados 08:00 a 20:00
+                Lunes a Sábados 08:00 a 20:00
             </div>
             <div class="info-pill">
                 <i class="fa-solid fa-hourglass-half"></i>
@@ -774,7 +774,7 @@
                 <!-- Controles -->
                 <div class="wizard-actions">
                     <button class="btn btn-prev" id="btn-prev" onclick="prevStep()"
-                        style="visibility: hidden;">AtrÃ¡s</button>
+                        style="visibility: hidden;">Atrás</button>
                     <button class="btn btn-next" id="btn-next" onclick="nextStep()" disabled>Siguiente</button>
                 </div>
 
@@ -917,7 +917,7 @@
                     } catch (e) { }
                     return {
                         ...dbCar,
-                        nickname: extra.name || dbCar.nickname || 'VehÃ­culo',
+                        nickname: extra.name || dbCar.nickname || 'Vehículo',
                         plate: extra.plate || dbCar.plate || ''
                     };
                 });
@@ -978,7 +978,7 @@
 
                 renderZoneGrid('grid-pre-espera', preEspera, 'Sin autos en ingreso', 4);
                 renderZoneGrid('grid-espera', espera, 'Sin autos en espera', 8);
-                renderZoneGrid('grid-lavado', lavadoAspirado, 'Sin autos procesÃ¡ndose');
+                renderZoneGrid('grid-lavado', lavadoAspirado, 'Sin autos procesándose');
                 renderZoneGrid('grid-terminado', terminado, 'Sin autos terminados');
             }
 
@@ -1003,7 +1003,7 @@
                 }
             }
 
-            // Actualizar panel si otra pestaÃ±a escribe en localStorage
+            // Actualizar panel si otra pestaña escribe en localStorage
             window.addEventListener('storage', (e) => {
                 if (e.key === 'lavadero_active_vehicles') updateGlobalETA();
             });
@@ -1186,7 +1186,7 @@
                 order.washCategory = catId;
                 order.catName = catName;
 
-                // Limpiar selecciÃ³n
+                // Limpiar selección
                 document.querySelectorAll('#category-grid .select-card').forEach(el => el.classList.remove('selected'));
                 document.querySelector(`#category-grid .select-card[data-cat="${catId}"]`).classList.add('selected');
 
@@ -1215,7 +1215,7 @@
                 }
                 order.finalPrice = finalPrice;
 
-                // Mapear el tamaÃ±o del vehÃ­culo a order.category para el ticket
+                // Mapear el tamaño del vehículo a order.category para el ticket
                 if (name.includes('Auto')) order.category = 'Auto';
                 else if (name.includes('Utilitario') || name.includes('Pick-up')) order.category = 'Camioneta';
 
@@ -1289,7 +1289,7 @@
                     entered_at: new Date().toISOString()
                 };
 
-                // Objeto local enriquecido para localStorage y posiciÃ³n en cola
+                // Objeto local enriquecido para localStorage y posición en cola
                 const localCarObj = {
                     id: carId,
                     tracking_id: trackingId,
@@ -1311,7 +1311,7 @@
                             console.warn('Supabase insert error:', error);
                         } else {
                             supabaseOk = true;
-                            console.log('âœ… VehÃ­culo registrado en Supabase OK');
+                            console.log('âœ… Vehículo registrado en Supabase OK');
                         }
                     }
                 } catch (e) { console.warn('Supabase insert failed:', e); }
@@ -1361,7 +1361,7 @@
                         })
                         .catch(err => console.error('Error al registrar Service Worker:', err));
 
-                    // Recargar automÃ¡ticamente si el SW toma el control
+                    // Recargar automáticamente si el SW toma el control
                     let refreshing = false;
                     navigator.serviceWorker.addEventListener('controllerchange', () => {
                         if (!refreshing) {
@@ -1381,7 +1381,7 @@
                     z-index: 10000; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 240, 255, 0.5);
                     animation: slideDown 0.5s ease-out;
                 `;
-                banner.innerHTML = 'âœ¨ Â¡Nueva versiÃ³n disponible! Toca aquÃ­ para actualizar. âœ¨';
+                banner.innerHTML = 'âœ¨ ¡Nueva versión disponible! Toca aquí para actualizar. âœ¨';
                 banner.onclick = () => {
                     worker.postMessage({ type: 'SKIP_WAITING' });
                 };
@@ -1404,7 +1404,7 @@
                     if (!deferredPrompt) return;
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`InstalaciÃ³n del pwa_cliente: ${outcome}`);
+                    console.log(`Instalación del pwa_cliente: ${outcome}`);
                     deferredPrompt = null;
                     installBtn.style.display = 'none';
                 });
