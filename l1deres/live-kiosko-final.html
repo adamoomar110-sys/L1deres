@@ -833,7 +833,7 @@
                     try {
                         const { data, error } = await supabase.from('lavadero_precios').select('*');
                         if (!error && data) {
-                            parsed = data.map(row => ({ id: row.id, title: row.name, price: row.price }));
+                            parsed = data.map(row => ({ id: row.id, title: row.name, price: row.price, activo: row.activo }));
                         }
                     } catch (e) { }
                 }
@@ -847,9 +847,14 @@
 
                 if (parsed) {
                     parsed.forEach(pkg => {
-                        if (WASH_OPTIONS[pkg.id]) {
-                            WASH_OPTIONS[pkg.id].price = pkg.price;
-                            if (pkg.title) WASH_OPTIONS[pkg.id].name = pkg.title;
+                        // Buscar en cada categoría de WASH_OPTIONS
+                        for (const cat in WASH_OPTIONS) {
+                            const found = WASH_OPTIONS[cat].find(opt => opt.id === pkg.id);
+                            if (found) {
+                                found.price = pkg.price;
+                                if (pkg.title || pkg.name) found.name = pkg.title || pkg.name;
+                                found.activo = pkg.activo !== false;
+                            }
                         }
                     });
 
@@ -1102,6 +1107,7 @@
                 if (!options) return;
 
                 for (const details of options) {
+                    if (details.activo === false) continue; // Ocultar si está desactivado
                     let finalPrice = details.price;
                     let oldPriceHTML = '';
                     if (order.hasPromo && order.promoDiscount > 0) {

@@ -1277,6 +1277,7 @@ function renderWashMenu() {
     grid.innerHTML = '';
 
     WASH_PACKAGES.forEach(pkg => {
+        if (pkg.activo === false) return; // Ocultar si está desactivado
         const card = document.createElement('div');
         card.className = `wash-menu-card ${pkg.id === selectedWashType ? 'selected' : ''}`;
         card.setAttribute('data-id', pkg.id);
@@ -1566,17 +1567,7 @@ if (btnResetPrecios) {
             localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages();
             renderPrecios();
-            renderWashMenu(); // Refrescar el grid de la vista lavadero
-            showFloatingToast('Precios restaurados');
-        }
-    });
-}
-
-function renderPrecios() {
-    if (!tbodyPrecios) return;
-    tbodyPrecios.innerHTML = '';
-
-    WASH_PACKAGES.forEach((pkg, index) => {
+        WASH_PACKAGES.forEach((pkg, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="font-family:var(--font-mono);font-size:0.8rem;">${pkg.id}</td>
@@ -1589,7 +1580,13 @@ function renderPrecios() {
             <td>
                 $&nbsp;<input type="number" class="precio-input-val" data-index="${index}" value="${pkg.price}" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--color-lime);font-weight:bold;padding:0.25rem;border-radius:4px;width:80px;">
             </td>
-            <td><span class="plate-badge">${pkg.duration}</span></td>
+            <td><span class="plate-badge">${pkg.category || 'general'}</span></td>
+            <td>
+                <label class="toggle-switch">
+                    <input type="checkbox" class="precio-input-activo" data-index="${index}" ${pkg.activo !== false ? 'checked' : ''}>
+                    <span class="slider"></span>
+                </label>
+            </td>
             <td><button class="btn btn-primary btn-sm btn-save-precio" data-index="${index}">Guardar</button></td>
         `;
         tbodyPrecios.appendChild(tr);
@@ -1601,9 +1598,11 @@ function renderPrecios() {
             const row = e.target.closest('tr');
             const newTitle = row.querySelector('.precio-input-name').value;
             const newPrice = row.querySelector('.precio-input-val').value;
+            const newActivo = row.querySelector('.precio-input-activo').checked;
 
             WASH_PACKAGES[idx].title = newTitle;
             WASH_PACKAGES[idx].price = parseInt(newPrice);
+            WASH_PACKAGES[idx].activo = newActivo;
 
             localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages(); // Actualizar mapeos
@@ -1617,14 +1616,15 @@ function renderPrecios() {
                         id: WASH_PACKAGES[idx].id,
                         name: newTitle,
                         price: parseInt(newPrice),
-                        category: 'Auto'
+                        category: WASH_PACKAGES[idx].category || 'Auto',
+                        activo: newActivo
                     })
                 });
             }
 
-            showFloatingToast('Precio actualizado correctamente');
+            showFloatingToast('Precio y estado actualizados correctamente');
 
-            e.target.innerText = '?';
+            e.target.innerText = '✓';
             e.target.style.backgroundColor = 'var(--color-lime)';
             setTimeout(() => {
                 e.target.innerText = 'Guardar';
@@ -1641,6 +1641,7 @@ function renderWashMenu() {
     grid.innerHTML = '';
 
     WASH_PACKAGES.forEach(pkg => {
+        if (pkg.activo === false) return; // Ocultar si está desactivado
         const card = document.createElement('div');
         card.className = 'wash-option-card ' + (selectedWashType === pkg.id ? 'selected' : '');
         card.setAttribute('data-id', pkg.id);

@@ -248,6 +248,7 @@
             const packages = loadPackages();
 
             packages.forEach(pkg => {
+                if (pkg.activo === false) return; // Ocultar si está desactivado
                 const card = document.createElement('div');
                 card.className = 'price-card' + (pkg.category === 'combos' || pkg.category === 'estetica' ? ' premium' : '');
 
@@ -285,7 +286,8 @@
                             icon: row.icon || '💧',
                             price: row.price || 0,
                             category: row.category || 'lavados',
-                            items: Array.isArray(row.items) ? row.items : []
+                            items: Array.isArray(row.items) ? row.items : [],
+                            activo: row.activo !== false
                         }));
                         localStorage.setItem('lavadero_wash_settings', JSON.stringify(mapped));
                         renderPrices();
