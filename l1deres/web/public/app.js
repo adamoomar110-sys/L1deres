@@ -98,6 +98,68 @@ let config = {
     serviceTable: 'service_orders'
 };
 let isSimulationActive = false;
+
+// --- CONTROL DE ERROR SUPABASE ---
+let supabaseErrorShown = false;       // Evita spam de toasts
+let supabaseOfflineBannerShown = false; // Evita crear múltiples banners
+
+function showSupabaseOfflineBanner() {
+    if (supabaseOfflineBannerShown) return;
+    supabaseOfflineBannerShown = true;
+    const banner = document.createElement('div');
+    banner.id = 'supabase-offline-banner';
+    banner.style.cssText = [
+        'position:fixed', 'top:0', 'left:0', 'right:0', 'z-index:99999',
+        'background:linear-gradient(90deg,#b45309,#d97706)', 'color:#fff',
+        'padding:10px 20px', 'display:flex', 'align-items:center',
+        'justify-content:space-between', 'font-family:var(--font-sans,sans-serif)',
+        'font-size:0.85rem', 'font-weight:600', 'box-shadow:0 2px 12px rgba(0,0,0,0.4)',
+        'gap:12px'
+    ].join(';');
+    banner.innerHTML = `
+        <span>⚠️ <strong>Supabase sin conexión</strong> — El sistema está operando en modo local. Los datos se sincronizarán automáticamente cuando el servicio se restaure.</span>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+            <a href="https://status.supabase.com" target="_blank"
+               style="background:rgba(255,255,255,0.2);color:#fff;text-decoration:none;
+                      padding:4px 10px;border-radius:6px;font-size:0.78rem;white-space:nowrap">
+               Ver estado del servicio
+            </a>
+            <button onclick="checkSupabaseAndHideBanner()"
+               style="background:rgba(255,255,255,0.2);color:#fff;border:none;
+                      padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;white-space:nowrap">
+               🔄 Reintentar
+            </button>
+            <button onclick="document.getElementById('supabase-offline-banner').remove();supabaseOfflineBannerShown=false;"
+               style="background:transparent;color:#fff;border:none;
+                      font-size:1.1rem;cursor:pointer;padding:0 4px;line-height:1">✕</button>
+        </div>
+    `;
+    document.body.prepend(banner);
+}
+
+async function checkSupabaseAndHideBanner() {
+    const btn = document.querySelector('#supabase-offline-banner button');
+    if (btn) btn.textContent = '⏳ Verificando...';
+    try {
+        const res = await fetch(`${config.supabaseUrl}/rest/v1/`, {
+            headers: { 'apikey': config.supabaseKey }
+        });
+        if (res.ok || res.status === 400) {
+            // 400 = connected but query issue, still means Supabase is UP
+            const banner = document.getElementById('supabase-offline-banner');
+            if (banner) banner.remove();
+            supabaseOfflineBannerShown = false;
+            supabaseErrorShown = false;
+            showFloatingToast('✅ Supabase reconectado. Sincronizando datos...');
+            await syncFromSupabase();
+        } else {
+            if (btn) btn.textContent = '🔄 Reintentar';
+        }
+    } catch {
+        if (btn) btn.textContent = '🔄 Reintentar';
+        showFloatingToast('❌ Supabase sigue sin responder. Revisá status.supabase.com');
+    }
+}
 let simulationIntervalId = null;
 let realtimeTickerId = null;
 
@@ -407,28 +469,45 @@ async function fetchSupabase(endpoint, options = {}) {
             throw new Error(`Error en respuesta: ${response.status} - ${errText}`);
         }
         if (response.status === 204) return true;
+        // Si hay respuesta exitosa, limpiar estado de error
+        if (supabaseErrorShown) {
+            supabaseErrorShown = false;
+        }
         return await response.json();
     } catch (err) {
-        console.error("�R Fallo en API Supabase:", err);
-        showFloatingToast(`Error de base de datos externa. Operando en modo local.`);
+        console.error('🔴 Fallo en API Supabase:', err);
+        // Mostrar mensaje solo una vez por sesión de error
+        if (!supabaseErrorShown) {
+            supabaseErrorShown = true;
+            const esErrorDeRed = err.message && (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('fetch'));
+            if (esErrorDeRed) {
+                showFloatingToast('⚠️ Supabase sin conexión — posible incidencia del servicio. Ver status.supabase.com', 8000, '#b45309');
+                showSupabaseOfflineBanner();
+            } else {
+                showFloatingToast(`⚠️ Error de Supabase: ${err.message}. Operando en modo local.`, 6000, '#b45309');
+                showSupabaseOfflineBanner();
+            }
+        }
         return null;
     }
 }
 
-function showFloatingToast(message) {
+function showFloatingToast(message, duration = 4000, bgColor = 'rgba(255, 59, 48, 0.95)') {
     const toast = document.createElement('div');
     toast.style.position = 'fixed';
     toast.style.bottom = '2rem';
     toast.style.right = '2rem';
-    toast.style.backgroundColor = 'rgba(255, 59, 48, 0.95)';
-    toast.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+    toast.style.maxWidth = '380px';
+    toast.style.backgroundColor = bgColor;
+    toast.style.border = '1px solid rgba(255, 255, 255, 0.15)';
     toast.style.color = '#fff';
-    toast.style.padding = '1rem 1.5rem';
+    toast.style.padding = '0.9rem 1.4rem';
     toast.style.borderRadius = '1rem';
     toast.style.zIndex = '10000';
-    toast.style.fontFamily = 'var(--font-sans)';
-    toast.style.fontSize = '0.85rem';
-    toast.style.fontWeight = '700';
+    toast.style.fontFamily = 'var(--font-sans, sans-serif)';
+    toast.style.fontSize = '0.83rem';
+    toast.style.fontWeight = '600';
+    toast.style.lineHeight = '1.5';
     toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
     toast.style.backdropFilter = 'blur(10px)';
     toast.style.opacity = '0';
@@ -447,7 +526,7 @@ function showFloatingToast(message) {
         toast.style.opacity = '0';
         toast.style.transform = 'translateY(1rem)';
         setTimeout(() => toast.remove(), 300);
-    }, 4000);
+    }, duration);
 }
 
 async function saveStateLocally(syncRemote = true) {
