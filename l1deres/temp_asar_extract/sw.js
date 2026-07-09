@@ -1,5 +1,5 @@
-// ============================================================
-// L1DERES Car Wash — Service Worker v5
+﻿// ============================================================
+// L1DERES Car Wash â€” Service Worker v5
 // Estrategia: Cache-First para assets, Stale-While-Revalidate
 // para API, Background Sync para requests offline + Offline Page
 // ============================================================
@@ -11,15 +11,15 @@ const SYNC_STORE_NAME = 'sync-store';
 const DB_NAME = 'lavadero-offline-db';
 const OFFLINE_URL = './offline.html';
 
-// Assets críticos que se cachean en la instalación
+// Assets crÃ­ticos que se cachean en la instalaciÃ³n
 const STATIC_ASSETS = [
   './cliente.html',
-  './kiosko.html',
+  './pwa_cliente.html',
   './tablet_ingreso.html',
   './app.js',
   './estilos.css',
   './manifest.json',
-  './manifest-kiosko.json',
+  './manifest-pwa_cliente.json',
   './icon-192.png',
   './icon-512.png',
   './logo.png',
@@ -28,7 +28,7 @@ const STATIC_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-// ─── IndexedDB helpers ──────────────────────────────────────
+// â”€â”€â”€ IndexedDB helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function initDB() {
   return new Promise((resolve, reject) => {
@@ -84,7 +84,7 @@ async function syncPendingRequests() {
   });
 }
 
-// ─── Install: cachear assets estáticos ──────────────────────
+// â”€â”€â”€ Install: cachear assets estÃ¡ticos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 self.addEventListener('install', event => {
   console.log(`[SW] Instalando ${CACHE_NAME}...`);
@@ -98,7 +98,7 @@ self.addEventListener('install', event => {
   );
 });
 
-// ─── Activate: limpiar cachés viejos ────────────────────────
+// â”€â”€â”€ Activate: limpiar cachÃ©s viejos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 self.addEventListener('activate', event => {
   console.log(`[SW] Activando ${CACHE_NAME}...`);
@@ -107,7 +107,7 @@ self.addEventListener('activate', event => {
       Promise.all(
         keys.map(key => {
           if (key !== CACHE_NAME && key !== DYNAMIC_CACHE) {
-            console.log('[SW] Eliminando caché viejo:', key);
+            console.log('[SW] Eliminando cachÃ© viejo:', key);
             return caches.delete(key);
           }
         })
@@ -116,7 +116,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ─── Fetch: estrategias por tipo de request ─────────────────
+// â”€â”€â”€ Fetch: estrategias por tipo de request â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 self.addEventListener('fetch', event => {
   const request = event.request;
@@ -125,7 +125,7 @@ self.addEventListener('fetch', event => {
   // Ignorar extensiones de Chrome y requests no-http
   if (!request.url.startsWith('http')) return;
 
-  // POST/PATCH offline → Background Sync con Supabase
+  // POST/PATCH offline â†’ Background Sync con Supabase
   if (request.method !== 'GET') {
     if (url.origin.includes('supabase.co')) {
       event.respondWith(
@@ -140,7 +140,7 @@ self.addEventListener('fetch', event => {
             self.registration.sync.register('sync-supabase-data');
           }
 
-          return new Response(JSON.stringify({ status: 'queued_offline', message: 'Request guardado para sincronizar cuando haya conexión.' }), {
+          return new Response(JSON.stringify({ status: 'queued_offline', message: 'Request guardado para sincronizar cuando haya conexiÃ³n.' }), {
             status: 202,
             headers: { 'Content-Type': 'application/json' }
           });
@@ -150,7 +150,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // GET a Supabase API → Stale-While-Revalidate
+  // GET a Supabase API â†’ Stale-While-Revalidate
   if (url.origin.includes('supabase.co') || url.pathname.includes('/rest/v1/')) {
     event.respondWith(
       caches.open(DYNAMIC_CACHE).then(cache =>
@@ -161,7 +161,7 @@ self.addEventListener('fetch', event => {
             }
             return networkRes;
           }).catch(() => {
-            console.log('[SW] Offline: sirviendo API desde caché');
+            console.log('[SW] Offline: sirviendo API desde cachÃ©');
           });
           return cached || fetchPromise;
         })
@@ -170,7 +170,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // GET a Google Fonts / CDN → Cache-First
+  // GET a Google Fonts / CDN â†’ Cache-First
   if (url.origin.includes('fonts.googleapis.com') ||
       url.origin.includes('fonts.gstatic.com') ||
       url.origin.includes('cdnjs.cloudflare.com')) {
@@ -186,7 +186,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // GET assets locales → Network First, fallback a caché
+  // GET assets locales â†’ Network First, fallback a cachÃ©
   event.respondWith(
     fetch(request).then(networkRes => {
       if (networkRes && networkRes.status === 200) {
@@ -196,7 +196,7 @@ self.addEventListener('fetch', event => {
     }).catch(() => {
       return caches.match(request).then(cached => {
         if (cached) return cached;
-        // Si es navegación a una página HTML, mostrar offline.html
+        // Si es navegaciÃ³n a una pÃ¡gina HTML, mostrar offline.html
         if (request.mode === 'navigate') {
           return caches.match(OFFLINE_URL);
         }
@@ -206,7 +206,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// ─── Background Sync ────────────────────────────────────────
+// â”€â”€â”€ Background Sync â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-supabase-data') {
@@ -215,12 +215,12 @@ self.addEventListener('sync', event => {
   }
 });
 
-// ─── Push Notifications ─────────────────────────────────────
+// â”€â”€â”€ Push Notifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 self.addEventListener('push', event => {
   const data = event.data
     ? event.data.json()
-    : { title: 'L1DERES Car Wash', body: '¡Tu auto está listo! 🚗✨' };
+    : { title: 'L1DERES Car Wash', body: 'Â¡Tu auto estÃ¡ listo! ðŸš—âœ¨' };
 
   const options = {
     body: data.body,
@@ -231,7 +231,7 @@ self.addEventListener('push', event => {
     renotify: true,
     data: { url: data.url || './cliente.html' },
     actions: [
-      { action: 'ver', title: 'Ver estado 🚗' },
+      { action: 'ver', title: 'Ver estado ðŸš—' },
       { action: 'cerrar', title: 'Cerrar' }
     ]
   };
@@ -258,7 +258,7 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
-// ─── Mensaje desde la app ────────────────────────────────────
+// â”€â”€â”€ Mensaje desde la app â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
@@ -268,3 +268,4 @@ self.addEventListener('message', event => {
     event.ports[0].postMessage({ version: CACHE_VERSION });
   }
 });
+

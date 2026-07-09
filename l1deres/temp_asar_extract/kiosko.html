@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kiosco Autogestión - L1DERES</title>
+    <title>Kiosco AutogestiÃ³n - L1DERES</title>
     
-    <link rel="manifest" href="manifest-kiosko.json">
+    <link rel="manifest" href="manifest-pwa_cliente.json">
     <meta name="theme-color" content="#c8960c">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -301,7 +301,7 @@
             margin-right: 10px;
         }
 
-        /* ── STATUS BAR ── */
+        /* â”€â”€ STATUS BAR â”€â”€ */
         .status-bar {
             display: flex;
             gap: 1rem;
@@ -341,7 +341,7 @@
         .status-pill-value.lime   { color: var(--color-lime); }
         .status-pill-value.red    { color: #ef4444; }
 
-        /* ── ZONA DE ESPERA PANEL ── */
+        /* â”€â”€ ZONA DE ESPERA PANEL â”€â”€ */
         .kiosk-layout {
             display: flex;
             gap: 2rem;
@@ -427,14 +427,14 @@
             padding: 2rem 0;
         }
 
-        /* Responsive: stack en pantallas pequeñas */
+        /* Responsive: stack en pantallas pequeÃ±as */
         @media (max-width: 900px) {
             .kiosk-layout { flex-direction: column; padding: 1rem; }
             .kiosk-right { width: 100%; }
             .zona-espera-panel { position: static; }
         }
 
-        /* Adaptación específica para Teléfonos y Pantallas Medianas/Pequeñas */
+        /* AdaptaciÃ³n especÃ­fica para TelÃ©fonos y Pantallas Medianas/PequeÃ±as */
         @media (max-width: 650px) {
             .kiosk-header {
                 flex-direction: column;
@@ -472,16 +472,16 @@
                 margin-bottom: 1rem;
             }
 
-            /* Apilar las opciones de la grilla verticalmente para teléfonos */
+            /* Apilar las opciones de la grilla verticalmente para telÃ©fonos */
             .grid-3, .grid-2 {
                 grid-template-columns: 1fr;
                 gap: 0.8rem;
             }
 
             .select-card {
-                min-height: 130px !important; /* Altura más cómoda para móviles en 1 columna */
+                min-height: 130px !important; /* Altura mÃ¡s cÃ³moda para mÃ³viles en 1 columna */
                 padding: 1.2rem;
-                flex-direction: row; /* Diseño horizontal en móvil */
+                flex-direction: row; /* DiseÃ±o horizontal en mÃ³vil */
                 justify-content: flex-start;
                 align-items: center;
                 gap: 20px;
@@ -547,7 +547,7 @@
             </button>
             <div class="info-pill">
                 <i class="fa-regular fa-clock"></i>
-                Lunes a Sábados 08:00 a 20:00
+                Lunes a SÃ¡bados 08:00 a 20:00
             </div>
             <div class="info-pill">
                 <i class="fa-solid fa-hourglass-half"></i>
@@ -596,7 +596,7 @@
 
                 <!-- PASO 1: Tipo Vehiculo -->
                 <div class="step-content active" id="step-1">
-                    <h2 class="step-title">¿Qué vehículo vas a lavar?</h2>
+                    <h2 class="step-title">Â¿QuÃ© vehÃ­culo vas a lavar?</h2>
                     <div class="grid-3">
                         <div class="select-card" data-cat="Auto" onclick="selectCat('Auto', 0)">
                             <i class="fa-solid fa-car"></i>
@@ -625,7 +625,7 @@
 
                 <!-- PASO 3: Lavado -->
                 <div class="step-content" id="step-3">
-                    <h2 class="step-title">Selecciona la Categoría</h2>
+                    <h2 class="step-title">Selecciona la CategorÃ­a</h2>
                     <div class="grid-2" id="category-grid" style="margin-bottom: 2rem;">
                         <div class="select-card" data-cat="lavado" onclick="selectCategory('lavado', 'Lavado Solo', 0)">
                             <i class="fa-solid fa-droplet"></i>
@@ -648,12 +648,12 @@
                     <div class="grid-2" id="wash-grid" style="display:none;"></div>
                 </div>
 
-                <!-- PASO 4: Teléfono -->
+                <!-- PASO 4: TelÃ©fono -->
                 <div class="step-content" id="step-4">
-                    <h2 class="step-title">Número de WhatsApp</h2>
+                    <h2 class="step-title">NÃºmero de WhatsApp</h2>
                     <div class="plate-input-container">
                         <input type="tel" id="phone-input" class="plate-input" placeholder="Ej: 1123456789" maxlength="15" oninput="order.phone = this.value; validateStep();" style="text-transform: none; font-family: 'Inter', sans-serif; font-size: 2rem;">
-                        <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">Vinculamos tu WhatsApp a la patente para notificarte cuando el auto esté listo.</p>
+                        <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">Vinculamos tu WhatsApp a la patente para notificarte cuando el auto estÃ© listo.</p>
                     </div>
                 </div>
 
@@ -678,7 +678,7 @@
 
                 <!-- Controles -->
                 <div class="wizard-actions">
-                    <button class="btn btn-prev" id="btn-prev" onclick="prevStep()" style="visibility: hidden;">Atrás</button>
+                    <button class="btn btn-prev" id="btn-prev" onclick="prevStep()" style="visibility: hidden;">AtrÃ¡s</button>
                     <button class="btn btn-next" id="btn-next" onclick="nextStep()" disabled>Siguiente</button>
                 </div>
 
@@ -720,7 +720,7 @@
             let currentStep = 1;
             const totalSteps = 5;
 
-            // ✅ Exponer al scope global para que los atributos oninput/onclick del HTML puedan acceder
+            // âœ… Exponer al scope global para que los atributos oninput/onclick del HTML puedan acceder
             window.order = {
                 category: null, surcharge: 0, plate: '', phone: '', hasPromo: false,
                 promoDiscount: 0, washType: null, washName: '', basePrice: 0,
@@ -808,7 +808,7 @@
                     } catch(e) {}
                     return {
                         ...dbCar,
-                        nickname: extra.name || dbCar.nickname || 'Vehículo',
+                        nickname: extra.name || dbCar.nickname || 'VehÃ­culo',
                         plate: extra.plate || dbCar.plate || ''
                     };
                 });
@@ -869,7 +869,7 @@
 
                 renderZoneGrid('grid-pre-espera', preEspera, 'Sin autos en ingreso', 4);
                 renderZoneGrid('grid-espera', espera, 'Sin autos en espera', 8);
-                renderZoneGrid('grid-lavado', lavadoAspirado, 'Sin autos procesándose');
+                renderZoneGrid('grid-lavado', lavadoAspirado, 'Sin autos procesÃ¡ndose');
                 renderZoneGrid('grid-terminado', terminado, 'Sin autos terminados');
             }
 
@@ -894,7 +894,7 @@
                 }
             }
 
-            // Actualizar panel si otra pestaña escribe en localStorage
+            // Actualizar panel si otra pestaÃ±a escribe en localStorage
             window.addEventListener('storage', (e) => {
                 if (e.key === 'lavadero_active_vehicles') updateGlobalETA();
             });
@@ -929,7 +929,7 @@
                 if (currentStep === 3) renderWashGrid();
             }
 
-            // ✅ Exponer al scope global para que los handlers onclick/oninput del HTML puedan acceder
+            // âœ… Exponer al scope global para que los handlers onclick/oninput del HTML puedan acceder
             window.validateStep = function validateStep() {
                 let isValid = false;
                 if (currentStep === 1) isValid = order.category !== null;
@@ -985,9 +985,9 @@
                         order.hasPromo = true;
                         order.promoDiscount = 15;
                         alertBox.className = 'promo-alert promo-success';
-                        alertBox.innerHTML = '<i class="fa-solid fa-gift"></i> ¡Cliente Registrado! Tienes un 15% de descuento hoy.';
+                        alertBox.innerHTML = '<i class="fa-solid fa-gift"></i> Â¡Cliente Registrado! Tienes un 15% de descuento hoy.';
 
-                        // ✅ FIX: precargar el teléfono guardado para que el paso 4 no bloquee
+                        // âœ… FIX: precargar el telÃ©fono guardado para que el paso 4 no bloquee
                         const savedPhone = data[0].telefono || '';
                         if (savedPhone && savedPhone.length >= 8) {
                             order.phone = savedPhone;
@@ -998,13 +998,13 @@
                         order.hasPromo = false; order.promoDiscount = 0;
                         alertBox.className = 'promo-alert';
                         alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
-                        alertBox.innerHTML = 'Patente ingresada. Continuá para elegir el lavado.';
+                        alertBox.innerHTML = 'Patente ingresada. ContinuÃ¡ para elegir el lavado.';
                     }
                 } catch(err) {
                     order.hasPromo = false; order.promoDiscount = 0;
                     alertBox.className = 'promo-alert';
                     alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
-                    alertBox.innerHTML = 'Patente guardada. Continuá para elegir el lavado.';
+                    alertBox.innerHTML = 'Patente guardada. ContinuÃ¡ para elegir el lavado.';
                 }
                 alertBox.style.display = 'block';
                 validateStep();
@@ -1037,7 +1037,7 @@
                 order.catName = catName;
                 order.catPrice = catPrice;
                 
-                // Limpiar selección
+                // Limpiar selecciÃ³n
                 document.querySelectorAll('#category-grid .select-card').forEach(el => el.classList.remove('selected'));
                 document.querySelector(`#category-grid .select-card[data-cat="${catId}"]`).classList.add('selected');
                 
@@ -1095,12 +1095,12 @@
                 }
 
                 // Generar ID compatible con el dashboard (string UUID)
-                const carId = crypto.randomUUID ? crypto.randomUUID() : `kiosko-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                const carId = crypto.randomUUID ? crypto.randomUUID() : `pwa_cliente-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                 const trackingId = Math.floor(Math.random() * 900) + 100;
 
                 // Nickname como JSON (mismo formato que tablet_ingreso y addVehicle del panel)
                 const nicknamePayload = JSON.stringify({
-                    name: `Vehículo ${order.plate}`,
+                    name: `VehÃ­culo ${order.plate}`,
                     plate: order.plate,
                     budget: order.finalPrice,
                     category: order.washCategory,
@@ -1119,12 +1119,12 @@
                     entered_at: new Date().toISOString()
                 };
 
-                // Objeto local enriquecido para localStorage y posición en cola
+                // Objeto local enriquecido para localStorage y posiciÃ³n en cola
                 const localCarObj = {
                     id: carId,
                     tracking_id: trackingId,
                     plate: order.plate,
-                    nickname: `Vehículo ${order.plate}`,
+                    nickname: `VehÃ­culo ${order.plate}`,
                     zone: 'pre_espera',
                     color: '#06b6d4',
                     wash_type: order.washType,
@@ -1141,7 +1141,7 @@
                             console.warn('Supabase insert error:', error);
                         } else {
                             supabaseOk = true;
-                            console.log('✅ Vehículo registrado en Supabase OK');
+                            console.log('âœ… VehÃ­culo registrado en Supabase OK');
                         }
                     }
                 } catch(e) { console.warn('Supabase insert failed:', e); }
@@ -1151,7 +1151,7 @@
                     const localVehicles = JSON.parse(localStorage.getItem('lavadero_active_vehicles') || '[]');
                     localVehicles.push(localCarObj);
                     localStorage.setItem('lavadero_active_vehicles', JSON.stringify(localVehicles));
-                    console.warn('⚠️ Guardado solo en localStorage (Supabase no disponible)');
+                    console.warn('âš ï¸ Guardado solo en localStorage (Supabase no disponible)');
                 }
 
                 const ticketUrl = `cliente.html?n=${encodeURIComponent(localCarObj.nickname)}&p=${encodeURIComponent(localCarObj.plate)}&z=pre_espera&t=${encodeURIComponent(localCarObj.wash_type)}&pos=1&id=${carId}&pay=${encodeURIComponent(order.payment)}`;
@@ -1176,7 +1176,7 @@
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('./sw.js')
-                        .then(reg => console.log('Service Worker del Kiosko registrado:', reg.scope))
+                        .then(reg => console.log('Service Worker del pwa_cliente registrado:', reg.scope))
                         .catch(err => console.error('Error al registrar Service Worker:', err));
                 });
             }
@@ -1197,14 +1197,14 @@
                     if (!deferredPrompt) return;
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`Instalación del Kiosko: ${outcome}`);
+                    console.log(`InstalaciÃ³n del pwa_cliente: ${outcome}`);
                     deferredPrompt = null;
                     installBtn.style.display = 'none';
                 });
             }
 
             window.addEventListener('appinstalled', () => {
-                console.log('Kiosko instalado como PWA.');
+                console.log('pwa_cliente instalado como PWA.');
                 if (installBtn) installBtn.style.display = 'none';
             });
 
@@ -1212,8 +1212,9 @@
     </script>
 
     <footer style="text-align: center; padding: 16px; font-size: 0.75em; color: rgba(255, 255, 255, 0.4); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.06);">
-        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero Estética Vehicular
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero EstÃ©tica Vehicular
     </footer>
 
 </body>
 </html>
+

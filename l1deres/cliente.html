@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi Auto - Lavadero Estética Vehicular</title>
+    <title>Mi Auto - Lavadero EstÃ©tica Vehicular</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -71,7 +71,7 @@
             position: relative;
         }
         
-        /* Luz detrás del header */
+        /* Luz detrÃ¡s del header */
         .client-header::before {
             content: '';
             position: absolute;
@@ -401,13 +401,13 @@
 
     <div class="premium-card">
         <div class="client-header">
-            <!-- Botón Volver al Kiosco Top Left -->
-            <a href="kiosko.html" style="position: absolute; top: -10px; left: -10px; background: rgba(255,255,255,0.1); color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); z-index: 10; transition: transform 0.2s ease;" title="Volver al Inicio">
+            <!-- BotÃ³n Volver al Kiosco Top Left -->
+            <a href="pwa_cliente.html" style="position: absolute; top: -10px; left: -10px; background: rgba(255,255,255,0.1); color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; border: 1px solid rgba(255,255,255,0.2); z-index: 10; transition: transform 0.2s ease;" title="Volver al Inicio">
                 <i class="fa-solid fa-house"></i>
             </a>
 
-            <!-- Botón de WhatsApp Top Right -->
-            <a href="https://wa.me/5491100000000?text=Hola,%20tengo%20una%20consulta%20sobre%20mi%20vehículo" target="_blank" style="position: absolute; top: -10px; right: -10px; background: #25D366; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); z-index: 10; transition: transform 0.2s ease;">
+            <!-- BotÃ³n de WhatsApp Top Right -->
+            <a href="https://wa.me/5491100000000?text=Hola,%20tengo%20una%20consulta%20sobre%20mi%20vehÃ­culo" target="_blank" style="position: absolute; top: -10px; right: -10px; background: #25D366; color: #fff; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); z-index: 10; transition: transform 0.2s ease;">
                 <i class="fa-brands fa-whatsapp" style="font-size: 1.5rem;"></i>
             </a>
 
@@ -467,7 +467,7 @@
                     <span id="service-price">-</span>
                 </div>
                 <div id="service-items">
-                    <!-- items se inyectan dinámicamente -->
+                    <!-- items se inyectan dinÃ¡micamente -->
                 </div>
                 <div id="payment-status">
                     <span style="color: rgba(255,255,255,0.5);">Forma de Pago</span>
@@ -476,36 +476,36 @@
             </div>
         </div>
 
-        <!-- CONTENEDOR DE CONFIGURACIÓN (Visible si no hay tipo seleccionado) -->
+        <!-- CONTENEDOR DE CONFIGURACIÃ“N (Visible si no hay tipo seleccionado) -->
         <div id="config-view" style="display: none; margin-top: 1.5rem;">
             
-            <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">0. Tipo de Vehículo</p>
+            <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">0. Tipo de VehÃ­culo</p>
             <div id="config-cat-grid" class="wash-menu-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 2rem;">
-                <!-- Dinámico -->
+                <!-- DinÃ¡mico -->
             </div>
 
             <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">1. Elegir Servicio</p>
             <div id="config-wash-grid" class="wash-menu-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                <!-- Dinámico -->
+                <!-- DinÃ¡mico -->
             </div>
 
-            <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">2. Número de WhatsApp</p>
+            <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">2. NÃºmero de WhatsApp</p>
             <div style="margin-bottom: 2rem;">
                 <input type="tel" id="config-phone" placeholder="Ej: 1123456789" style="width: 100%; padding: 1rem; border-radius: 12px; background: rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.1); color: #fff; font-family: 'Outfit', sans-serif; font-size: 1.1rem; box-sizing: border-box; outline: none; transition: 0.3s;" onfocus="this.style.borderColor='var(--color-cyan)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
-                <p style="font-size: 0.75rem; color: #888; margin-top: 8px;">Para avisarte cuando esté listo y sumarte puntos.</p>
+                <p style="font-size: 0.75rem; color: #888; margin-top: 8px;">Para avisarte cuando estÃ© listo y sumarte puntos.</p>
             </div>
 
             <p style="font-size: 0.8rem; color: var(--color-cyan); font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px;">3. Forma de Pago</p>
             <div id="config-pay-grid" class="wash-menu-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem;">
 
                 <div class="wash-menu-card" data-pay="tarjeta" onclick="selectPayment(this, 'tarjeta')">
-                    <div class="check-badge">✓</div>
-                    <div class="wash-card-icon" style="font-size: 1.5rem; margin-bottom: 5px;">💳</div>
+                    <div class="check-badge">âœ“</div>
+                    <div class="wash-card-icon" style="font-size: 1.5rem; margin-bottom: 5px;">ðŸ’³</div>
                     <div class="wash-card-title" style="font-size: 0.7rem;">Tarjeta</div>
                 </div>
                 <div class="wash-menu-card" data-pay="transferencia" onclick="selectPayment(this, 'transferencia')">
-                    <div class="check-badge">✓</div>
-                    <div class="wash-card-icon" style="font-size: 1.5rem; margin-bottom: 5px;">📱</div>
+                    <div class="check-badge">âœ“</div>
+                    <div class="wash-card-icon" style="font-size: 1.5rem; margin-bottom: 5px;">ðŸ“±</div>
                     <div class="wash-card-title" style="font-size: 0.7rem;">MercadoPago</div>
                 </div>
             </div>
@@ -516,12 +516,12 @@
 
     <div class="client-footer">
         <p>&copy; 2026 <span>Aura</span>. Todos los derechos reservados.</p>
-        <p style="margin-top: 4px;">Lavadero Estética Vehicular</p>
+        <p style="margin-top: 4px;">Lavadero EstÃ©tica Vehicular</p>
     </div>
 
     <script>
 
-        // Cargar configuración de localStorage si existe (modo compartido en el mismo dispositivo)
+        // Cargar configuraciÃ³n de localStorage si existe (modo compartido en el mismo dispositivo)
         let WASH_DETAILS = {};
         const savedSettings = localStorage.getItem('lavadero_wash_settings');
         
@@ -537,11 +537,11 @@
         } else {
             // Fallback por defecto si no hay localStorage
             WASH_DETAILS = {
-                'combo-limpieza-total': { name: 'Combo Limpieza Total ðŸŒ€', price: 18000, items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clásico'] },
-                'combo-vip-gold': { name: 'Combo VIP Gold ðŸ†', price: 25000, items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileña', 'Aspirado con vapor'] },
-                'lavado-carroceria': { name: 'Lavado Exterior Simple 🚗', price: 12000, items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumáticos'] },
-                'aspirado-interior': { name: 'Aspirado e Interior Pro ðŸ’¨', price: 10000, items: ['Aspirado butacas y paneles', 'Desinfección de contacto', 'Acondicionado de plásticos'] },
-                'lavado-express': { name: 'Lavado Express ⚡', price: 8000, items: ['Lavado exterior a presión', 'Secado rápido', 'Brillo básico de cubiertas'] }
+                'combo-limpieza-total': { name: 'Combo Limpieza Total Ã°Å¸Å’â‚¬', price: 18000, items: ['Lavado exterior espuma activa', 'Aspirado alfombras/butacas', 'Limpieza cristales/pantallas', 'Silicona y perfumado clÃ¡sico'] },
+                'combo-vip-gold': { name: 'Combo VIP Gold Ã°Å¸Ââ€ ', price: 25000, items: ['Lavado pH neutro artesanal', 'Descontaminado de pintura', 'Encerado Carnauba brasileÃ±a', 'Aspirado con vapor'] },
+                'lavado-carroceria': { name: 'Lavado Exterior Simple ðŸš—', price: 12000, items: ['Lavado shampoo pH balanceado', 'Secado manual microfibra', 'Acondicionado de neumÃ¡ticos'] },
+                'aspirado-interior': { name: 'Aspirado e Interior Pro Ã°Å¸â€™Â¨', price: 10000, items: ['Aspirado butacas y paneles', 'DesinfecciÃ³n de contacto', 'Acondicionado de plÃ¡sticos'] },
+                'lavado-express': { name: 'Lavado Express âš¡', price: 8000, items: ['Lavado exterior a presiÃ³n', 'Secado rÃ¡pido', 'Brillo bÃ¡sico de cubiertas'] }
             };
         }
 
@@ -551,11 +551,11 @@
             if(!ticker) return;
             let htmlStr = '';
             for (const [id, details] of Object.entries(WASH_DETAILS)) {
-                htmlStr += `<span class="ticker-item">🔹 ${details.name}: $${details.price.toLocaleString('es-AR')}</span>`;
+                htmlStr += `<span class="ticker-item">ðŸ”¹ ${details.name}: $${details.price.toLocaleString('es-AR')}</span>`;
             }
-            htmlStr += `<span class="ticker-item" style="color: #fff">💳 Aceptamos Transferencia y Tarjetas</span>`;
+            htmlStr += `<span class="ticker-item" style="color: #fff">ðŸ’³ Aceptamos Transferencia y Tarjetas</span>`;
             
-            // Duplicar para que el loop sea más fluido
+            // Duplicar para que el loop sea mÃ¡s fluido
             ticker.innerHTML = htmlStr + htmlStr;
         }
         renderTicker();
@@ -587,11 +587,11 @@
 
         // Parsear URL parameters
         const urlParams = new URLSearchParams(window.location.search);
-        const nick = urlParams.get('n') || 'Tu Vehículo';
+        const nick = urlParams.get('n') || 'Tu VehÃ­culo';
         const color = urlParams.get('c') ? '#' + urlParams.get('c') : '#06b6d4';
         const plate = urlParams.get('p') || 'SIN PATENTE';
         let zone = urlParams.get('z') || 'espera';
-        let pos = parseInt(urlParams.get('pos') || '1'); // Posición en cola
+        let pos = parseInt(urlParams.get('pos') || '1'); // PosiciÃ³n en cola
         let type = urlParams.get('t') || '';
         let payment = urlParams.get('pay') || '';
         const carId = urlParams.get('id') || null;
@@ -609,7 +609,7 @@
         let pendingType = '';
         let pendingPay = '';
 
-        // Lógica de Selección de Configuración
+        // LÃ³gica de SelecciÃ³n de ConfiguraciÃ³n
         
         let VEHICLE_CATEGORIES = [];
         let savedCatSettings = localStorage.getItem('lavadero_vehicle_categories');
@@ -623,8 +623,8 @@
             VEHICLE_CATEGORIES = JSON.parse(savedCatSettings);
         } else {
             VEHICLE_CATEGORIES = [
-                { id: 'Auto', surcharge: 0, icon: '🚗' },
-                { id: 'Camioneta', surcharge: 50, icon: '🛻' }
+                { id: 'Auto', surcharge: 0, icon: 'ðŸš—' },
+                { id: 'Camioneta', surcharge: 50, icon: 'ðŸ›»' }
             ];
         }
 
@@ -638,7 +638,7 @@
             VEHICLE_CATEGORIES.forEach(cat => {
                 h += `
                 <div class="wash-menu-card" data-cat="${cat.id}" onclick="selectCat(this, '${cat.id}', ${cat.surcharge})">
-                    <div class="check-badge">✓</div>
+                    <div class="check-badge">âœ“</div>
                     <div class="wash-card-icon" style="font-size: 1.5rem;">${cat.icon}</div>
                     <div class="wash-card-title" style="font-size: 0.65rem;">${cat.id}</div>
                 </div>
@@ -681,7 +681,7 @@
                 const isSelected = pendingTypeIds.includes(id) ? 'selected' : '';
                 html += `
                 <div class="wash-menu-card ${isSelected}" data-type="${id}" onclick="selectWash(this, '${id}')">
-                    <div class="check-badge">✓</div>
+                    <div class="check-badge">âœ“</div>
                     <div class="wash-card-title" style="font-size: 0.75rem; min-height: 2.5em; display:flex; align-items:center; justify-content:center;">${details.name}</div>
                     <div class="wash-card-price" style="font-size: 0.9rem;">${adjustedPrice.toLocaleString('es-AR')}</div>
                 </div>
@@ -701,12 +701,12 @@
         }
 
         async function confirmarConfiguracion() {
-            if (!pendingCats) { alert('Por favor, selecciona qué vehículo tienes.'); return; }
+            if (!pendingCats) { alert('Por favor, selecciona quÃ© vehÃ­culo tienes.'); return; }
             if (pendingTypeIds.length === 0) { alert('Por favor, selecciona al menos un tipo de lavado.'); return; }
             
             const phoneInput = document.getElementById('config-phone');
             if (phoneInput && phoneInput.value.trim().length < 8) {
-                alert('Por favor, ingresa un número de WhatsApp válido.'); return;
+                alert('Por favor, ingresa un nÃºmero de WhatsApp vÃ¡lido.'); return;
             }
             if (!pendingPay) { alert('Por favor, selecciona una forma de pago.'); return; }
             
@@ -720,7 +720,7 @@
                 btn.disabled = true;
 
                 try {
-                    // Placeholder del Token Público (Reemplazar con el tuyo)
+                    // Placeholder del Token PÃºblico (Reemplazar con el tuyo)
                     const mp = new MercadoPago('APP_USR-pon-aqui-tu-public-key-real', { locale: 'es-AR' });
                     
                     // Llamamos a nuestra API para crear la preferencia
@@ -730,7 +730,7 @@
                         body: JSON.stringify({
                             washId: pendingType,
                             title: 'Lavado ' + pendingCats,
-                            price: 25000, // TODO: Calcular dinámico
+                            price: 25000, // TODO: Calcular dinÃ¡mico
                             plate: 'Generico'
                         })
                     });
@@ -740,14 +740,14 @@
                     if (data.init_point) {
                         window.location.href = data.init_point;
                     } else {
-                        alert('Error al iniciar Mercado Pago. Modo simulación activado.');
+                        alert('Error al iniciar Mercado Pago. Modo simulaciÃ³n activado.');
                         btn.innerText = originalText;
                         btn.disabled = false;
                     }
-                    return; // Detenemos aquí porque MP tomará el control
+                    return; // Detenemos aquÃ­ porque MP tomarÃ¡ el control
                 } catch (error) {
                     console.error('Error MP:', error);
-                    alert('Simulación de Mercado Pago: En producción esto abrirá la pasarela segura.');
+                    alert('SimulaciÃ³n de Mercado Pago: En producciÃ³n esto abrirÃ¡ la pasarela segura.');
                     btn.innerText = originalText;
                     btn.disabled = false;
                 }
@@ -837,10 +837,10 @@
 
                 document.getElementById('queue-number').innerText = '#' + pos;
                 if (zone === 'pre_espera') {
-                    document.getElementById('queue-subtitle').innerText = 'Esperando confirmación en Kiosco';
+                    document.getElementById('queue-subtitle').innerText = 'Esperando confirmaciÃ³n en Kiosco';
                     etaText.innerHTML = `<strong style="color:var(--color-yellow); font-size:1.1em;">Ingreso detectado</strong><br>Por favor, confirma tu servicio.`;
                 } else {
-                    document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
+                    document.getElementById('queue-subtitle').innerText = pos === 1 ? 'Â¡Eres el prÃ³ximo!' : 'Autos delante tuyo';
 
                     const waitTotalSecs = remainingWashingSecs + (pos * 7 * 60);
                     const mins = Math.floor(waitTotalSecs / 60);
@@ -879,7 +879,7 @@
                 queueCard.style.display = 'none';
                 progressCard.style.display = 'none';
                 displayContainer.classList.remove('in-wash');
-                etaText.innerHTML = '<strong style="color:var(--color-lime); font-size:1.1em;">¡Impecable!</strong><br>Te esperamos en la salida.';
+                etaText.innerHTML = '<strong style="color:var(--color-lime); font-size:1.1em;">Â¡Impecable!</strong><br>Te esperamos en la salida.';
             }
         }
 
@@ -919,7 +919,7 @@
                     const itemsContainer = document.getElementById('service-items');
                     itemsContainer.innerHTML = [...new Set(allItems)].map(item => `
                         <div style="display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.85)">
-                            <span style="color: var(--color-lime);">✓</span>
+                            <span style="color: var(--color-lime);">âœ“</span>
                             <span>${item}</span>
                         </div>
                     `).join('');
@@ -938,7 +938,7 @@
 
         // INIT LOGIC
         if (!type || !payment) {
-            // Entra en modo Configuración si falta algún dato
+            // Entra en modo ConfiguraciÃ³n si falta algÃºn dato
             document.getElementById('config-view').style.display = 'block';
             document.getElementById('status-container').style.display = 'none';
             const stepper = document.getElementById('stepper-wrapper');
@@ -949,7 +949,7 @@
             if (typeof renderCatMenu === 'function') renderCatMenu();
             if (typeof renderWashMenu === 'function') renderWashMenu();
         } else {
-            // Ya está configurado, entra en modo Tracking Directamente
+            // Ya estÃ¡ configurado, entra en modo Tracking Directamente
             initTrackingView();
         }
     
@@ -990,7 +990,7 @@
     </script>
 
     <footer style="text-align: center; padding: 16px; font-size: 0.75em; color: rgba(255, 255, 255, 0.4); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.06); margin-top: auto;">
-        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero Estética Vehicular
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero EstÃ©tica Vehicular
     </footer>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const cp1252ToByte = {};
 for (let i = 0; i < 256; i++) cp1252ToByte[i] = i;
 const win1252 = {
@@ -16,7 +16,7 @@ for (const [byte, charCode] of Object.entries(win1252)) {
 function fixFile(filePath) {
     if (!fs.existsSync(filePath)) return;
     const txt = fs.readFileSync(filePath, 'utf8');
-    // If it doesn't contain Ã (C3) or Â (C2), it's probably fine
+    // If it doesn't contain Ãƒ (C3) or Ã‚ (C2), it's probably fine
     if (!txt.includes('\u00C3') && !txt.includes('\u00C2')) {
         console.log("Skipping", filePath, "- looks fine");
         return;
@@ -35,7 +35,7 @@ function fixFile(filePath) {
 }
 fixFile('app.js');
 fixFile('index.html');
-fixFile('kiosko.html');
+fixFile('pwa_cliente.html');
 fixFile('tv_precios.html');
 fixFile('tv_espera.html');
 fixFile('tablet_taller.html');
@@ -43,3 +43,4 @@ fixFile('tablet_ingreso.html');
 
 fixFile('postular.html');
 fixFile('pantalla_lavado/index.html');
+

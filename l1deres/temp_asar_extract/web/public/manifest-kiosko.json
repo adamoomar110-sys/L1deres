@@ -1,9 +1,9 @@
-{
-  "id": "/lavadero-lujo-kiosko",
-  "name": "L1DERES Kiosco Autogestión",
+﻿{
+  "id": "/lavadero-lujo-pwa_cliente",
+  "name": "L1DERES Kiosco AutogestiÃ³n",
   "short_name": "L1DERES Kiosco",
-  "description": "Kiosco de autogestión para registrar ingresos y servicios en el Lavadero L1DERES.",
-  "start_url": "./kiosko.html?pwa=true",
+  "description": "Kiosco de autogestiÃ³n para registrar ingresos y servicios en el Lavadero L1DERES.",
+  "start_url": "./pwa_cliente.html?pwa=true",
   "scope": "./",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
@@ -33,3 +33,4 @@
     }
   ]
 }
+

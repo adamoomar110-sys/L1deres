@@ -1,12 +1,12 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 
 const replacements = {
-    "TAMAÁ±O": "TAMAÑO",
-    "TAMAÃ±O": "TAMAÑO",
-    "ÃŸÂ—": "🚗",
-    "ÃŸÂ”Â—": "🔗",
-    "ðŸš—": "🚗",
-    "ðŸ”—": "🔗"
+    "TAMAÃÂ±O": "TAMAÃ‘O",
+    "TAMAÃƒÂ±O": "TAMAÃ‘O",
+    "ÃƒÅ¸Ã‚â€”": "ðŸš—",
+    "ÃƒÅ¸Ã‚â€Ã‚â€”": "ðŸ”—",
+    "Ã°Å¸Å¡â€”": "ðŸš—",
+    "Ã°Å¸â€â€”": "ðŸ”—"
 };
 
 function fixFile(path) {
@@ -23,4 +23,5 @@ function fixFile(path) {
 
 fixFile('app.js');
 fixFile('index.html');
-fixFile('kiosko.html');
+fixFile('pwa_cliente.html');
+

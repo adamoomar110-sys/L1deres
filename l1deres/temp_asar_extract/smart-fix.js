@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const win1252 = {
     0x80: 0x20AC, 0x82: 0x201A, 0x83: 0x0192, 0x84: 0x201E,
     0x85: 0x2026, 0x86: 0x2020, 0x87: 0x2021, 0x88: 0x02C6,
@@ -46,7 +46,7 @@ function fixFile(path) {
 
 fixFile('app.js');
 fixFile('index.html');
-fixFile('kiosko.html');
+fixFile('pwa_cliente.html');
 fixFile('tv_precios.html');
 fixFile('tv_espera.html');
 fixFile('tablet_taller.html');
@@ -54,3 +54,4 @@ fixFile('tablet_ingreso.html');
 
 fixFile('postular.html');
 fixFile('pantalla_lavado/index.html');
+
