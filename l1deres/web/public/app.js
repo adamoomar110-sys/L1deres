@@ -957,7 +957,7 @@ function renderOperatorTable() {
         const wpBtn = tr.querySelector('.btn-whatsapp');
         if (wpBtn) {
             wpBtn.addEventListener('click', () => {
-                const text = encodeURIComponent(`¡Hola! Tu vehículo ${getDisplayNickname(car.nickname)} ya está listo y brillante. Te esperamos en Lavadero Tech System.`);
+                const text = encodeURIComponent(`¡¡Hola! Tu vehículo ${getDisplayNickname(car.nickname)} ya está listo y brillante. Te esperamos en Lavadero Tech System.`);
                 window.open(`https://wa.me/?text=${text}`, '_blank');
             });
         }
@@ -1851,7 +1851,7 @@ document.getElementById('btn-capture-scan')?.addEventListener('click', async () 
     
     captureAndProcessIA(video, canvas, 'scanner-text', 'scanner-laser', function(result) {
         if (result.success) {
-            document.getElementById('scanner-text').innerText = "¡VEHÍCULO DETECTADO CON ÉXITO!";
+            document.getElementById('scanner-text').innerText = "¡VEHÍCULO DETECTADO CON ÉÉXITO!";
             
             if (result.model) {
                 document.getElementById('input-nickname').value = result.model;
@@ -1880,7 +1880,7 @@ document.getElementById('btn-capture-scan')?.addEventListener('click', async () 
 });
 
 
-// --- GESTI N DE CATEGORÍAS DE VEHÍCULOS ---
+// --- GESTIÓN DE CATEGORÍAS DE VEHÍCULOS ---
 const DEFAULT_VEHICLE_CATEGORIES = [
     { id: 'Auto', percentage: 0, icon: '🚗' },
     { id: 'Camioneta', percentage: 20, icon: '🚐' }
