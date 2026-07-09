@@ -2,7 +2,6 @@
 -- CREACIÓN DE TABLAS FALTANTES PARA EL LAVADERO L1DERES
 -- ====================================================================
 -- Ejecutá todo este código en el SQL Editor de tu Dashboard de Supabase.
--- Esto solucionará el error "Operando en modo local" al cargar el panel.
 
 -- 1. Insumos (Stock de productos)
 CREATE TABLE IF NOT EXISTS public.lavadero_insumos (
@@ -17,26 +16,7 @@ CREATE TABLE IF NOT EXISTS public.lavadero_insumos (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Gastos (Finanzas)
-CREATE TABLE IF NOT EXISTS public.lavadero_gastos (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    fecha TIMESTAMPTZ DEFAULT NOW(),
-    detalle TEXT NOT NULL,
-    monto NUMERIC NOT NULL,
-    estado TEXT DEFAULT 'pagado',
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. Sueldos (Finanzas)
-CREATE TABLE IF NOT EXISTS public.lavadero_sueldos (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    fecha TIMESTAMPTZ DEFAULT NOW(),
-    empleado_nombre TEXT NOT NULL,
-    monto NUMERIC NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 4. Clientes (CRM y Promociones)
+-- 2. Clientes (CRM y Promociones)
 CREATE TABLE IF NOT EXISTS public.lavadero_clientes (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     patente TEXT UNIQUE NOT NULL,
@@ -47,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.lavadero_clientes (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. Historial de Servicios
+-- 3. Historial de Servicios
 CREATE TABLE IF NOT EXISTS public.lavadero_historial_servicios (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     vehicle_id UUID,
@@ -58,7 +38,7 @@ CREATE TABLE IF NOT EXISTS public.lavadero_historial_servicios (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 6. Precios y Configuraciones
+-- 4. Precios y Configuraciones
 CREATE TABLE IF NOT EXISTS public.lavadero_precios (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     categoria TEXT,
@@ -73,18 +53,12 @@ CREATE TABLE IF NOT EXISTS public.lavadero_precios (
 -- ==========================================
 
 ALTER TABLE public.lavadero_insumos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lavadero_gastos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.lavadero_sueldos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lavadero_clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lavadero_historial_servicios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lavadero_precios ENABLE ROW LEVEL SECURITY;
 
--- Crear políticas de lectura/escritura pública (ideal para PWA Kiosco y Panel sin login estricto)
--- Si luego integrás Auth de Supabase, podés cambiar "true" por autenticación estricta.
-
+-- Crear políticas de lectura/escritura pública
 CREATE POLICY "Permitir todo Insumos" ON public.lavadero_insumos FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Permitir todo Gastos" ON public.lavadero_gastos FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Permitir todo Sueldos" ON public.lavadero_sueldos FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir todo Clientes" ON public.lavadero_clientes FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir todo Historial" ON public.lavadero_historial_servicios FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Permitir todo Precios" ON public.lavadero_precios FOR ALL USING (true) WITH CHECK (true);

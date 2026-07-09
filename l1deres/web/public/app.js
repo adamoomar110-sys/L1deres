@@ -371,34 +371,6 @@ async function syncFromSupabase() {
             localStorage.setItem('lavadero_insumos', JSON.stringify(insumos));
         }
 
-        const gastosData = await fetchSupabase('lavadero_gastos');
-        if (gastosData && Array.isArray(gastosData)) {
-            if (typeof FINANZAS !== 'undefined') {
-                FINANZAS.gastos = gastosData.map(g => ({
-                    fecha: g.fecha,
-                    detalle: g.detalle,
-                    monto: g.monto,
-                    estado: g.estado
-                }));
-            }
-        }
-
-        const sueldosData = await fetchSupabase('lavadero_sueldos');
-        if (sueldosData && Array.isArray(sueldosData)) {
-            if (typeof FINANZAS !== 'undefined') {
-                FINANZAS.sueldos = sueldosData.map(s => ({
-                    fecha: s.fecha,
-                    empleado: s.empleado_nombre,
-                    monto: s.monto
-                }));
-            }
-        }
-
-        if (typeof FINANZAS !== 'undefined' && ((gastosData && Array.isArray(gastosData)) || (sueldosData && Array.isArray(sueldosData)))) {
-            if (typeof saveFinanzas === 'function') saveFinanzas();
-            if (typeof renderFinanzas === 'function') renderFinanzas();
-        }
-
         updateConnectionStatus("Connected");
         initSupabaseClient();
         if (typeof renderAll === 'function') renderAll();
