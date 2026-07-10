@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App Autogestión - L1DERES</title>
+    <title>App Cliente - L1DERES</title>
 
     <link rel="manifest" href="manifest-pwa_cliente.json">
     <meta name="theme-color" content="#c8960c">
@@ -39,7 +39,7 @@
         }
 
         /* Persistent Header */
-        .kiosk-header {
+        .app_cliente-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -52,14 +52,14 @@
             z-index: 100;
         }
 
-        .kiosk-logo {
+        .app_cliente-logo {
             margin: 0;
             display: flex;
             align-items: center;
             height: 60px;
         }
 
-        .kiosk-logo-img {
+        .app_cliente-logo-img {
             height: 100%;
             max-height: 60px;
             object-fit: contain;
@@ -67,7 +67,7 @@
             transition: transform 0.3s ease;
         }
 
-        .kiosk-logo-img:hover {
+        .app_cliente-logo-img:hover {
             transform: scale(1.05);
         }
 
@@ -115,7 +115,7 @@
         }
 
 
-        /* Main Content - contenedor principal ahora es .kiosk-layout */
+        /* Main Content - contenedor principal ahora es .app_cliente-layout */
 
         .wizard-card {
             background: var(--glass-bg);
@@ -413,7 +413,7 @@
         }
 
         /* â”€â”€ ZONA DE ESPERA PANEL â”€â”€ */
-        .kiosk-layout {
+        .app_cliente-layout {
             display: flex;
             gap: 2rem;
             align-items: flex-start;
@@ -424,12 +424,12 @@
             box-sizing: border-box;
         }
 
-        .kiosk-left {
+        .app_cliente-left {
             flex: 1;
             min-width: 0;
         }
 
-        .kiosk-right {
+        .app_cliente-right {
             width: 320px;
             flex-shrink: 0;
         }
@@ -511,12 +511,12 @@
 
         /* Responsive: stack en pantallas pequeñas */
         @media (max-width: 900px) {
-            .kiosk-layout {
+            .app_cliente-layout {
                 flex-direction: column;
                 padding: 1rem;
             }
 
-            .kiosk-right {
+            .app_cliente-right {
                 width: 100%;
             }
 
@@ -527,7 +527,7 @@
 
         /* Adaptación específica para Teléfonos y Pantallas Medianas/Pequeñas */
         @media (max-width: 650px) {
-            .kiosk-header {
+            .app_cliente-header {
                 flex-direction: column;
                 gap: 15px;
                 padding: 1rem 1.5rem;
@@ -548,11 +548,11 @@
                 box-sizing: border-box;
             }
 
-            .kiosk-logo {
+            .app_cliente-logo {
                 height: 50px;
             }
 
-            .kiosk-logo-img {
+            .app_cliente-logo-img {
                 max-height: 50px;
             }
 
@@ -640,9 +640,9 @@
 
 <body>
 
-    <header class="kiosk-header">
-        <div class="kiosk-logo">
-            <img src="logo.png" alt="L1DERES Automatic Car Wash" class="kiosk-logo-img">
+    <header class="app_cliente-header">
+        <div class="app_cliente-logo">
+            <img src="logo.png" alt="L1DERES Automatic Car Wash" class="app_cliente-logo-img">
         </div>
 
         <div class="header-info">
@@ -672,10 +672,10 @@
         </div>
     </header>
 
-    <div class="kiosk-layout">
+    <div class="app_cliente-layout">
 
         <!-- COLUMNA IZQUIERDA: wizard -->
-        <div class="kiosk-left">
+        <div class="app_cliente-left">
 
             <!-- BARRA DE ESTADO -->
             <div class="status-bar">
@@ -782,7 +782,7 @@
         </div>
 
         <!-- COLUMNA DERECHA: zonas del lavadero -->
-        <div class="kiosk-right">
+        <div class="app_cliente-right">
             <div class="zona-espera-panel" style="max-height: calc(100vh - 120px); overflow-y: auto;">
                 <div class="zona-espera-title">1. Ingreso Inteligente</div>
                 <div class="queue-grid" id="grid-pre-espera"></div>

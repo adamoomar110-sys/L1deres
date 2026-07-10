@@ -252,31 +252,76 @@ const elSupabaseServiceTable = document.getElementById('supabase-service-table')
 const elBtnSaveConfig = document.getElementById('btn-save-config');
 const elBtnClearHistory = document.getElementById('btn-clear-history');
 
-// --- CARGAR CONFIGURACI�N REMOTA DESDE VERCEL ENV ---
+// --- CARGAR CONFIGURACI N REMOTA DESDE VERCEL ENV ---
 async function loadRemoteConfig() {
     try {
         const res = await fetch('/api/config');
         if (res.ok) {
             const data = await res.json();
             if (data.supabaseUrl && data.supabaseKey) {
+                const prevUrl = localStorage.getItem('supabase_url') || '';
+                const prevKey = localStorage.getItem('supabase_key') || '';
+                const credentialsChanged = prevUrl !== data.supabaseUrl || prevKey !== data.supabaseKey;
+
                 config.useSupabase = true;
                 config.supabaseUrl = data.supabaseUrl;
                 config.supabaseKey = data.supabaseKey;
                 config.queueTable = data.queueTable || 'lavadero_camera_queue';
                 config.serviceTable = data.serviceTable || 'service_orders';
-                // console.log("ðŸ⬝� Configuración de Supabase cargada desde Vercel Environment Variables.");
+
+                // Sincronizar credenciales para que las pantallas externas e iframe las puedan leer inmediatamente
+                localStorage.setItem('supabase_url', data.supabaseUrl);
+                localStorage.setItem('supabase_key', data.supabaseKey);
+                localStorage.setItem('lavadero_config', JSON.stringify(config));
+
+                // Si cambiaron las credenciales con respecto a las que tenía el iframe, lo recargamos
+                if (credentialsChanged) {
+                    console.log("Supabase credentials updated, reloading iframe...");
+                    const iframe = document.querySelector('iframe');
+                    if (iframe) {
+                        iframe.src = iframe.src;
+                    }
+                }
 
                 // Actualizar la interfaz para reflejar que está conectado externamente
                 if (elConnectionStatus) {
                     elConnectionStatus.className = "connection-status supabase-active";
                     elConnectionStatus.querySelector('.status-label').innerText = "Supabase Sincronizado";
                 }
+                return;
             }
         }
     } catch (err) {
-        console.warn("� No se pudo obtener la configuraci�n remota (usando fallback local):", err);
+        console.warn("⚠️ No se pudo obtener la configuración remota (usando fallback local):", err);
+    }
+
+    // FALLBACK: Si no pudimos obtener la configuración de la API (o no es válida),
+    // pero config.useSupabase está activo, persistimos las credenciales fallback
+    // en localStorage para que el iframe pueda conectarse.
+    if (config.useSupabase && config.supabaseUrl && config.supabaseKey) {
+        const prevUrl = localStorage.getItem('supabase_url') || '';
+        const prevKey = localStorage.getItem('supabase_key') || '';
+        const credentialsChanged = prevUrl !== config.supabaseUrl || prevKey !== config.supabaseKey;
+
+        localStorage.setItem('supabase_url', config.supabaseUrl);
+        localStorage.setItem('supabase_key', config.supabaseKey);
+        localStorage.setItem('lavadero_config', JSON.stringify(config));
+
+        if (credentialsChanged) {
+            console.log("Supabase fallback credentials synced, reloading iframe...");
+            const iframe = document.querySelector('iframe');
+            if (iframe) {
+                iframe.src = iframe.src;
+            }
+        }
+
+        if (elConnectionStatus) {
+            elConnectionStatus.className = "connection-status supabase-active";
+            elConnectionStatus.querySelector('.status-label').innerText = "Supabase Sincronizado";
+        }
     }
 }
+
 
 // --- CARGAR DATOS LOCALES ---
 
@@ -354,8 +399,23 @@ function loadLocalData() {
 }
 
 // --- CONEXI�N DE DATOS & SYNC SUPABASE ---
-function updateConnectionStatus(msg, className) {
+function updateConnectionStatus(msg, className = '') {
     console.log("Supabase Status:", msg);
+    if (!elConnectionStatus) return;
+
+    const label = elConnectionStatus.querySelector('.status-label');
+    if (!label) return;
+
+    if (msg === "Connected") {
+        elConnectionStatus.className = "connection-status supabase-active";
+        label.innerText = "Supabase Sincronizado";
+    } else if (msg === "Error" || className === "bg-danger") {
+        elConnectionStatus.className = "connection-status";
+        label.innerText = "Modo Local";
+    } else if (msg === "Syncing...") {
+        elConnectionStatus.className = "connection-status";
+        label.innerText = "Sincronizando...";
+    }
 }
 
 async function syncFromSupabase() {
@@ -564,7 +624,7 @@ async function addVehicle(nickname, plate, color, budgetStr, washType, phone = '
     }
 
     const newCar = {
-        crypto.randomUUID(),
+        id: crypto.randomUUID(),
         tracking_id: Math.floor(Math.random() * 900) + 100,
         nickname,
         plate: uppercasePlate,
@@ -1355,9 +1415,10 @@ if (elFormRegister) elFormRegister.addEventListener('submit', (e) => {
 
 // Arrancar Aplicación
 window.addEventListener('DOMContentLoaded', async () => {
+    // Cargar primero la configuración local
+    loadLocalData();
     // Intentar cargar primero la configuración de Vercel/Supabase remota
     await loadRemoteConfig();
-    loadLocalData();
     renderWashMenu();
     renderAll();
     startRealtimeTicker();
@@ -1561,13 +1622,20 @@ const tbodyPrecios = document.getElementById('precios-tbody');
 const btnResetPrecios = document.getElementById('btn-reset-precios');
 
 if (btnResetPrecios) {
-    if (btnResetPrecios) btnResetPrecios.addEventListener('click', () => {
-        if (confirm('ï¿½Restaurar precios y paquetes a sus valores por defecto?')) {
+    btnResetPrecios.addEventListener('click', () => {
+        if (confirm('¿Restaurar precios y paquetes a sus valores por defecto?')) {
             WASH_PACKAGES = JSON.parse(JSON.stringify(DEFAULT_WASH_OPTIONS));
             localStorage.setItem('lavadero_wash_settings', JSON.stringify(WASH_PACKAGES));
             initWashPackages();
             renderPrecios();
-        WASH_PACKAGES.forEach((pkg, index) => {
+        }
+    });
+}
+
+function renderPrecios() {
+    if (!tbodyPrecios) return;
+    tbodyPrecios.innerHTML = '';
+    WASH_PACKAGES.forEach((pkg, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="font-family:var(--font-mono);font-size:0.8rem;">${pkg.id}</td>

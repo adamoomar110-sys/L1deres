@@ -1,4 +1,4 @@
-﻿const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 
 function replaceInFile(filePath) {
@@ -15,7 +15,7 @@ function replaceInFile(filePath) {
 
 const files = [
     'index.html', 'index_fixed.html',
-    'cliente.html', 'app_cliente.html', 'kiosko.html',
+    'cliente.html', 'app_cliente.html',
     'tv_espera.html', 'tv_precios.html',
     'postular.html',
     'web/src/app/admin/lavadero/page.tsx',

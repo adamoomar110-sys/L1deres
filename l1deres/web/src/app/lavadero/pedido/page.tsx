@@ -195,7 +195,7 @@ const PREDEFINED_COLORS = [
   { name: 'Gris Oscuro', hex: '#1c1c1e' }
 ];
 
-export default function PedidoClienteKiosco() {
+export default function PedidoClienteAppCliente() {
   const router = useRouter();
   const [activeCategory, setActiveCategory] = useState<'combos' | 'lavados' | 'estetica'>('combos');
   const [selectedPackage, setSelectedPackage] = useState<WashPackage | null>(null);
