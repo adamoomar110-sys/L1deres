@@ -356,7 +356,7 @@
             margin-right: 10px;
         }
 
-        /* â”€â”€ STATUS BAR â”€â”€ */
+        /* Ã¢â€â‚¬Ã¢â€â‚¬ STATUS BAR Ã¢â€â‚¬Ã¢â€â‚¬ */
         .status-bar {
             display: flex;
             gap: 1rem;
@@ -412,7 +412,7 @@
             color: #ef4444;
         }
 
-        /* â”€â”€ ZONA DE ESPERA PANEL â”€â”€ */
+        /* Ã¢â€â‚¬Ã¢â€â‚¬ ZONA DE ESPERA PANEL Ã¢â€â‚¬Ã¢â€â‚¬ */
         .app_cliente-layout {
             display: flex;
             gap: 2rem;
@@ -509,7 +509,7 @@
             padding: 2rem 0;
         }
 
-        /* Responsive: stack en pantallas pequeñas */
+        /* Responsive: stack en pantallas pequeÃ±as */
         @media (max-width: 900px) {
             .app_cliente-layout {
                 flex-direction: column;
@@ -525,7 +525,7 @@
             }
         }
 
-        /* Adaptación específica para Teléfonos y Pantallas Medianas/Pequeñas */
+        /* AdaptaciÃ³n especÃ­fica para TelÃ©fonos y Pantallas Medianas/PequeÃ±as */
         @media (max-width: 650px) {
             .app_cliente-header {
                 flex-direction: column;
@@ -570,7 +570,7 @@
                 margin-bottom: 1rem;
             }
 
-            /* Apilar las opciones de la grilla verticalmente para teléfonos */
+            /* Apilar las opciones de la grilla verticalmente para telÃ©fonos */
             .grid-3,
             .grid-2 {
                 grid-template-columns: 1fr;
@@ -579,10 +579,10 @@
 
             .select-card {
                 min-height: 130px !important;
-                /* Altura más cómoda para móviles en 1 columna */
+                /* Altura mÃ¡s cÃ³moda para mÃ³viles en 1 columna */
                 padding: 1.2rem;
                 flex-direction: row;
-                /* Diseño horizontal en móvil */
+                /* DiseÃ±o horizontal en mÃ³vil */
                 justify-content: flex-start;
                 align-items: center;
                 gap: 20px;
@@ -640,37 +640,7 @@
 
 <body>
 
-    <header class="app_cliente-header">
-        <div class="app_cliente-logo">
-            <img src="logo.png" alt="L1DERES Automatic Car Wash" class="app_cliente-logo-img">
-        </div>
-
-        <div class="header-info">
-            <button id="install-pwa-btn" class="info-pill install-btn"
-                style="display: none; cursor: pointer; background: linear-gradient(135deg, #c8960c, #f5d061); border: 1px solid rgba(255,255,255,0.1); color: #000; font-weight: 800; font-family: 'Outfit', sans-serif; box-shadow: 0 0 15px rgba(200, 150, 12, 0.4);">
-                <i class="fa-solid fa-download" style="color: #000;"></i> Instalar App
-            </button>
-            <button class="info-pill install-btn"
-                style="cursor: pointer; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: 'Outfit', sans-serif;"
-                onclick="window.location.reload(true)">
-                <i class="fa-solid fa-arrows-rotate"></i> Actualizar
-            </button>
-            <div class="info-pill">
-                <i class="fa-regular fa-clock"></i>
-                Lunes a Sábados 08:00 a 20:00
-            </div>
-            <div class="info-pill">
-                <i class="fa-solid fa-hourglass-half"></i>
-                Espera: <span class="queue-eta" id="global-eta">Calculando...</span>
-            </div>
-            <button id="install-pwa-btn" class="whatsapp-btn"
-                style="background: #06b6d4; display: none; cursor: pointer; border: none; font-family: 'Outfit', sans-serif; font-size: 1rem;"><i
-                    class="fa-solid fa-download"></i> Instalar App</button>
-            <a href="https://wa.me/123456789" class="whatsapp-btn" target="_blank">
-                <i class="fa-brands fa-whatsapp"></i> Consultas
-            </a>
-        </div>
-    </header>
+    
 
     <div class="app_cliente-layout">
 
@@ -717,7 +687,7 @@
 
                 <!-- PASO 2: Lavado -->
                 <div class="step-content" id="step-2">
-                    <h2 class="step-title">Seleccioná el Servicio</h2>
+                    <h2 class="step-title">SeleccionÃ¡ el Servicio</h2>
                     <div class="grid-3" id="category-grid" style="margin-bottom: 2rem;">
                         <div class="select-card" data-cat="lavado" onclick="selectCategory('lavado', 'Lavado')">
                             <i class="fa-solid fa-droplet"></i>
@@ -741,14 +711,14 @@
                     <div class="grid-2" id="wash-grid" style="display:none;"></div>
                 </div>
 
-                <!-- PASO 3: Teléfono -->
+                <!-- PASO 3: TelÃ©fono -->
                 <div class="step-content" id="step-3">
-                    <h2 class="step-title">Número de WhatsApp</h2>
+                    <h2 class="step-title">NÃºmero de WhatsApp</h2>
                     <div class="plate-input-container">
                         <input type="tel" id="phone-input" class="plate-input" placeholder="Ej: 1123456789"
                             maxlength="15" oninput="order.phone = this.value; validateStep();"
                             style="text-transform: none; font-family: 'Inter', sans-serif; font-size: 2rem;">
-                        <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">Vinculamos tu WhatsApp a la patente para notificarte cuando el auto esté listo.</p>
+                        <p style="margin-top: 1rem; color: #888; font-size: 0.9rem;">Vinculamos tu WhatsApp a la patente para notificarte cuando el auto estÃ© listo.</p>
                     </div>
                 </div>
 
@@ -766,7 +736,7 @@
                 <!-- Controles -->
                 <div class="wizard-actions">
                     <button class="btn btn-prev" id="btn-prev" onclick="prevStep()"
-                        style="visibility: hidden;">Atrás</button>
+                        style="visibility: hidden;">AtrÃ¡s</button>
                     <button class="btn btn-next" id="btn-next" onclick="nextStep()" disabled>Siguiente</button>
                 </div>
 
@@ -857,7 +827,7 @@
 
                 if (parsed) {
                     parsed.forEach(pkg => {
-                        // Buscar en cada categoría de WASH_OPTIONS
+                        // Buscar en cada categorÃ­a de WASH_OPTIONS
                         for (const cat in WASH_OPTIONS) {
                             const found = WASH_OPTIONS[cat].find(opt => opt.id === pkg.id);
                             if (found) {
@@ -914,7 +884,7 @@
                     } catch (e) { }
                     return {
                         ...dbCar,
-                        nickname: extra.name || dbCar.nickname || 'Vehículo',
+                        nickname: extra.name || dbCar.nickname || 'VehÃ­culo',
                         plate: extra.plate || dbCar.plate || ''
                     };
                 });
@@ -975,7 +945,7 @@
 
                 renderZoneGrid('grid-pre-espera', preEspera, 'Sin autos en ingreso', 4);
                 renderZoneGrid('grid-espera', espera, 'Sin autos en espera', 8);
-                renderZoneGrid('grid-lavado', lavadoAspirado, 'Sin autos procesándose');
+                renderZoneGrid('grid-lavado', lavadoAspirado, 'Sin autos procesÃ¡ndose');
                 renderZoneGrid('grid-terminado', terminado, 'Sin autos terminados');
             }
 
@@ -1000,7 +970,7 @@
                 }
             }
 
-            // Actualizar panel si otra pestaña escribe en localStorage
+            // Actualizar panel si otra pestaÃ±a escribe en localStorage
             window.addEventListener('storage', (e) => {
                 if (e.key === 'lavadero_active_vehicles') updateGlobalETA();
             });
@@ -1035,7 +1005,7 @@
                 if (currentStep === 2) renderWashGrid();
             }
 
-            // ✅ Exponer al scope global para que los handlers onclick/oninput del HTML puedan acceder
+            // âœ… Exponer al scope global para que los handlers onclick/oninput del HTML puedan acceder
             window.validateStep = function validateStep() {
                 let isValid = false;
                 if (currentStep === 1) isValid = order.plate.length >= 6;
@@ -1098,7 +1068,7 @@
                         .single();
 
                     if (!promoError && promoData) {
-                        // Verificar que no expiró y no agotó usos
+                        // Verificar que no expirÃ³ y no agotÃ³ usos
                         const noExpirado = !promoData.vencimiento || new Date(promoData.vencimiento) > new Date();
                         const tieneUsos = !promoData.max_usos || promoData.usos < promoData.max_usos;
 
@@ -1107,10 +1077,10 @@
                             order.promoDiscount = promoData.descuento || 15;
                             order.promoId = promoData.id;
                             alertBox.className = 'promo-alert promo-success';
-                            alertBox.innerHTML = `<i class="fa-solid fa-tag"></i> ¡Tenés una promo activa! <strong>${order.promoDiscount}% OFF</strong> — ${promoData.motivo || 'Promoción especial'}`;
+                            alertBox.innerHTML = `<i class="fa-solid fa-tag"></i> Â¡TenÃ©s una promo activa! <strong>${order.promoDiscount}% OFF</strong> â€” ${promoData.motivo || 'PromociÃ³n especial'}`;
                             alertBox.style.cssText = '';
 
-                            // Precargar teléfono si está guardado en clientes
+                            // Precargar telÃ©fono si estÃ¡ guardado en clientes
                             const { data: cliData } = await supabase.from('lavadero_clientes').select('telefono').eq('patente', plate).single();
                             if (cliData && cliData.telefono && cliData.telefono.length >= 8) {
                                 order.phone = cliData.telefono;
@@ -1134,10 +1104,10 @@
                         order.hasPromo = true;
                         order.promoDiscount = 10;
                         alertBox.className = 'promo-alert promo-success';
-                        alertBox.innerHTML = '<i class="fa-solid fa-star"></i> ¡Cliente frecuente! <strong>10% OFF</strong> por ser cliente registrado.';
+                        alertBox.innerHTML = '<i class="fa-solid fa-star"></i> Â¡Cliente frecuente! <strong>10% OFF</strong> por ser cliente registrado.';
                         alertBox.style.cssText = '';
 
-                        // Precargar teléfono
+                        // Precargar telÃ©fono
                         if (clientData.telefono && clientData.telefono.length >= 8) {
                             order.phone = clientData.telefono;
                             const phoneEl = document.getElementById('phone-input');
@@ -1145,11 +1115,11 @@
                         }
                     } else {
                         alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
-                        alertBox.innerHTML = '✓ Patente registrada. Continuá para elegir el servicio.';
+                        alertBox.innerHTML = 'âœ“ Patente registrada. ContinuÃ¡ para elegir el servicio.';
                     }
                 } catch (err) {
                     alertBox.style.cssText = 'background:rgba(255,255,255,0.05);color:#ccc;';
-                    alertBox.innerHTML = '✓ Patente guardada. Continuá para elegir el servicio.';
+                    alertBox.innerHTML = 'âœ“ Patente guardada. ContinuÃ¡ para elegir el servicio.';
                 }
                 alertBox.style.display = 'block';
                 validateStep();
@@ -1163,7 +1133,7 @@
                 if (!options) return;
 
                 for (const details of options) {
-                    if (details.activo === false) continue; // Ocultar si está desactivado
+                    if (details.activo === false) continue; // Ocultar si estÃ¡ desactivado
                     let finalPrice = details.price;
                     let oldPriceHTML = '';
                     if (order.hasPromo && order.promoDiscount > 0) {
@@ -1184,7 +1154,7 @@
                 order.washCategory = catId;
                 order.catName = catName;
 
-                // Limpiar selección
+                // Limpiar selecciÃ³n
                 document.querySelectorAll('#category-grid .select-card').forEach(el => el.classList.remove('selected'));
                 document.querySelector(`#category-grid .select-card[data-cat="${catId}"]`).classList.add('selected');
 
@@ -1213,7 +1183,7 @@
                 }
                 order.finalPrice = finalPrice;
 
-                // Mapear el tamaño del vehículo a order.category para el ticket
+                // Mapear el tamaÃ±o del vehÃ­culo a order.category para el ticket
                 if (name.includes('Auto')) order.category = 'Auto';
                 else if (name.includes('Utilitario') || name.includes('Pick-up')) order.category = 'Camioneta';
 
@@ -1240,7 +1210,7 @@
 
                 if (supabase) {
                     try {
-                        // 1. Guardar/actualizar cliente con teléfono
+                        // 1. Guardar/actualizar cliente con telÃ©fono
                         if (order.phone && order.phone.length >= 8) {
                             const { error } = await supabase.from('lavadero_clientes').upsert(
                                 [{ patente: order.plate, telefono: order.phone }],
@@ -1249,11 +1219,11 @@
                             if (error) console.warn('Supabase upsert clientes:', error);
                         }
 
-                        // 2. Incrementar uso de promo si se aplicó una de lavadero_promociones
+                        // 2. Incrementar uso de promo si se aplicÃ³ una de lavadero_promociones
                         if (order.promoId) {
                             await supabase.rpc('incrementar_uso_promo', { promo_id: order.promoId })
                                 .catch(() => {
-                                    // Fallback manual si no existe la función RPC
+                                    // Fallback manual si no existe la funciÃ³n RPC
                                     supabase.from('lavadero_promociones')
                                         .update({ usos: supabase.raw('usos + 1'), actualizado_at: new Date().toISOString() })
                                         .eq('id', order.promoId);
@@ -1268,7 +1238,7 @@
 
                 // Nickname como JSON (mismo formato que tablet_ingreso y addVehicle del panel)
                 const nicknamePayload = JSON.stringify({
-                    name: `Vehículo ${order.plate}`,
+                    name: `VehÃ­culo ${order.plate}`,
                     plate: order.plate,
                     budget: order.finalPrice,
                     category: order.washCategory,
@@ -1287,12 +1257,12 @@
                     entered_at: new Date().toISOString()
                 };
 
-                // Objeto local enriquecido para localStorage y posición en cola
+                // Objeto local enriquecido para localStorage y posiciÃ³n en cola
                 const localCarObj = {
                     id: carId,
                     tracking_id: trackingId,
                     plate: order.plate,
-                    nickname: `Vehículo ${order.plate}`,
+                    nickname: `VehÃ­culo ${order.plate}`,
                     zone: 'reservado',
                     color: '#06b6d4',
                     wash_type: order.washType,
@@ -1309,7 +1279,7 @@
                             console.warn('Supabase insert error:', error);
                         } else {
                             supabaseOk = true;
-                            console.log('✅ Vehículo registrado en Supabase OK');
+                            console.log('âœ… VehÃ­culo registrado en Supabase OK');
                         }
                     }
                 } catch (e) { console.warn('Supabase insert failed:', e); }
@@ -1319,7 +1289,7 @@
                     const localVehicles = JSON.parse(localStorage.getItem('lavadero_active_vehicles') || '[]');
                     localVehicles.push(localCarObj);
                     localStorage.setItem('lavadero_active_vehicles', JSON.stringify(localVehicles));
-                    console.warn('âš ï¸ Guardado solo en localStorage (Supabase no disponible)');
+                    console.warn('Ã¢Å¡Â Ã¯Â¸Â Guardado solo en localStorage (Supabase no disponible)');
                 }
 
                 const ticketUrl = `cliente.html?n=${encodeURIComponent(localCarObj.nickname)}&p=${encodeURIComponent(localCarObj.plate)}&z=pre_espera&t=${encodeURIComponent(localCarObj.wash_type)}&pos=1&id=${carId}&pay=${encodeURIComponent(order.payment)}`;
@@ -1359,7 +1329,7 @@
                         })
                         .catch(err => console.error('Error al registrar Service Worker:', err));
 
-                    // Recargar automáticamente si el SW toma el control
+                    // Recargar automÃ¡ticamente si el SW toma el control
                     let refreshing = false;
                     navigator.serviceWorker.addEventListener('controllerchange', () => {
                         if (!refreshing) {
@@ -1379,7 +1349,7 @@
                     z-index: 10000; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 240, 255, 0.5);
                     animation: slideDown 0.5s ease-out;
                 `;
-                banner.innerHTML = 'âœ¨ ¡Nueva versión disponible! Toca aquí para actualizar. âœ¨';
+                banner.innerHTML = 'Ã¢Å“Â¨ Â¡Nueva versiÃ³n disponible! Toca aquÃ­ para actualizar. Ã¢Å“Â¨';
                 banner.onclick = () => {
                     worker.postMessage({ type: 'SKIP_WAITING' });
                 };
@@ -1402,7 +1372,7 @@
                     if (!deferredPrompt) return;
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`Instalación del pwa_cliente: ${outcome}`);
+                    console.log(`InstalaciÃ³n del pwa_cliente: ${outcome}`);
                     deferredPrompt = null;
                     installBtn.style.display = 'none';
                 });
@@ -1418,7 +1388,7 @@
 
     <footer
         style="text-align: center; padding: 16px; font-size: 0.75em; color: rgba(255, 255, 255, 0.4); width: 100%; border-top: 1px solid rgba(255, 255, 255, 0.06);">
-        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero Estética Vehicular
+        &copy; 2026 <strong>Aura</strong>. Todos los derechos reservados. &mdash; Lavadero EstÃ©tica Vehicular
     </footer>
 
 </body>
