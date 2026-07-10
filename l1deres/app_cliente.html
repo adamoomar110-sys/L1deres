@@ -565,7 +565,7 @@
             const c = color;
             const cDark = 'rgba(0,0,0,0.7)';
             return `
-            <svg class="svg-car-large" width="320" height="110" viewBox="0 0 320 110" fill="none" xmlns="http://www.w3.org/2000/svg"
+            <svg class="svg-car-large" width="150" style="height: auto;" viewBox="0 0 320 110" fill="none" xmlns="http://www.w3.org/2000/svg"
                  style="filter: drop-shadow(0 0 18px ${c}); overflow: visible;">
               <defs>
                 <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
@@ -716,25 +716,50 @@
 
         let activeTimer = null;
         
-        // Setup timer to update realtime si tenemos ID
         if (carId) {
-            setInterval(() => {
-                const vehiclesStr = localStorage.getItem('lavadero_active_vehicles');
-                if (vehiclesStr) {
-                    const vehicles = JSON.parse(vehiclesStr);
-                    const myCar = vehicles.find(v => v.id == carId);
-                    if (myCar) {
-                        zone = myCar.zone;
-                        type = myCar.wash_type;
-                        
-                        const esperaCars = vehicles.filter(v => v.zone === 'espera').sort((a,b) => new Date(a.entered_at) - new Date(b.entered_at));
-                        pos = esperaCars.findIndex(v => v.id == carId) + 1;
-                        if (pos <= 0) pos = 1;
+            setInterval(async () => {
+                try {
+                    const sbUrl = 'https://hacmhlyvyyysnvekvhya.supabase.co';
+                    const sbKey = 'sb_publishable_oEB1MoOee7lM99mvHCu_aA_T98vg3NA';
+                    const res = await fetch(`${sbUrl}/rest/v1/lavadero_camera_queue?select=*&order=entered_at.asc`, {
+                        headers: {
+                            'apikey': sbKey,
+                            'Authorization': `Bearer ${sbKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (res.ok) {
+                        const dbCars = await res.json();
+                        const vehicles = dbCars.map(dbCar => {
+                            let extra = {};
+                            try { if (dbCar.nickname && dbCar.nickname.startsWith('{')) extra = JSON.parse(dbCar.nickname); } catch(e){}
+                            return {
+                                id: dbCar.id,
+                                tracking_id: dbCar.tracking_id,
+                                nickname: extra.name || dbCar.nickname || 'Vehículo',
+                                plate: extra.plate || dbCar.plate || '',
+                                color: dbCar.color || '#06b6d4',
+                                zone: dbCar.zone || 'espera',
+                                wash_type: extra.wash_type || dbCar.wash_type,
+                                entered_at: dbCar.entered_at
+                            };
+                        });
+                        const myCar = vehicles.find(v => v.id == carId);
+                        if (myCar) {
+                            zone = myCar.zone;
+                            type = myCar.wash_type;
+                            
+                            const esperaCars = vehicles.filter(v => v.zone === 'espera').sort((a,b) => new Date(a.entered_at) - new Date(b.entered_at));
+                            pos = esperaCars.findIndex(v => v.id == carId) + 1;
+                            if (pos <= 0) pos = 1;
 
-                        updateVisualStatus(vehicles, myCar);
+                            updateVisualStatus(vehicles, myCar);
+                        }
                     }
+                } catch(e) {
+                    console.warn("Error syncing app_cliente:", e);
                 }
-            }, 1000);
+            }, 3000);
         }
 
         function updateVisualStatus(allVehicles, myCar) {
