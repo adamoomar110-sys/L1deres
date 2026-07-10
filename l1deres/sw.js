@@ -4,7 +4,7 @@
 // para API, Background Sync para requests offline + Offline Page
 // ============================================================
 
-const CACHE_VERSION = 'v22';
+const CACHE_VERSION = 'v23';
 const CACHE_NAME = `lavadero-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `lavadero-dynamic-${CACHE_VERSION}`;
 const SYNC_STORE_NAME = 'sync-store';
@@ -13,6 +13,7 @@ const OFFLINE_URL = './offline.html';
 
 // Assets críticos que se cachean en la instalación
 const STATIC_ASSETS = [
+  './index.html',
   './cliente.html',
   './pwa_cliente.html',
   './app_cliente.html',
@@ -151,22 +152,19 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // GET a Supabase API â†’ Stale-While-Revalidate
+  // GET a Supabase API -> Network-First (Crítico para datos en tiempo real)
   if (url.origin.includes('supabase.co') || url.pathname.includes('/rest/v1/')) {
     event.respondWith(
-      caches.open(DYNAMIC_CACHE).then(cache =>
-        cache.match(request).then(cached => {
-          const fetchPromise = fetch(request).then(networkRes => {
-            if (networkRes && networkRes.status === 200) {
-              cache.put(request, networkRes.clone());
-            }
-            return networkRes;
-          }).catch(() => {
-            console.log('[SW] Offline: sirviendo API desde caché');
-          });
-          return cached || fetchPromise;
-        })
-      )
+      fetch(request).then(networkRes => {
+        if (networkRes && networkRes.status === 200) {
+          caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, networkRes.clone()));
+        }
+        return networkRes;
+      }).catch(async () => {
+        console.log('[SW] Offline: sirviendo API Supabase desde caché local');
+        const cached = await caches.match(request);
+        return cached || new Response(JSON.stringify([]), { status: 200, headers: { 'Content-Type': 'application/json' }});
+      })
     );
     return;
   }
