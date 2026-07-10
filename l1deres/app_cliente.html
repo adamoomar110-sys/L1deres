@@ -659,7 +659,7 @@
 
                 document.getElementById('queue-number').innerText = '#' + pos;
                 if (zone === 'pre_espera') {
-                    document.getElementById('queue-subtitle').innerText = 'Esperando confirmación en Kiosco';
+                    document.getElementById('queue-subtitle').innerText = 'Esperando confirmación en la App';
                     etaText.innerHTML = `<strong style="color:var(--color-yellow); font-size:1.1em;">Ingreso detectado</strong><br>Por favor, confirma tu servicio.`;
                 } else {
                     document.getElementById('queue-subtitle').innerText = pos === 1 ? '¡Eres el próximo!' : 'Autos delante tuyo';
