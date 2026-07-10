@@ -346,7 +346,7 @@ export default function PantallaLavadero() {
             </div>
           </div>
 
-          {/* ZONA DE RECEPCIÓN (Autos del Kiosco) */}
+          {/* ZONA DE RECEPCIÓN (Autos desde la App) */}
           <div 
             className="bg-zinc-950/90 border-2 border-zinc-800/80 rounded-[2.5rem] p-6 flex flex-col items-center relative overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.8)]"
             style={{ gridArea: 'pre_espera', height: '100%' }}
@@ -355,7 +355,7 @@ export default function PantallaLavadero() {
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.8)]" />
             
             <h2 className="text-sm font-black tracking-widest text-blue-500 uppercase mb-4 flex items-center gap-2 z-10">
-              AUTOS KIOSCO (EN INGRESO) <span className="bg-blue-500/10 text-blue-500 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-blue-500/20">{preEsperaCount}</span>
+              AUTOS DESDE APP (EN INGRESO) <span className="bg-blue-500/10 text-blue-500 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-blue-500/20">{preEsperaCount}</span>
             </h2>
             
             <div className="flex-1 flex flex-row justify-center items-center gap-6 w-full overflow-x-hidden z-10">
