@@ -1,10 +1,10 @@
-﻿// ============================================================
+// ============================================================
 // L1DERES Car Wash â€” Service Worker v5
 // Estrategia: Cache-First para assets, Stale-While-Revalidate
 // para API, Background Sync para requests offline + Offline Page
 // ============================================================
 
-const CACHE_VERSION = 'v21';
+const CACHE_VERSION = 'v22';
 const CACHE_NAME = `lavadero-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `lavadero-dynamic-${CACHE_VERSION}`;
 const SYNC_STORE_NAME = 'sync-store';
@@ -15,6 +15,7 @@ const OFFLINE_URL = './offline.html';
 const STATIC_ASSETS = [
   './cliente.html',
   './pwa_cliente.html',
+  './app_cliente.html',
   './tablet_pista.html',
   './app.js',
   './estilos.css',
