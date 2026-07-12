@@ -81,14 +81,8 @@ async function captureAndProcessIA(videoElement, canvasElement, textId, scanLine
             body: JSON.stringify({ image: base64Data })
         });
 
-        const result = await response.json();
-        if (result.error) throw new Error(result.error.message);
-        
-        const textResponse = result.candidates[0].content.parts[0].text;
-        const match = textResponse.match(/\{[\s\S]*\}/);
-        if (!match) throw new Error("No se pudo extraer JSON de la respuesta de IA");
-        
-        const data = JSON.parse(match[0]);
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
         
         resultData.plate = data.plate ? data.plate.replace(/[^A-Z0-9]/gi, '').toUpperCase() : null;
         resultData.model = `${data.brand || ''} ${data.model || ''}`.trim() || null;

@@ -27,7 +27,8 @@ const STATIC_ASSETS = [
   './logo.png',
   './offline.html',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&family=Orbitron:wght@500;700;900&family=Outfit:wght@300;400;600;800&display=swap',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
 ];
 
 // â”€â”€â”€ IndexedDB helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -163,7 +164,7 @@ self.addEventListener('fetch', event => {
       }).catch(async () => {
         console.log('[SW] Offline: sirviendo API Supabase desde caché local');
         const cached = await caches.match(request);
-        return cached || new Response(JSON.stringify([]), { status: 200, headers: { 'Content-Type': 'application/json' }});
+        return cached || new Response(JSON.stringify({ error: 'offline' }), { status: 503, headers: { 'Content-Type': 'application/json' }});
       })
     );
     return;

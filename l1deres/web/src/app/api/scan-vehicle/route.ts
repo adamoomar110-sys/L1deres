@@ -1,20 +1,18 @@
-module.exports = async (req, res) => {
-    // Solo permitir POST
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
+import { NextResponse } from 'next/server';
 
+export async function POST(req: Request) {
     try {
-        const { image } = req.body;
+        const body = await req.json();
+        const { image } = body;
 
         if (!image) {
-            return res.status(400).json({ error: 'No image provided' });
+            return NextResponse.json({ error: 'No image provided' }, { status: 400 });
         }
 
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
-            return res.status(500).json({ error: 'GEMINI_API_KEY no configurada en Vercel.' });
+            return NextResponse.json({ error: 'GEMINI_API_KEY no configurada en Vercel.' }, { status: 500 });
         }
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
@@ -36,7 +34,7 @@ module.exports = async (req, res) => {
         if (!response.ok) {
             const err = await response.text();
             console.error("Gemini Error:", err);
-            return res.status(500).json({ error: 'Fallo al procesar imagen en IA' });
+            return NextResponse.json({ error: 'Fallo al procesar imagen en IA' }, { status: 500 });
         }
 
         const data = await response.json();
@@ -52,10 +50,10 @@ module.exports = async (req, res) => {
             console.error("Error parseando respuesta de Gemini:", e);
         }
 
-        return res.status(200).json(result);
+        return NextResponse.json(result);
         
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error en scan-vehicle API:", error);
-        return res.status(500).json({ error: error.message });
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
-};
+}
