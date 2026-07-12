@@ -16,7 +16,6 @@ const STATIC_ASSETS = [
   './index.html',
   './cliente.html',
   './pwa_cliente.html',
-  './app_cliente.html',
   './tablet_pista.html',
   './app.js',
   './estilos.css',

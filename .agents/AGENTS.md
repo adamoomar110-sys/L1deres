@@ -21,7 +21,6 @@ Este proyecto tiene una estructura de **doble directorio**. Los archivos fuente 
 | `logo.png` | Logo L1DERES â€” usado en header, pwa_cliente y service worker |
 | `pwa_cliente.html` | Pantalla pwa_cliente pÃºblico |
 | `cliente.html` | Landing page del cliente |
-| `app_cliente.html` | Tracking en vivo del cliente (se conecta directo a Supabase) |
 | `tablet_pista.html` | Tablet unificada de pista (recepciÃ³n y taller) |
 | `camera_ia.js` | LÃ³gica central unificada de cÃ¡mara con IA Visual (Gemini) |
 | `tv_espera.html` | Monitor de sala de espera |
@@ -33,7 +32,7 @@ Este proyecto tiene una estructura de **doble directorio**. Los archivos fuente 
 ### Comando de sincronizaciÃ³n obligatorio antes de cada push:
 
 ```powershell
-Copy-Item -Path index.html, app.js, estilos.css, logo.png, pwa_cliente.html, cliente.html, app_cliente.html, tablet_pista.html, tv_espera.html, tv_precios.html, offline.html, sw.js, manifest-pwa_cliente.json, camera_ia.js -Destination web/public/ -Force
+Copy-Item -Path index.html, app.js, estilos.css, logo.png, pwa_cliente.html, cliente.html, tablet_pista.html, tv_espera.html, tv_precios.html, offline.html, sw.js, manifest-pwa_cliente.json, camera_ia.js -Destination web/public/ -Force
 ```
 
 ---
@@ -73,7 +72,6 @@ Cada pantalla tiene su propia conexiÃ³n a Supabase. Al agregar una nueva funci
 3. **tablet_ingreso.html** â€” Tablet de recepciÃ³n (inserta vehÃ­culos)
 4. **tablet_taller.html** â€” Tablet taller (lee y actualiza zonas via REST)
 5. **tv_espera.html** â€” TV sala de espera (polling cada 5s)
-6. **app_cliente.html** â€” App cliente (polling con URL hardcoded)
 
 ---
 
@@ -137,3 +135,7 @@ Cuando agregues una nueva zona o modifiques el flujo, actualizar en TODOS estos 
 - Las patentes en pantallas pÃºblicas (tv_espera.html) deben estar **enmascaradas**: `***` + Ãºltimos 3 caracteres
 - En el panel de administraciÃ³n se muestran completas
 
+
+## Enlaces (Links)
+
+- **Regla Obligatoria**: Cuando el usuario solicite los links del proyecto, DEBEN ser auto-direccionables (cliqueables) hacia el navegador usando el formato absoluto (ej. `https://lavadero-de-lujo.vercel.app/[archivo]`). No usar rutas relativas puras, sino URLs completas listas para que el usuario navegue directamente con un clic.

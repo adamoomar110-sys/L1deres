@@ -19,7 +19,7 @@ description: >
 Copiar TODOS los archivos editables de la raÃ­z a `web/public/`:
 
 ```powershell
-Copy-Item -Path index.html, app.js, estilos.css, logo.png, pwa_cliente.html, cliente.html, app_cliente.html, tablet_ingreso.html, tablet_taller.html, tv_espera.html, tv_precios.html, postular.html, offline.html, sw.js, manifest-pwa_cliente.json -Destination web/public/ -Force
+Copy-Item -Path index.html, app.js, estilos.css, logo.png, pwa_cliente.html, cliente.html, tablet_ingreso.html, tablet_taller.html, tv_espera.html, tv_precios.html, postular.html, offline.html, sw.js, manifest-pwa_cliente.json -Destination web/public/ -Force
 ```
 
 ## Paso 2: Verificar sincronizaciÃ³n
@@ -27,7 +27,7 @@ Copy-Item -Path index.html, app.js, estilos.css, logo.png, pwa_cliente.html, cli
 Ejecutar este script para verificar que todos los archivos estÃ©n sincronizados:
 
 ```powershell
-$files = @("index.html", "app.js", "estilos.css", "logo.png", "pwa_cliente.html", "cliente.html", "app_cliente.html", "tablet_ingreso.html", "tablet_taller.html", "tv_espera.html", "tv_precios.html", "postular.html", "offline.html", "sw.js")
+$files = @("index.html", "app.js", "estilos.css", "logo.png", "pwa_cliente.html", "cliente.html", "tablet_ingreso.html", "tablet_taller.html", "tv_espera.html", "tv_precios.html", "postular.html", "offline.html", "sw.js")
 $ok = $true
 foreach ($f in $files) {
     $r = if (Test-Path $f) { (Get-Item $f).Length } else { 0 }
