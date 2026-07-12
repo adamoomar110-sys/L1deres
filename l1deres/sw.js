@@ -4,7 +4,7 @@
 // para API, Background Sync para requests offline + Offline Page
 // ============================================================
 
-const CACHE_VERSION = 'v24';
+const CACHE_VERSION = 'v25';
 const CACHE_NAME = `lavadero-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `lavadero-dynamic-${CACHE_VERSION}`;
 const SYNC_STORE_NAME = 'sync-store';
