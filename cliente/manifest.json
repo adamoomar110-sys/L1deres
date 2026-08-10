@@ -1,21 +1,26 @@
 {
-  "name": "L1deres Lavado Automático",
-  "short_name": "L1deres",
+  "name": "L1deres Lavado Automático - App de Turnos PWA",
+  "short_name": "L1deres Turnos",
+  "description": "Reservá tu turno, seguí tu vehículo en tiempo real y pagá online en L1deres AutoWash.",
+  "id": "l1deres-pwa-turnos",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#111111",
-  "theme_color": "#e10600",
+  "background_color": "#0f172a",
+  "theme_color": "#0ea5e9",
   "orientation": "portrait",
   "icons": [
     {
       "src": "../logo.jpg",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     },
     {
       "src": "../logo.jpg",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
   ]
 }

@@ -1,0 +1,14 @@
+{
+  "name": "donweb-ferozo-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server para manejo de DonWeb/Ferozo Hosting - Aura / L1deres",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "basic-ftp": "^5.0.5"
+  }
+}

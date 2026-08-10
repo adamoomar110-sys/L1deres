@@ -1,0 +1,39 @@
+# ============================================================
+# Apache / LiteSpeed Web Server Configuration for DonWeb
+# App: Aura v1.5 - Web App Cliente PWA (L1deres AutoWash)
+# ============================================================
+
+DirectoryIndex index.html
+Options -Indexes
+
+RewriteEngine On
+
+# Si la ruta no corresponde a un archivo o carpeta existente, redirigir a index.html del cliente
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
+
+# --- CABECERAS DE SEGURIDAD Y PWA ---
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# --- CACHÉ Y NO-CACHE EN TIEMPO REAL ---
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 0 seconds"
+    ExpiresByType application/javascript "access plus 0 seconds"
+    ExpiresByType application/json "access plus 0 seconds"
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|json|html)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </FilesMatch>
+</IfModule>

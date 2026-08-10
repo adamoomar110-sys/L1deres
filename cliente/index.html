@@ -3,14 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lavado Automático - L1deres</title>
+    <title>App de Turnos PWA - L1deres AutoWash</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#e10600">
+    <meta name="theme-color" content="#0ea5e9">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="L1deres Turnos">
+    <link rel="apple-touch-icon" href="../logo.jpg">
+    <link rel="icon" type="image/jpeg" href="../logo.jpg">
+    
+    <!-- OneSignal Web Push SDK & Centralized Wrapper -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script src="onesignal_service.js?v=1.6" defer></script>
     
     <!-- Google Fonts para estilo Racing (F1) -->
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.6">
 </head>
 <body>
     
@@ -29,83 +39,38 @@
         <div id="screen-welcome" class="screen">
             <div class="card fade-in">
                 <h1 class="racing-font">BIENVENIDO</h1>
-                <p>Al sistema de lavado automático de última generación de <strong>L1deres</strong>.</p>
-                <div class="live-track-container" id="live-track-container">
-                    <!-- Status Board encima de la columna INTERIOR -->
-                    <div id="client-status-board" class="status-board-top client-status-board">
-                        <div class="status-info">
-                            <div class="status-title">DEMORA ESTIMADA</div>
-                            <div class="status-time" id="client-status-time">00:00</div>
-                        </div>
-                        <div class="status-badge badge-libre" id="client-status-badge">SIN DEMORA</div>
-                    </div>
-
-                    <div class="canvas-area client-canvas-area" id="client-canvas-area">
-                        <!-- Scalextric Tracks -->
-                        <svg width="100%" height="100%" class="scalextric-svg" style="position:absolute; top:0; left:0; z-index:0; pointer-events:none;">
-                            <defs>
-                                <linearGradient id="clientNeonAzulAmarillo" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#38bdf8" />
-                                    <stop offset="100%" stop-color="#fde047" />
-                                </linearGradient>
-                                <linearGradient id="clientNeonMarronVioleta" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stop-color="#d97706" />
-                                    <stop offset="100%" stop-color="#8b5cf6" />
-                                </linearGradient>
-                                <filter id="clientGlowAzul">
-                                    <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
-                                    <feMerge>
-                                        <feMergeNode in="coloredBlur"/>
-                                        <feMergeNode in="SourceGraphic"/>
-                                    </feMerge>
-                                </filter>
-                                <filter id="clientGlowVioleta">
-                                    <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
-                                    <feMerge>
-                                        <feMergeNode in="coloredBlur"/>
-                                        <feMergeNode in="SourceGraphic"/>
-                                    </feMerge>
-                                </filter>
-                            </defs>
-                            
-                            <path id="client-base-interior" d="" fill="none" class="track-base" />
-                            <path id="client-rails-interior" d="" fill="none" stroke="#9ca3af" stroke-width="16" />
-                            <path id="client-slot-interior" d="" fill="none" stroke="#111" stroke-width="6" />
-                            <path id="client-track-interior" d="" fill="none" stroke="url(#clientNeonMarronVioleta)" stroke-width="8" filter="url(#clientGlowVioleta)" class="track-line" style="opacity: 0.6;"/>
-                            
-                            <path id="client-base-lavado" d="" fill="none" class="track-base" />
-                            <path id="client-rails-lavado" d="" fill="none" stroke="#9ca3af" stroke-width="16" />
-                            <path id="client-slot-lavado" d="" fill="none" stroke="#111" stroke-width="6" />
-                            <path id="client-track-lavado" d="" fill="none" stroke="url(#clientNeonAzulAmarillo)" stroke-width="8" filter="url(#clientGlowAzul)" class="track-line" style="opacity: 0.6;"/>
-                        </svg>
+                <div class="track-mirror-wrapper" style="background: #090d16; border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); overflow: hidden; position: relative; margin-top: 6px;">
+                    
+                    <div class="canvas-area client-canvas-area" id="client-canvas-area" style="position: relative; width: 100%; min-height: 310px; background: radial-gradient(circle at center, #111827 0%, #030712 100%); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 8px;">
                         
-                        <div class="canvas-grid" id="client-canvas-grid" style="position:relative; z-index:1;">
-                            <!-- Boxes -->
+                        <div class="controls-header-mirror" style="display: flex; justify-content: center; align-items: center; margin-bottom: 12px; padding: 6px 14px; background: rgba(15, 23, 42, 0.8); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); width: 100%; max-width: 290px;">
+                            <div id="client-status-board" class="status-board-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+                                <div class="status-info" style="display: flex; align-items: center; gap: 8px;">
+                                    <div class="status-title" style="font-size: 0.68rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px;">Demora Estimada</div>
+                                    <div class="status-time" id="client-status-time" style="font-size: 1.25rem; font-weight: 900; color: #38bdf8; font-family: 'Racing Sans One', sans-serif;">00:00</div>
+                                </div>
+                                <div class="status-badge badge-libre" id="client-status-badge" style="padding: 4px 10px; border-radius: 16px; font-weight: 700; font-size: 0.72rem; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">Sin Demora</div>
+                            </div>
                         </div>
 
-                        <!-- Pantalla Digital LED de Publicidad / Sponsors -->
-                        <div id="client-sponsor-screen-container" class="sponsor-screen-container">
-                            <div class="sponsor-screen-frame">
-                                <div class="screen-header">
-                                    <span class="screen-badge"><i class='bx bx-broadcast bx-flashing'></i> SPONSORS OFICIALES</span>
-                                </div>
-                                <div class="screen-media-wrapper" id="client-screen-media-wrapper">
-                                </div>
-                                <div class="screen-footer">
-                                    <div class="sponsor-info">
-                                        <div class="sponsor-title" id="client-sponsor-title">L1deres AutoWash</div>
-                                    </div>
-                                    <div class="sponsor-progress-bar"><div class="sponsor-progress-fill" id="client-sponsor-progress"></div></div>
-                                </div>
-                            </div>
+                        <div class="espera-grid-container" id="client-canvas-grid" style="position:relative; z-index:1; display: grid; grid-template-columns: repeat(2, 1fr); max-width: 290px; width: 100%; gap: 10px; justify-content: center; align-items: center;">
+                            <!-- Boxes Espera (1 a 8) -->
+                            <div class="grid-box" data-box-number="11">Espera 1</div>
+                            <div class="grid-box" data-box-number="12">Espera 2</div>
+                            <div class="grid-box" data-box-number="17">Espera 3</div>
+                            <div class="grid-box" data-box-number="18">Espera 4</div>
+                            <div class="grid-box" data-box-number="23">Espera 5</div>
+                            <div class="grid-box" data-box-number="24">Espera 6</div>
+                            <div class="grid-box" data-box-number="29">Espera 7</div>
+                            <div class="grid-box" data-box-number="30">Espera 8</div>
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="nextScreen('screen-plate')">
-                    START ENGINE <i class='bx bx-right-arrow-alt'></i>
+                <button class="btn btn-primary" onclick="handleReservaClick()" style="width: 100%; margin-top: 14px; margin-bottom: 10px; font-size: 1.15rem; font-weight: 900; letter-spacing: 1px;">
+                    <i class='bx bx-calendar-check'></i> RESERVAR <i class='bx bx-right-arrow-alt'></i>
                 </button>
-                <button id="btn-install" class="btn" style="display: none; margin-top: 15px; background: #3b82f6; color: white;">
-                    <i class='bx bx-download'></i> Instalar App
+                <button id="btn-install" class="btn" style="width: 100%; background: #0ea5e9; color: white; display: none; margin-bottom: 15px;">
+                    <i class='bx bx-download'></i> INSTALAR APP
                 </button>
             </div>
         </div>
@@ -135,20 +100,25 @@
                 </div>
 
                 <div class="options-grid">
-                    <button class="option-card" onclick="selectWash('Solo Lavado')">
-                        <i class='bx bx-water'></i>
-                        <span>Solo Lavado</span>
+                    <button class="option-card" onclick="selectWash('Lavado Express Auto')">
+                        <i class='bx bx-car'></i>
+                        <span>Express Auto</span>
                         <div class="price">Rápido</div>
                     </button>
-                    <button class="option-card" onclick="selectWash('Solo Interior')">
-                        <i class='bx bx-wind'></i>
-                        <span>Solo Interior</span>
-                        <div class="price">Detalle</div>
+                    <button class="option-card" onclick="selectWash('Lavado Express Camioneta')">
+                        <i class='bx bxs-truck'></i>
+                        <span>Express Camioneta</span>
+                        <div class="price">Rápido</div>
                     </button>
-                    <button class="option-card premium" onclick="selectWash('Lavado + Interior')">
+                    <button class="option-card premium" onclick="selectWash('Lavado Completo Auto')">
                         <i class='bx bx-star'></i>
-                        <span>Completo</span>
-                        <div class="price">Premium</div>
+                        <span>Completo Auto</span>
+                        <div class="price">VIP</div>
+                    </button>
+                    <button class="option-card premium" onclick="selectWash('Lavado Completo Camioneta')" style="border-color: #f59e0b;">
+                        <i class='bx bx-star' style="color:#f59e0b;"></i>
+                        <span>Completo Camioneta</span>
+                        <div class="price" style="background:#f59e0b;">VIP</div>
                     </button>
                 </div>
             </div>
@@ -180,6 +150,7 @@
                     <h3>Resumen del Servicio</h3>
                     <p>Patente: <strong id="summary-plate">-</strong></p>
                     <p>Servicio: <strong id="summary-type">-</strong></p>
+                    <p>WhatsApp: <strong id="summary-phone">-</strong></p>
                 </div>
                 
                 <button class="btn btn-mp" onclick="processPayment()">
@@ -207,7 +178,7 @@
                     
                     <div id="review-emoji" style="font-size: 3.5rem; margin: 15px 0; display: none; text-shadow: 0 0 15px rgba(255,255,255,0.2); transition: transform 0.2s;"></div>
                     
-                    <input type="text" id="review-comment" maxlength="12" placeholder="Max 12 letras..." style="display:none; width: 80%; max-width: 250px; padding: 12px; margin: 10px auto; border-radius: 8px; border: 1px solid #333; background: #111; color: white; text-align: center; font-size: 1.1rem; text-transform: uppercase;">
+                    <input type="text" id="review-comment" maxlength="200" placeholder="Dejá tu comentario..." style="display:none; width: 90%; max-width: 320px; padding: 12px; margin: 10px auto; border-radius: 8px; border: 1px solid #333; background: #111; color: white; text-align: center; font-size: 1rem;">
 
                     <button id="btn-submit-review" class="btn btn-primary" style="display:none; margin-top: 20px; width: 80%; margin-left: auto; margin-right: auto;" onclick="finishFlow()">
                         ENVIAR RESEÑA
@@ -223,13 +194,18 @@
     </div>
 
     <!-- Footer Fijo -->
-    <footer class="app-footer">
-        <p>&copy; 2026 Aura. Todos los derechos reservados. | v1.5</p>
+    <footer class="app-footer" style="padding: 12px; text-align: center;">
+        <p style="font-size: 0.8rem; margin-bottom: 4px;">
+            <i class='bx bx-map-pin' style="color: #fde047;"></i> Brandsen 805, La Boca, CABA · 
+            <a href="https://www.google.com/maps/dir/?api=1&destination=Brandsen+805+La+Boca+CABA+Argentina" target="_blank" style="color: #38bdf8; text-decoration: underline; font-weight: 700;">
+                <i class='bx bx-navigation'></i> ¿Cómo llegar?
+            </a>
+        </p>
+        <p>&copy; 2026 Aura. Todos los derechos reservados. | v1.6</p>
     </footer>
 
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js?v=20"></script>
+    <!-- App Script -->
+    <script src="app.js?v=1.6"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');

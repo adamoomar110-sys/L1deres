@@ -8,19 +8,20 @@ const appState = {
     whatsappNumber: ''
 };
 
-// Configuración de Supabase
-const SUPABASE_URL = 'https://ojalzcfjrlkkyyqvihvc.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_lkMNUGG8ML6nv5yMwezq1Q_bC7_xabQ';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Configuración de API DonWeb
+const API_URL = '../api/';
 
 // Simulador del Video Splash Screen
 document.addEventListener('DOMContentLoaded', () => {
-    // Obtener configuración de WhatsApp desde Supabase
-    supabaseClient.from('configuracion').select('whatsapp_number').eq('id', 1).single().then(({data, error}) => {
-        if (data && data.whatsapp_number) {
-            appState.whatsappNumber = data.whatsapp_number;
-        }
-    });
+    // Obtener configuración de WhatsApp desde API DonWeb
+    fetch(`${API_URL}configuracion.php`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.whatsapp_number) {
+                appState.whatsappNumber = data.whatsapp_number;
+            }
+        })
+        .catch(err => console.warn('Cargando config cliente:', err));
 
     // Simulamos un tiempo de carga del splash screen (video de inicio)
     setTimeout(() => {
@@ -29,9 +30,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Configurar sistema de estrellas
     setupStars();
+    
+    // Intentar solicitar notificaciones tras el splash screen
 });
 
-// Lógica de Instalación de PWA
+// ============================================================
+// GESTIÓN DE NOTIFICACIONES PUSH ONESIGNAL (WRAPPER CENTRALIZADO)
+// ============================================================
+async function solicitarPermisosNotificacionOneSignal(telefono = '') {
+    if (window.oneSignalService) {
+        await window.oneSignalService.requestPermission();
+        if (telefono) {
+            await window.oneSignalService.loginUser(telefono);
+        }
+    }
+}
+window.solicitarPermisosNotificacionOneSignal = solicitarPermisosNotificacionOneSignal;
+
+// Lógica de Instalación de PWA (Android, iOS y Desktop)
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
@@ -39,16 +55,34 @@ window.addEventListener('beforeinstallprompt', (e) => {
     const btnInstall = document.getElementById('btn-install');
     if (btnInstall) {
         btnInstall.style.display = 'block';
-        btnInstall.addEventListener('click', () => {
+        btnInstall.onclick = () => {
             btnInstall.style.display = 'none';
+            solicitarPermisosNotificacionOneSignal();
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then((choiceResult) => {
                 if (choiceResult.outcome === 'accepted') {
-                    console.log('El usuario aceptó la instalación');
+                    console.log('El usuario instaló la PWA L1deres Turnos');
                 }
                 deferredPrompt = null;
             });
-        });
+        };
+    }
+});
+
+// Detectar iOS Safari para mostrar banner de instalación
+document.addEventListener('DOMContentLoaded', () => {
+    const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    
+    if (isIos && !isStandalone) {
+        const btnInstall = document.getElementById('btn-install');
+        if (btnInstall) {
+            btnInstall.style.display = 'block';
+            btnInstall.innerHTML = "<i class='bx bx-export'></i> INSTALAR EN IPHONE / IPAD";
+            btnInstall.onclick = () => {
+                alert("Para instalar la App de Turnos en tu iPhone:\n1. Toca el botón Compartir (cuadrado con flecha abajo) en Safari.\n2. Seleccioná 'Añadir a pantalla de inicio'.");
+            };
+        }
     }
 });
 
@@ -57,7 +91,21 @@ function nextScreen(screenId) {
     // Ocultar todas
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     // Mostrar la indicada
-    document.getElementById(screenId).classList.add('active');
+    const target = document.getElementById(screenId);
+    if (target) {
+        target.classList.add('active');
+        if (screenId === 'screen-welcome') {
+            setTimeout(updateClientTracks, 100);
+        } else if (screenId === 'screen-plate' || screenId === 'screen-phone') {
+            if (window.solicitarPermisosNotificacionOneSignal) {
+                window.solicitarPermisosNotificacionOneSignal(appState.phone);
+            }
+        }
+    } else {
+        console.warn(`Pantalla '${screenId}' no encontrada, mostrando pantalla por defecto.`);
+        const defaultScreen = document.getElementById('screen-welcome');
+        if (defaultScreen) defaultScreen.classList.add('active');
+    }
 }
 
 function prevScreen(screenId) {
@@ -79,46 +127,58 @@ async function validateAndNext(step, nextScreenId) {
         // Actualizar resumen
         document.getElementById('summary-plate').innerText = appState.plate;
         
-        // --- LÓGICA DE PROMOCIONES ---
+        // --- LÓGICA DE PROMOCIONES Y PROGRAMA DE FIDELIDAD POR PATENTE ---
         const banner = document.getElementById('promo-banner');
-        if (banner && supabaseClient) {
+        if (banner) {
             banner.style.display = 'none';
+
             try {
-                // 1. Contar visitas completadas
-                const { count } = await supabaseClient
-                    .from('reservas_pendientes')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('patente', appState.plate)
-                    .eq('estado', 'completado');
-                    
-                const visitas = count || 0;
-                
-                // 2. Obtener promos activas
-                const { data: promos } = await supabaseClient
-                    .from('promociones')
-                    .select('*')
-                    .eq('activa', true)
-                    .order('meta_visitas', { ascending: true });
-                
-                if (promos && promos.length > 0) {
-                    // +1 porque la reserva actual sería la visita N+1
-                    const proximaVisita = visitas + 1; 
-                    
-                    let reachedPromo = promos.find(p => p.meta_visitas === proximaVisita);
-                    let nextPromo = promos.find(p => p.meta_visitas > proximaVisita);
-                    
-                    if (reachedPromo) {
-                        banner.innerHTML = `¡Felicidades! Ésta es tu visita #${proximaVisita}.<br>🎉 Tienes disponible: <strong>${reachedPromo.nombre}</strong>`;
-                        banner.style.display = 'block';
-                    } else if (nextPromo) {
-                        const faltan = nextPromo.meta_visitas - proximaVisita;
-                        banner.innerHTML = `Ésta es tu visita #${proximaVisita}.<br>¡Te falta${faltan > 1 ? 'n' : ''} ${faltan} visita${faltan > 1 ? 's' : ''} para: <strong>${nextPromo.nombre}</strong>!`;
-                        banner.style.display = 'block';
-                    }
+                // 1. Consultar lavados acumulados para la patente
+                const res = await fetch(`${API_URL}reservas.php?patente=${encodeURIComponent(appState.plate)}`);
+                const reservasPatente = await res.json();
+                const countLavados = Array.isArray(reservasPatente) ? reservasPatente.length : 0;
+
+                // 2. Obtener regla de fidelidad (defecto: cada 5 lavados)
+                const fidCfg = JSON.parse(localStorage.getItem('aura_fidelidad_config') || '{"frecuencia":5, "premio":100}');
+                const customPromos = JSON.parse(localStorage.getItem('aura_custom_promos') || '[]');
+
+                // 3. Buscar si hay una promo específica para esta patente o general
+                const promoPatente = customPromos.find(p => p.activa && (p.patente === appState.plate || p.patente === 'TODAS'));
+
+                const modulo = (countLavados + 1) % fidCfg.frecuencia;
+                const esGratisOFidelidad = modulo === 0;
+
+                if (promoPatente) {
+                    banner.style.display = 'block';
+                    banner.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                    banner.innerHTML = `
+                        <i class='bx bx-gift' style="font-size: 1.2rem; vertical-align: middle;"></i>
+                        ¡BENEFICIO EXCLUSIVO ACTIVADO! <br>
+                        <span style="font-weight: 500; font-size: 0.85rem;">${promoPatente.titulo} (${promoPatente.descuento}% OFF)</span>
+                    `;
+                } else if (esGratisOFidelidad) {
+                    banner.style.display = 'block';
+                    banner.style.background = 'linear-gradient(135deg, #ec4899, #8b5cf6)';
+                    banner.innerHTML = `
+                        <i class='bx bx-trophy' style="font-size: 1.2rem; vertical-align: middle;"></i>
+                        ¡FELICITACIONES! ESTE ES TU LAVADO Nº ${countLavados + 1} <br>
+                        <span style="font-weight: 500; font-size: 0.85rem;">¡Tenés un ${fidCfg.premio}% de Descuento Especial! 🎉</span>
+                    `;
+                } else {
+                    const faltan = fidCfg.frecuencia - modulo;
+                    banner.style.display = 'block';
+                    banner.style.background = 'linear-gradient(135deg, #0ea5e9, #0284c7)';
+                    banner.innerHTML = `
+                        <i class='bx bx-car' style="font-size: 1.2rem; vertical-align: middle;"></i>
+                        PATENTE: ${appState.plate} — Club de Fidelidad F1 <br>
+                        <span style="font-weight: 500; font-size: 0.82rem;">Llevás ${countLavados} lavados acumulados. Te faltan ${faltan} para tu lavado GRATIS 🚀</span>
+                    `;
                 }
-            } catch(e) { console.error("Error check promo", e); }
+            } catch (err) {
+                console.warn('Error calculando promos por patente:', err);
+            }
         }
-        
+
         nextScreen(nextScreenId);
     } 
     else if (step === 'phone') {
@@ -127,6 +187,14 @@ async function validateAndNext(step, nextScreenId) {
         if (phoneInput.length < 8) {
             errorMsg.style.display = 'block';
             return;
+        }
+        errorMsg.style.display = 'none';
+        appState.phone = phoneInput;
+        document.getElementById('summary-phone').innerText = appState.phone;
+
+        // Disparar permiso y vincular teléfono en OneSignal
+        if (window.solicitarPermisosNotificacionOneSignal) {
+            window.solicitarPermisosNotificacionOneSignal(appState.phone);
         }
         errorMsg.style.display = 'none';
         appState.phone = '+54 ' + phoneInput;
@@ -141,7 +209,7 @@ function selectWash(type) {
     nextScreen('screen-phone');
 }
 
-// Mock de Pago de Mercado Pago y guardado en Supabase
+// Mock de Pago de Mercado Pago y guardado en DonWeb MySQL
 async function processPayment() {
     const btn = document.querySelector('.btn-mp');
     const originalText = btn.innerHTML;
@@ -153,29 +221,25 @@ async function processPayment() {
         await new Promise(r => setTimeout(r, 2000));
         
         // Transformar el tipo de lavado al formato que espera el backend
-        let tipoParaDB = 'solo_lavado';
-        if (appState.washType === 'Solo Interior') tipoParaDB = 'solo_secado';
-        else if (appState.washType === 'Lavado + Interior') tipoParaDB = 'lavado_secado';
+        let tipoParaDB = 'express_auto';
+        if (appState.washType === 'Lavado Express Camioneta') tipoParaDB = 'express_camioneta';
+        else if (appState.washType === 'Lavado Completo Auto') tipoParaDB = 'completo_auto';
+        else if (appState.washType === 'Lavado Completo Camioneta') tipoParaDB = 'completo_camioneta';
 
-        // Guardar la reserva en Supabase
-        const { data, error } = await supabaseClient
-            .from('reservas_pendientes')
-            .insert([
-                { 
-                    patente: appState.plate, 
-                    tipo_lavado: tipoParaDB, 
-                    telefono: appState.phone,
-                    estado: 'pendiente'
-                }
-            ])
-            .select();
-            
-        if (error) {
-            console.error("Error al guardar en Supabase:", error);
-            // Ignoramos el error en el frontend para no bloquear al usuario por ahora, 
-            // pero normalmente se mostraría un error.
-        } else if (data && data.length > 0) {
-            appState.reservaId = data[0].id;
+        // Guardar la reserva en DonWeb MySQL
+        const res = await fetch(`${API_URL}reservas.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                patente: appState.plate,
+                tipo_servicio: tipoParaDB,
+                cliente_telefono: appState.phone,
+                estado: 'pendiente'
+            })
+        });
+        const data = await res.json();
+        if (data && data.id) {
+            appState.reservaId = data.id;
         }
 
         btn.innerHTML = originalText;
@@ -242,23 +306,33 @@ function setupStars() {
 
 async function finishFlow() {
     // Si queremos actualizar la reseña en la DB:
-    if (appState.reservaId) {
+    if (appState.rating > 0) {
         const commentInput = document.getElementById('review-comment');
-        const comentarioText = commentInput ? commentInput.value.substring(0, 12).trim() : null;
+        const comentarioText = commentInput ? commentInput.value.substring(0, 200).trim() : '';
 
-        await supabaseClient
-            .from('reservas_pendientes')
-            .update({ 
-                rating: appState.rating,
-                comentario: comentarioText
-            })
-            .eq('id', appState.reservaId);
+        try {
+            await fetch(`${API_URL}resenas.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cliente_nombre: appState.plate ? `Cliente Patente ${appState.plate}` : 'Cliente PWA',
+                    estrellas: appState.rating,
+                    comentario: comentarioText
+                })
+            });
+        } catch(e){}
     }
     
-    // Simular que terminó
-    alert("¡Gracias por tu reserva y tu reseña!");
-    // Reiniciar
-    window.location.reload();
+    // Reiniciar con mensaje amigable
+    const card = document.querySelector('#screen-review .card');
+    if (card) {
+        card.innerHTML = `
+            <h2 class="racing-font" style="color: #10b981; font-size: 2rem;">\uD83C\uDFC1 ¡Gracias!</h2>
+            <p style="font-size: 1.1rem; margin: 20px 0;">Tu reserva y reseña fueron registradas.<br>\uD83D\uDFE2 Nos vemos en el pit lane.</p>
+            <p style="color: #64748b; font-size: 0.9rem;">Redirigiendo en 3 segundos...</p>
+        `;
+    }
+    setTimeout(() => { window.location.reload(); }, 3000);
 }
 
 // Función para abrir WhatsApp
@@ -270,192 +344,392 @@ function contactWhatsApp() {
     }
 }
 
+function handleReservaClick() {
+    if (window.solicitarPermisosNotificacionOneSignal) {
+        try {
+            window.solicitarPermisosNotificacionOneSignal();
+        } catch(e) {
+            console.warn('Permisos Push OneSignal:', e);
+        }
+    }
+    nextScreen('screen-plate');
+}
+
 // ============================================================
-// SIMULADOR DE CIRCUITO EN VIVO PARA CLIENTE (SIN PATENTES)
+// SIMULADOR DE ZONA DE ESPERA EN VIVO PARA CLIENTE
 // ============================================================
 function initClientTrack() {
     const grid = document.getElementById('client-canvas-grid');
     if (!grid) return;
 
-    grid.innerHTML = '';
-    const totalBoxes = 48;
-
-    const titles = [
-        { name: 'TERMINADO', col: 1 },
-        { name: 'INTERIOR', col: 3 },
-        { name: 'LAVADO', col: 4 },
-        { name: 'ESPERA', col: 5 }
-    ];
-
-    titles.forEach(t => {
-        const div = document.createElement('div');
-        div.className = 'zone-title';
-        div.textContent = t.name;
-        div.style.gridRow = '1';
-        div.style.gridColumn = t.col;
-        if (t.name === 'ESPERA') div.style.gridColumn = '5 / span 2';
-        grid.appendChild(div);
-    });
-
-    const textReplacements = {
-        25: '1', 19: '2', 13: '3', 7: '4',
-        11: '1', 12: '2', 17: '3', 18: '4', 23: '5', 24: '6', 29: '7', 30: '8',
-        4: '1', 3: '1', 9: '2'
-    };
-
-    for (let boxNumber = 1; boxNumber <= totalBoxes; boxNumber++) {
-        let row = Math.ceil(boxNumber / 6) + 1;
-        let col = ((boxNumber - 1) % 6) + 1;
-
-        if (textReplacements.hasOwnProperty(boxNumber)) {
-            const box = document.createElement('div');
-            box.className = 'grid-box';
-            box.dataset.boxNumber = boxNumber;
-            box.textContent = textReplacements[boxNumber];
-            box.style.gridRow = row;
-            box.style.gridColumn = col;
-            grid.appendChild(box);
-        }
+    if (grid.querySelectorAll('.grid-box').length === 0) {
+        grid.innerHTML = `
+            <div class="grid-box" data-box-number="11">Espera 1</div>
+            <div class="grid-box" data-box-number="12">Espera 2</div>
+            <div class="grid-box" data-box-number="17">Espera 3</div>
+            <div class="grid-box" data-box-number="18">Espera 4</div>
+            <div class="grid-box" data-box-number="23">Espera 5</div>
+            <div class="grid-box" data-box-number="24">Espera 6</div>
+            <div class="grid-box" data-box-number="29">Espera 7</div>
+            <div class="grid-box" data-box-number="30">Espera 8</div>
+        `;
     }
-
-    // Calcular paths de pistas Scalextric en el cliente
-    setTimeout(() => {
-        updateClientTracks();
-    }, 400);
 
     initClientSponsors();
     initClientCarSync();
 }
 
 function updateClientTracks() {
-    const canvas = document.getElementById('client-canvas-area');
-    if (!canvas) return;
+    // Pista SVG deshabilitada; diseño en grilla limpia de Zona de Espera
+}
+// ============================================================
+// SISTEMA DE AUTOS CLIENTE — Sincronización 1:1 en Tiempo Real
+// ============================================================
 
-    function getBoxCenter(boxNum) {
-        const box = document.querySelector(`#client-canvas-grid .grid-box[data-box-number="${boxNum}"]`);
-        if (!box) return null;
-        const boxRect = box.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-        return {
-            x: boxRect.left - canvasRect.left + boxRect.width / 2,
-            y: boxRect.top - canvasRect.top + boxRect.height / 2
-        };
-    }
+let clientCarImageSrc = './f1_car_top_down.png?v=f1hd3';
+const _clientCarImg = new Image();
+_clientCarImg.crossOrigin = 'anonymous';
+_clientCarImg.src = clientCarImageSrc;
+_clientCarImg.onload = () => {
+    clientCarImageSrc = _clientCarImg.src;
+    document.querySelectorAll('#client-canvas-area .auto-icon').forEach(ic => { ic.src = clientCarImageSrc; });
+};
 
-    const c11 = getBoxCenter(11), c12 = getBoxCenter(12);
-    const c29 = getBoxCenter(29), c30 = getBoxCenter(30);
-    const c3 = getBoxCenter(3), c9 = getBoxCenter(9);
-    const c4 = getBoxCenter(4);
-    const c25 = getBoxCenter(25), c7 = getBoxCenter(7);
+const ESPERA_ZONES = [11, 12, 17, 18, 23, 24, 29, 30];
+const LAVADO_ZONE = 4;
+const SECADO_ZONES = [3, 9];
 
-    if (c11 && c12 && c29 && c30 && c3 && c9 && c4 && c25 && c7) {
-        // Pista Interior
-        const dInterior = `M ${c12.x} ${c12.y + 120} L ${c12.x} ${c12.y} L ${c3.x} ${c3.y} L ${c9.x} ${c9.y} L ${c25.x} ${c25.y} L ${c7.x} ${c7.y}`;
-        ['client-base-interior', 'client-rails-interior', 'client-slot-interior', 'client-track-interior'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.setAttribute('d', dInterior);
-        });
-
-        // Pista Lavado
-        const dLavado = `M ${c11.x} ${c11.y + 120} L ${c11.x} ${c11.y} L ${c4.x} ${c4.y} L ${c25.x} ${c25.y} L ${c7.x} ${c7.y}`;
-        ['client-base-lavado', 'client-rails-lavado', 'client-slot-lavado', 'client-track-lavado'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.setAttribute('d', dLavado);
-        });
+async function fetchClientLiveState() {
+    try {
+        const res = await fetch(`${API_URL}configuracion.php`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.live_state) {
+                renderClientCars(data.live_state);
+            }
+        }
+    } catch (e) {
+        console.warn('Error syncing client live state:', e);
     }
 }
 
-// Sincronizar vehículos en vivo con Supabase
-let clientCarSprites = new Map();
+// Motor de Simulación Continua para la App del Cliente (Sincronizado 1:1 con Dashboard)
+const clientSimCars = new Map();
 
-async function fetchClientLiveState() {
-    if (!supabaseClient) return;
-    try {
-        const { data, error } = await supabaseClient
-            .from('reservas_pendientes')
-            .select('*')
-            .in('estado', ['ingresado', 'lavando', 'secando']);
+function formatClientTime(segundos) {
+    if (segundos <= 0) return "00:00";
+    const mins = Math.floor(segundos / 60);
+    const secs = segundos % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
 
-        if (error || !data) return;
+function clientGameLoop() {
+    const now = Date.now();
 
-        const canvas = document.getElementById('client-canvas-area');
-        if (!canvas) return;
+    clientSimCars.forEach((state) => {
+        let currentTargetX = state.targetX;
+        let currentTargetY = state.targetY;
 
-        const activeIds = new Set();
-        let totalEta = 0;
-
-        data.forEach(res => {
-            activeIds.add(res.id.toString());
-
-            // Determinar caja destino
-            let boxNum = 11;
-            if (res.estado === 'ingresado') boxNum = 11;
-            else if (res.estado === 'lavando') boxNum = 4;
-            else if (res.estado === 'secando') boxNum = 3;
-
-            const box = document.querySelector(`#client-canvas-grid .grid-box[data-box-number="${boxNum}"]`);
-            if (box) {
-                const boxRect = box.getBoundingClientRect();
-                const canvasRect = canvas.getBoundingClientRect();
-                const targetX = boxRect.left - canvasRect.left + boxRect.width / 2 - 16;
-                const targetY = boxRect.top - canvasRect.top + boxRect.height / 2 - 16;
-
-                let car = clientCarSprites.get(res.id.toString());
-                if (!car) {
-                    car = document.createElement('div');
-                    car.className = 'car-wrapper';
-                    car.dataset.id = res.id;
-                    car.style.left = `${targetX}px`;
-                    car.style.top = `${targetY + 80}px`;
-
-                    const img = document.createElement('img');
-                    img.src = '../f1_car_top_down.png';
-                    img.className = 'auto-icon';
-
-                    car.appendChild(img);
-                    canvas.appendChild(car);
-                    clientCarSprites.set(res.id.toString(), car);
-                }
-
-                // Animación suave hacia el box (sin cartel de patente)
-                setTimeout(() => {
-                    car.style.left = `${targetX}px`;
-                    car.style.top = `${targetY}px`;
-                }, 50);
-            }
-        });
-
-        // Limpiar autos que salieron
-        clientCarSprites.forEach((car, id) => {
-            if (!activeIds.has(id)) {
-                car.style.left = '110%';
-                car.style.opacity = '0';
-                setTimeout(() => {
-                    if (car.parentNode) car.remove();
-                    clientCarSprites.delete(id);
-                }, 800);
-            }
-        });
-
-        // Actualizar demora en el badge
-        const count = data.length;
-        const timeEl = document.getElementById('client-status-time');
-        const badgeEl = document.getElementById('client-status-badge');
-        if (timeEl && badgeEl) {
-            if (count === 0) {
-                timeEl.textContent = '00:00';
-                badgeEl.className = 'status-badge badge-libre';
-                badgeEl.textContent = 'SIN DEMORA';
-            } else {
-                const mins = count * 5;
-                timeEl.textContent = `${mins.toString().padStart(2, '0')}:00`;
-                badgeEl.className = count > 3 ? 'status-badge badge-alta' : 'status-badge badge-normal';
-                badgeEl.textContent = `${count} EN ESPERA`;
+        // Lógica ortogonal tipo Scalextric (Subir/Bajar y Doblar)
+        if (Math.abs(state.targetX - state.x) > 10 && Math.abs(state.targetY - state.y) > 10) {
+            if (state.y > state.targetY) {
+                currentTargetX = state.x;
+            } else if (state.y < state.targetY) {
+                currentTargetY = state.y;
             }
         }
 
-    } catch (e) {
-        console.error('Error sync cliente track:', e);
+        const dx = currentTargetX - state.x;
+        const dy = currentTargetY - state.y;
+
+        state.x += dx * 0.08;
+        state.y += dy * 0.08;
+
+        let targetAngle = state.desiredAngle !== undefined ? state.desiredAngle : 0;
+        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+            targetAngle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+        }
+
+        let diff = targetAngle - state.angle;
+        while (diff > 180) diff -= 360;
+        while (diff < -180) diff += 360;
+
+        state.angle += diff * 0.12;
+
+        state.wrapper.style.left = `${state.x}px`;
+        state.wrapper.style.top = `${state.y}px`;
+
+        if (state.icon) {
+            state.icon.style.transform = `rotate(${state.angle}deg)`;
+        }
+
+        // Cuenta regresiva MM:SS en vivo para cada vehículo
+        if (state.timerBadge) {
+            if (state.stateName === 'espera') {
+                state.timerBadge.style.display = 'block';
+                if (state.etaSalidaEspera) {
+                    const remaining = Math.max(0, Math.ceil((state.etaSalidaEspera - now) / 1000));
+                    state.timerBadge.textContent = formatClientTime(remaining);
+                } else if (state.timerText) {
+                    state.timerBadge.textContent = state.timerText;
+                }
+            } else if (state.stateName === 'terminado') {
+                if (state.endTime) {
+                    const remaining = Math.ceil((state.endTime - now) / 1000);
+                    if (remaining > 0) {
+                        state.timerBadge.textContent = formatClientTime(remaining);
+                        state.timerBadge.style.display = 'block';
+                    } else {
+                        state.timerBadge.textContent = '¡Listo!';
+                        state.timerBadge.style.display = 'block';
+                    }
+                } else {
+                    state.timerBadge.textContent = '¡Listo!';
+                    state.timerBadge.style.display = 'block';
+                }
+            } else if (state.endTime) {
+                const remaining = Math.ceil((state.endTime - now) / 1000);
+                if (remaining > 0) {
+                    state.timerBadge.textContent = formatClientTime(remaining);
+                    state.timerBadge.style.display = 'block';
+                } else {
+                    state.timerBadge.style.display = 'none';
+                }
+            } else if (state.timerText) {
+                state.timerBadge.textContent = state.timerText;
+                state.timerBadge.style.display = 'block';
+            }
+        }
+    });
+
+    requestAnimationFrame(clientGameLoop);
+}
+requestAnimationFrame(clientGameLoop);
+
+function renderClientCars(state) {
+    const canvas = document.getElementById('client-canvas-area') || document.querySelector('.client-canvas-area');
+    if (!canvas || !state) return;
+
+    const activeCarIds = new Set();
+    const ESPERA_ZONES = [11, 12, 17, 18, 23, 24, 29, 30];
+    const LAVADO_ZONE = 4;
+    const SECADO_ZONES = [3, 9];
+
+    // Limpiar celdas ocupadas antes
+    canvas.querySelectorAll('.grid-box').forEach(box => {
+        box.classList.remove('box-occupied-lavado', 'box-occupied-secado', 'box-occupied-completo');
+    });
+
+    function placeCar(boxNumber, timerText, colorGlow = '#38bdf8', rotateDeg = 0, typeClass = 'solo-lavado', carId = '', carObj = null, stateName = 'espera') {
+        const box = document.querySelector(`#client-canvas-grid .grid-box[data-box-number="${boxNumber}"]`);
+        if (!box) return;
+
+        const uniqueId = carId.toString();
+        activeCarIds.add(uniqueId);
+
+        // Iluminación de celda ocupada
+        let classOcupado = '';
+        if (typeClass === 'solo-lavado') classOcupado = 'box-occupied-lavado';
+        else if (typeClass === 'solo-secado') classOcupado = 'box-occupied-secado';
+        else classOcupado = 'box-occupied-completo';
+        box.classList.add(classOcupado);
+
+        const boxRect = box.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        const scale = canvasRect.width / canvas.offsetWidth || 1;
+
+        const targetX = (boxRect.left - canvasRect.left) / scale + box.offsetWidth / 2;
+        const targetY = (boxRect.top - canvasRect.top) / scale + box.offsetHeight / 2;
+
+        let wrapper = canvas.querySelector(`.car-wrapper[data-id="${uniqueId}"]`);
+        let icon, timerBadge;
+
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.className = `car-wrapper ${typeClass}`;
+            wrapper.dataset.id = uniqueId;
+
+            icon = document.createElement('img');
+            icon.className = 'auto-icon';
+            icon.src = clientCarImageSrc;
+
+            timerBadge = document.createElement('div');
+            timerBadge.className = 'car-timer';
+            timerBadge.textContent = timerText;
+
+            wrapper.appendChild(icon);
+            wrapper.appendChild(timerBadge);
+            canvas.appendChild(wrapper);
+
+            let isOddLane = [0, 2, 4, 6].includes(state.espera ? state.espera.findIndex(e => e && e.id && e.id.toString() === uniqueId) : -1);
+            let entryBoxNum = isOddLane ? 29 : 30;
+            let entryCell = canvas.querySelector(`#client-canvas-grid .grid-box[data-box-number="${entryBoxNum}"]`);
+            let startX = targetX;
+            let startY = targetY + 150;
+
+            if (entryCell) {
+                let entryRect = entryCell.getBoundingClientRect();
+                startX = (entryRect.left - canvasRect.left) / scale + entryCell.offsetWidth / 2;
+                startY = (entryRect.top - canvasRect.top) / scale + entryCell.offsetHeight / 2 + 250;
+            }
+
+            let simState = {
+                x: startX,
+                y: startY,
+                targetX: targetX,
+                targetY: targetY,
+                angle: rotateDeg,
+                desiredAngle: rotateDeg,
+                wrapper: wrapper,
+                icon: icon,
+                timerBadge: timerBadge,
+                etaSalidaEspera: carObj ? carObj.etaSalidaEspera : null,
+                endTime: carObj ? carObj.endTime : null,
+                timerText: timerText,
+                stateName: stateName
+            };
+            clientSimCars.set(uniqueId, simState);
+            wrapper.style.left = `${simState.x}px`;
+            wrapper.style.top = `${simState.y}px`;
+        } else {
+            icon = wrapper.querySelector('.auto-icon');
+            timerBadge = wrapper.querySelector('.car-timer');
+            let simState = clientSimCars.get(uniqueId);
+            if (!simState) {
+                simState = {
+                    x: targetX,
+                    y: targetY,
+                    targetX: targetX,
+                    targetY: targetY,
+                    angle: rotateDeg,
+                    desiredAngle: rotateDeg,
+                    wrapper: wrapper,
+                    icon: icon,
+                    timerBadge: timerBadge,
+                    etaSalidaEspera: carObj ? carObj.etaSalidaEspera : null,
+                    endTime: carObj ? carObj.endTime : null,
+                    timerText: timerText,
+                    stateName: stateName
+                };
+                clientSimCars.set(uniqueId, simState);
+            } else {
+                simState.targetX = targetX;
+                simState.targetY = targetY;
+                simState.desiredAngle = rotateDeg;
+                if (carObj && carObj.etaSalidaEspera) simState.etaSalidaEspera = carObj.etaSalidaEspera;
+                if (carObj && carObj.endTime) simState.endTime = carObj.endTime;
+                simState.timerText = timerText;
+                simState.stateName = stateName;
+            }
+
+            wrapper.className = `car-wrapper ${typeClass}`;
+        }
+    }
+
+    const msLavado = state.tiempo_lavado_ms || 120000;
+    const msSecado = state.tiempo_secado_ms || 180000;
+    const minLavado = Math.round(msLavado / 60000);
+    const minSecado = Math.round(msSecado / 60000);
+    const minPorTurno = minLavado + minSecado;
+
+    if (state.espera || state.lavado || state.secado || state.terminado) {
+        if (Array.isArray(state.espera)) {
+            state.espera.forEach((item, index) => {
+                if (item && ESPERA_ZONES[index]) {
+                    const totalMin = (index + 1) * minPorTurno;
+                    const timeStr = `${totalMin.toString().padStart(2, '0')}:00`;
+                    const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
+                    placeCar(ESPERA_ZONES[index], timeStr, '#fde047', 0, type, item.id || `esp-${index}`, item, 'espera');
+                }
+            });
+        }
+        if (state.lavado) {
+            const item = state.lavado;
+            const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
+            const lavMin = minLavado.toString().padStart(2, '0');
+            placeCar(LAVADO_ZONE, `${lavMin}:00`, '#38bdf8', 270, type, item.id || 'lavado-1', item, 'lavado');
+        }
+        if (Array.isArray(state.secado)) {
+            state.secado.forEach((item, index) => {
+                if (item && SECADO_ZONES[index]) {
+                    const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
+                    const secMin = minSecado.toString().padStart(2, '0');
+                    placeCar(SECADO_ZONES[index], `${secMin}:00`, '#f59e0b', 270, type, item.id || `sec-${index}`, item, 'secado');
+                }
+            });
+        }
+    } 
+    else if (Array.isArray(state.cars)) {
+        state.cars.forEach((carInfo, idx) => {
+            const slot = carInfo.slot;
+            const type = (carInfo.tipo === 'completo_auto' || carInfo.tipo === 'completo_camioneta' || carInfo.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
+            const carKey = (carInfo.id || idx).toString();
+            if (slot && slot.startsWith('espera_')) {
+                const sIdx = parseInt(slot.split('_')[1]) || 0;
+                if (ESPERA_ZONES[sIdx]) {
+                    const totalMin = (sIdx + 1) * minPorTurno;
+                    const timeStr = `${totalMin.toString().padStart(2, '0')}:00`;
+                    placeCar(ESPERA_ZONES[sIdx], timeStr, '#fde047', 0, type, carKey, carInfo, 'espera');
+                }
+            } else if (slot === 'lavado') {
+                const lavMin = minLavado.toString().padStart(2, '0');
+                placeCar(LAVADO_ZONE, `${lavMin}:00`, '#38bdf8', 270, type, carKey, carInfo, 'lavado');
+            } else if (slot && (slot.startsWith('secado_') || slot.startsWith('interior_'))) {
+                const sIdx = parseInt(slot.split('_')[1]) || 0;
+                if (SECADO_ZONES[sIdx]) {
+                    const secMin = minSecado.toString().padStart(2, '0');
+                    placeCar(SECADO_ZONES[sIdx], `${secMin}:00`, '#f59e0b', 270, type, carKey, carInfo, 'secado');
+                }
+            }
+        });
+    }
+
+    // Limpiar autos inactivos con animación de salida hacia la derecha
+    canvas.querySelectorAll('.car-wrapper').forEach(wrapper => {
+        const id = wrapper.dataset.id;
+        if (!activeCarIds.has(id)) {
+            wrapper.style.left = '120%';
+            wrapper.style.opacity = '0';
+            clientSimCars.delete(id);
+            setTimeout(() => {
+                if (wrapper.parentNode) wrapper.remove();
+            }, 1000);
+        }
+    });
+
+    updateClientBadge(state);
+}
+
+function updateClientBadge(state) {
+    const timeEl  = document.getElementById('client-status-time');
+    const badgeEl = document.getElementById('client-status-badge');
+    if (!timeEl || !badgeEl) return;
+
+    let maxEta = Date.now();
+    let autosEsperaCount = 0;
+
+    if (state && Array.isArray(state.espera)) {
+        state.espera.forEach(a => {
+            if (a) {
+                autosEsperaCount++;
+                if (a.etaSalidaEspera && a.etaSalidaEspera > maxEta) {
+                    maxEta = a.etaSalidaEspera;
+                }
+            }
+        });
+    }
+
+    let remainingSegundos = Math.ceil((maxEta - Date.now()) / 1000);
+    if (remainingSegundos < 0 || autosEsperaCount === 0) remainingSegundos = 0;
+
+    if (autosEsperaCount === 0) {
+        timeEl.textContent  = '00:00';
+        badgeEl.className   = 'status-badge badge-libre';
+        badgeEl.textContent = 'SIN DEMORA';
+    } else {
+        timeEl.textContent  = formatClientTime(remainingSegundos);
+        badgeEl.className   = autosEsperaCount > 3 ? 'status-badge badge-alta' : 'status-badge badge-normal';
+        badgeEl.textContent = `${autosEsperaCount} EN ESPERA`;
     }
 }
 
@@ -464,27 +738,117 @@ function initClientCarSync() {
     setInterval(fetchClientLiveState, 4000);
 }
 
+// ============================================================
+// REPRODUCTOR DE SPONSORS / PUBLICIDADES CON VIDEO & IMAGEN
+// ============================================================
 const DEFAULT_CLIENT_SPONSORS = [
-    { title: 'Shell Helix Ultra', url: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=800&q=80' },
-    { title: 'Pirelli P Zero', url: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80' },
-    { title: 'Red Bull Racing', url: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80' }
+    {
+        type: 'video',
+        url: 'https://assets.mixkit.co/videos/preview/mixkit-sports-car-driving-on-a-road-at-sunset-41481-large.mp4',
+        title: 'L1deres AutoWash - F1 Performance',
+        duration: 8
+    },
+    {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80',
+        title: 'Shell Helix Ultra - Lubricante Oficial',
+        duration: 7
+    },
+    {
+        type: 'video',
+        url: 'https://assets.mixkit.co/videos/preview/mixkit-car-wheel-turning-on-the-asphalt-41480-large.mp4',
+        title: 'Pirelli P Zero - Tecnología de Competición',
+        duration: 8
+    },
+    {
+        type: 'image',
+        url: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=80',
+        title: 'Red Bull Racing - Performance',
+        duration: 7
+    }
 ];
+
+let clientSponsorsList = [...DEFAULT_CLIENT_SPONSORS];
 let clientSponsorIdx = 0;
+let clientSponsorTimer = null;
+
+async function fetchClientSponsors() {
+    try {
+        const res = await fetch(`${API_URL}configuracion.php`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.sponsors && data.sponsors.length > 0) {
+                clientSponsorsList = data.sponsors;
+            }
+        }
+    } catch (e) {
+        console.warn('Usando sponsors locales de respaldo en cliente');
+    }
+}
 
 function initClientSponsors() {
     const wrapper = document.getElementById('client-screen-media-wrapper');
     const titleEl = document.getElementById('client-sponsor-title');
+    const progressEl = document.getElementById('client-sponsor-progress');
     if (!wrapper) return;
 
-    function renderSlide() {
-        const cur = DEFAULT_CLIENT_SPONSORS[clientSponsorIdx];
-        if (titleEl) titleEl.textContent = cur.title;
-        wrapper.innerHTML = `<img src="${cur.url}" class="screen-media-item" alt="${cur.title}">`;
-        clientSponsorIdx = (clientSponsorIdx + 1) % DEFAULT_CLIENT_SPONSORS.length;
+    fetchClientSponsors().then(() => {
+        renderClientSlide();
+    });
+
+    function renderClientSlide() {
+        if (clientSponsorTimer) clearTimeout(clientSponsorTimer);
+        const list = clientSponsorsList.length > 0 ? clientSponsorsList : DEFAULT_CLIENT_SPONSORS;
+        if (clientSponsorIdx >= list.length) clientSponsorIdx = 0;
+
+        const cur = list[clientSponsorIdx];
+        if (titleEl) titleEl.textContent = cur.title || 'L1deres AutoWash';
+        
+        wrapper.innerHTML = '';
+
+        if (progressEl) {
+            progressEl.style.transition = 'none';
+            progressEl.style.width = '0%';
+            setTimeout(() => {
+                progressEl.style.transition = `width ${(cur.duration || 7)}s linear`;
+                progressEl.style.width = '100%';
+            }, 50);
+        }
+
+        if (cur.type === 'video') {
+            const video = document.createElement('video');
+            video.src = cur.url;
+            video.autoplay = true;
+            video.muted = true;
+            video.loop = false;
+            video.playsInline = true;
+            video.className = 'screen-media-item';
+            video.onended = () => { nextClientSlide(); };
+            video.onerror = () => {
+                wrapper.innerHTML = `<img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80" class="screen-media-item" alt="${cur.title}">`;
+            };
+            wrapper.appendChild(video);
+            video.play().catch(() => {});
+        } else {
+            const img = document.createElement('img');
+            img.src = cur.url;
+            img.alt = cur.title || 'Sponsor';
+            img.className = 'screen-media-item';
+            img.onerror = () => {
+                img.src = 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80';
+            };
+            wrapper.appendChild(img);
+        }
+
+        const duration = (cur.duration || 7) * 1000;
+        clientSponsorTimer = setTimeout(nextClientSlide, duration);
     }
 
-    renderSlide();
-    setInterval(renderSlide, 6000);
+    function nextClientSlide() {
+        const list = clientSponsorsList.length > 0 ? clientSponsorsList : DEFAULT_CLIENT_SPONSORS;
+        clientSponsorIdx = (clientSponsorIdx + 1) % list.length;
+        renderClientSlide();
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -493,3 +857,4 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(updateClientTracks, 200);
     });
 });
+

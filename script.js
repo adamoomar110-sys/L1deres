@@ -1,1851 +1,769 @@
 // ============================================================
-// LOGIN LOGIC — Admin Panel
-// Credenciales: DNI 25177943 / Clave 123456 (developer)
+// L1DERES AUTOWASH — LANDING PAGE LOGIC (Aura v1.5)
+// Sincronización en tiempo real con DonWeb API MySQL y Pista Espejo
 // ============================================================
-const ADMIN_CREDENTIALS = [
-    { nombre: 'developer', dni: '25177943', clave: '123456' }
-];
+// API URL DonWeb
+const API_URL = 'api/';
 
-function handleLogin() {
-    const dniInput  = document.getElementById('login-dni');
-    const passInput = document.getElementById('login-pass');
-    const errorDiv  = document.getElementById('login-error');
-    const btn       = document.getElementById('login-btn');
-    const btnText   = document.getElementById('login-btn-text');
-    const btnLoader = document.getElementById('login-btn-loader');
+// Global Landing Config
+let landingConfig = {
+    precio_express_auto: 10000,
+    precio_express_camioneta: 12000,
+    precio_completo_auto: 15000,
+    precio_completo_camioneta: 18000,
+    whatsapp_number: '5491123456789',
+    dias_atencion: 'Lunes a Sábados',
+    hora_apertura: '08:00',
+    hora_cierre: '20:00',
+    atiende_domingos: false,
+    atiende_feriados: false,
+    mensaje_feriados: ''
+};
 
-    const dni   = dniInput.value.trim();
-    const clave = passInput.value.trim();
+// Sponsors State
+let landingSponsorsList = [];
+let currentLandingSponsorIndex = 0;
+let landingSponsorTimer = null;
 
-    // Ocultar error previo
-    errorDiv.style.display = 'none';
+// ============================================================
+// 1. CARGA DE CONFIGURACIÓN Y HORARIOS EN TIEMPO REAL (API DONWEB)
+// ============================================================
+async function loadLandingConfig() {
+    // 1. Cargar de localStorage como respaldo
+    const localSaved = localStorage.getItem('aura_lavadero_config');
+    if (localSaved) {
+        try {
+            landingConfig = { ...landingConfig, ...JSON.parse(localSaved) };
+        } catch(e){}
+    }
 
-    // Validar campos
-    if (!dni || !clave) {
-        errorDiv.style.display = 'flex';
-        // Re-trigger animation
-        errorDiv.style.animation = 'none';
-        errorDiv.offsetHeight;
-        errorDiv.style.animation = '';
+    // 2. Cargar desde API DonWeb MySQL
+    try {
+        const res = await fetch(`${API_URL}configuracion.php`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data && !data.error) {
+                landingConfig = { ...landingConfig, ...data };
+                if (data.live_state) {
+                    renderLandingCars(data.live_state);
+                }
+            }
+        }
+    } catch (err) {
+        console.warn('Cargando valores estándar para Landing Page:', err);
+    }
+
+    updateLandingUI();
+}
+
+function updateLandingUI() {
+    // 1. Precios en Servicios
+    const precioExpressAutoEl = document.getElementById('price-express-auto-display');
+    const precioExpressCamionetaEl = document.getElementById('price-express-camioneta-display');
+    const precioCompletoAutoEl = document.getElementById('price-completo-auto-display');
+    const precioCompletoCamionetaEl = document.getElementById('price-completo-camioneta-display');
+
+    if (precioExpressAutoEl) precioExpressAutoEl.textContent = `$${landingConfig.precio_express_auto || 10000}`;
+    if (precioExpressCamionetaEl) precioExpressCamionetaEl.textContent = `$${landingConfig.precio_express_camioneta || 12000}`;
+    if (precioCompletoAutoEl) precioCompletoAutoEl.textContent = `$${landingConfig.precio_completo_auto || 15000}`;
+    if (precioCompletoCamionetaEl) precioCompletoCamionetaEl.textContent = `$${landingConfig.precio_completo_camioneta || 18000}`;
+
+    // 2. WhatsApp
+    if (landingConfig.whatsapp_number) {
+        const cleanNumber = landingConfig.whatsapp_number.replace(/\D/g, '');
+        const btnWa = document.getElementById('btn-contact-wa');
+        const phoneText = document.getElementById('contact-phone-text');
+        
+        if (btnWa) btnWa.href = `https://wa.me/${cleanNumber}?text=${encodeURIComponent('Hola L1deres AutoWash, quiero hacer una consulta.')}`;
+        if (phoneText) phoneText.textContent = `+${cleanNumber}`;
+    }
+
+    // 3. Horarios y Días de Atención
+    const scheduleTextEl = document.getElementById('contact-schedule-text');
+    if (scheduleTextEl) {
+        const dias = landingConfig.dias_atencion || 'Lunes a Sábados';
+        const aper = landingConfig.hora_apertura || '08:00';
+        const cier = landingConfig.hora_cierre || '20:00';
+        scheduleTextEl.textContent = `${dias} de ${aper} a ${cier} hs`;
+    }
+
+    // 4. Domingos y Feriados Badge
+    const holidaysBadgeEl = document.getElementById('contact-holidays-badge');
+    if (holidaysBadgeEl) {
+        let msg = '';
+        if (landingConfig.mensaje_feriados) {
+            msg = `<i class='bx bx-info-circle'></i> ${landingConfig.mensaje_feriados}`;
+        } else {
+            const parts = [];
+            if (landingConfig.atiende_domingos) parts.push('Abierto los Domingos');
+            else parts.push('Cerrado los Domingos');
+
+            if (landingConfig.atiende_feriados) parts.push('Abierto Feriados');
+            else parts.push('Cerrado Feriados');
+
+            msg = `<i class='bx bx-calendar-star'></i> ${parts.join(' · ')}`;
+        }
+        holidaysBadgeEl.innerHTML = msg;
+    }
+}
+
+// ============================================================
+// 2. DIBUJO DE PISTA Y LÍNEAS SVG DE NEÓN (IDÉNTICO AL DASHBOARD)
+// ============================================================
+function initLandingTrackGrid() {
+    const canvasGrid = document.getElementById('landing-canvas-grid');
+    if (!canvasGrid) return;
+
+    // Si ya existen los boxes en el HTML, dibujar directamente la pista SVG
+    if (canvasGrid.children.length > 0) {
+        setTimeout(drawLandingSVGTracks, 100);
         return;
     }
 
-    // Mostrar loader
-    btn.disabled = true;
-    btnText.style.display = 'none';
-    btnLoader.style.display = 'flex';
+    // Título de Terminado (columnas 1 y 2)
+    const titleTerminado = document.createElement('div');
+    titleTerminado.className = 'zone-title';
+    titleTerminado.textContent = 'Terminado';
+    titleTerminado.style.gridColumn = '1 / span 2';
+    titleTerminado.style.gridRow = '1';
+    canvasGrid.appendChild(titleTerminado);
 
-    // Simular pequeño delay de verificación
-    setTimeout(() => {
-        const match = ADMIN_CREDENTIALS.find(u => u.dni === dni && u.clave === clave);
+    // Título de Zona de Espera (columnas 5 y 6)
+    const titleEspera = document.createElement('div');
+    titleEspera.className = 'zone-title';
+    titleEspera.textContent = 'Zona de Espera';
+    titleEspera.style.gridColumn = '5 / span 2';
+    titleEspera.style.gridRow = '1';
+    canvasGrid.appendChild(titleEspera);
 
-        if (match) {
-            // Limpiar campos inmediatamente
-            dniInput.value = '';
-            passInput.value = '';
+    // Título de Lavado (columna 4)
+    const titleLavado = document.createElement('div');
+    titleLavado.className = 'zone-title';
+    titleLavado.textContent = 'Lavado';
+    titleLavado.style.gridColumn = '4';
+    titleLavado.style.gridRow = '1';
+    canvasGrid.appendChild(titleLavado);
 
-            // Transición al dashboard
-            const loginScreen = document.getElementById('login-screen');
-            const dashboard   = document.getElementById('main-dashboard');
+    // Título de Interior (columna 3)
+    const titleSecado = document.createElement('div');
+    titleSecado.className = 'zone-title';
+    titleSecado.textContent = 'Interior';
+    titleSecado.style.gridColumn = '3';
+    titleSecado.style.gridRow = '1';
+    canvasGrid.appendChild(titleSecado);
 
-            loginScreen.classList.add('fade-out');
-            setTimeout(() => {
-                loginScreen.style.display = 'none';
-                dashboard.style.display  = 'flex';
-            }, 500);
-        } else {
-            // Credenciales incorrectas
-            btn.disabled = false;
-            btnText.style.display = 'flex';
-            btnLoader.style.display = 'none';
+    const totalBoxes = 48; // 8 x 6
+    for (let i = 0; i < totalBoxes; i++) {
+        const boxNumber = i + 1;
+        const row = Math.floor(i / 6) + 2; 
+        const col = (i % 6) + 1;
 
-            // Limpiar campos en error también
-            passInput.value = '';
-            passInput.focus();
-
-            errorDiv.style.display = 'flex';
-            errorDiv.style.animation = 'none';
-            errorDiv.offsetHeight;
-            errorDiv.style.animation = 'shake 0.4s ease';
+        if (boxNumber === 35 || boxNumber === 36) {
+            if (boxNumber === 35) {
+                const reserva = document.createElement('div');
+                reserva.className = 'reserva-online';
+                reserva.textContent = 'Zona Reserva Online';
+                reserva.style.gridRow = row;
+                reserva.style.gridColumn = '5 / span 2';
+                canvasGrid.appendChild(reserva);
+            }
+            continue;
         }
-    }, 600);
+
+        const box = document.createElement('div');
+        box.className = 'grid-box';
+        box.dataset.boxNumber = boxNumber;
+
+        const textReplacements = {
+            25: '1', 19: '2', 13: '3', 7: '4',
+            11: '1', 12: '2', 17: '3', 18: '4',
+            23: '5', 24: '6', 29: '7', 30: '8',
+            4: '1',
+            3: '1', 9: '2'
+        };
+
+        if (textReplacements.hasOwnProperty(boxNumber)) {
+            box.textContent = textReplacements[boxNumber];
+            box.style.gridRow = row;
+            box.style.gridColumn = col;
+            canvasGrid.appendChild(box);
+        }
+    }
+
+    setTimeout(drawLandingSVGTracks, 150);
 }
 
-function toggleLoginPass(btn) {
-    const input = btn.previousElementSibling;
-    const icon  = btn.querySelector('i');
-    if (input.type === 'password') {
-        input.type = 'text';
-        icon.className = 'bx bx-hide';
-    } else {
-        input.type = 'password';
-        icon.className = 'bx bx-show';
-    }
-}
+function drawLandingSVGTracks() {
+    const trackInterior = document.getElementById('landing-track-interior');
+    const trackLavado = document.getElementById('landing-track-lavado');
+    const baseInterior = document.getElementById('landing-base-interior');
+    const baseLavado = document.getElementById('landing-base-lavado');
+    const railsInterior = document.getElementById('landing-rails-interior');
+    const slotInterior = document.getElementById('landing-slot-interior');
+    const railsLavado = document.getElementById('landing-rails-lavado');
+    const slotLavado = document.getElementById('landing-slot-lavado');
+    const area = document.getElementById('landing-canvas-area');
 
-// Permitir Enter para iniciar sesión
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        const loginScreen = document.getElementById('login-screen');
-        if (loginScreen && loginScreen.style.display !== 'none' && !loginScreen.classList.contains('fade-out')) {
-            handleLogin();
-        }
+    if (!trackInterior || !trackLavado || !area) return;
+
+    function getBoxCenter(boxNumber) {
+        const box = area.querySelector(`.grid-box[data-box-number="${boxNumber}"]`);
+        if (!box) return { x: 0, y: 0 };
+        const boxRect = box.getBoundingClientRect();
+        const canvasRect = area.getBoundingClientRect();
+        return {
+            x: boxRect.left - canvasRect.left + (boxRect.width / 2),
+            y: boxRect.top - canvasRect.top + (boxRect.height / 2)
+        };
     }
-});
+
+    // Pista Solo Interior (Circuito Interno)
+    // Espera Izq: 29 (bot) -> 11 (top). Secado 2: 9. Terminado Único: 7 (top) -> 25 (bot).
+    const eIzqBot = getBoxCenter(29);
+    const eIzqTop = getBoxCenter(11);
+    const secado2 = getBoxCenter(9);
+    
+    // Pista Lavado (Circuito Externo)
+    // Espera Der: 30 (bot) -> 12 (top). Lavado: 4. Terminado Único: 7 (top) -> 25 (bot).
+    const eDerBot = getBoxCenter(30);
+    const eDerTop = getBoxCenter(12);
+    const lavado = getBoxCenter(4);
+    
+    // Terminado (único carril)
+    const tTop = getBoxCenter(7);
+    const tBot = getBoxCenter(25);
+
+    if (eIzqBot.x === 0 || eDerBot.x === 0 || tTop.x === 0) return;
+
+    let R = 45; // Radio de curva para las esquinas
+
+    // Path Interno (Interior) - Dobla en la Fila 3
+    let pathIzq = `
+        M ${eIzqBot.x} ${eIzqBot.y + 300} 
+        L ${eIzqTop.x} ${secado2.y + R} 
+        Q ${eIzqTop.x} ${secado2.y} ${eIzqTop.x - R} ${secado2.y}
+        L ${tTop.x + R} ${secado2.y}
+        Q ${tTop.x} ${secado2.y} ${tTop.x} ${secado2.y + R}
+        L ${tBot.x} ${tBot.y + 300}
+    `.replace(/\s+/g, ' ').trim();
+
+    // Path Externo (Lavado) - Sube hasta la Fila 2 y luego dobla
+    let pathDer = `
+        M ${eDerBot.x} ${eDerBot.y + 300} 
+        L ${eDerTop.x} ${lavado.y + R} 
+        Q ${eDerTop.x} ${lavado.y} ${eDerTop.x - R} ${lavado.y}
+        L ${tTop.x + R} ${lavado.y}
+        Q ${tTop.x} ${lavado.y} ${tTop.x} ${lavado.y + R}
+        L ${tBot.x} ${tBot.y + 300}
+    `.replace(/\s+/g, ' ').trim();
+
+    trackInterior.setAttribute('d', pathIzq);
+    trackLavado.setAttribute('d', pathDer);
+    
+    if (baseInterior) baseInterior.setAttribute('d', pathIzq);
+    if (baseLavado) baseLavado.setAttribute('d', pathDer);
+    if (railsInterior) railsInterior.setAttribute('d', pathIzq);
+    if (slotInterior) slotInterior.setAttribute('d', pathIzq);
+    if (railsLavado) railsLavado.setAttribute('d', pathDer);
+    if (slotLavado) slotLavado.setAttribute('d', pathDer);
+}
 
 // ============================================================
+// 3. RENDERIZADO Y ANIMACIÓN DE AUTOS EN TIEMPO REAL (PATENTES OCULTAS)
+// ============================================================
+// Procesamiento de transparencia para autos de la Landing Page
+// Procesamiento de transparencia para autos de la Landing Page
+let landingCarImageSrc = 'f1_car_top_down.png?v=f1hd3';
+const _landingCarImg = new Image();
+_landingCarImg.crossOrigin = 'anonymous';
+_landingCarImg.src = landingCarImageSrc;
+_landingCarImg.onload = () => {
+    landingCarImageSrc = _landingCarImg.src;
+    document.querySelectorAll('#landing-canvas-area .auto-icon').forEach(img => img.src = landingCarImageSrc);
+};
+_landingCarImg.onerror = () => {
+    if (!_landingCarImg.src.includes('../')) {
+        _landingCarImg.src = '../f1_car_top_down.png?v=f1hd3';
+    }
+};
 
-document.addEventListener('DOMContentLoaded', () => {
-    // === SUPABASE INIT ===
-    const SUPABASE_URL = 'https://ojalzcfjrlkkyyqvihvc.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_lkMNUGG8ML6nv5yMwezq1Q_bC7_xabQ';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    window.supabaseClient = supabaseClient;
-
-    // === CONFIGURACIÓN GLOBAL ===
-    window.APP_CONFIG = {
-        tiempoLavado: parseInt(localStorage.getItem('tiempoLavado')) || 5000,
-        tiempoSecado: parseInt(localStorage.getItem('tiempoSecado')) || 5000,
-        precioLavado: parseInt(localStorage.getItem('precioLavado')) || 0,
-        precioSecado: parseInt(localStorage.getItem('precioSecado')) || 0,
-        precioCompleto: parseInt(localStorage.getItem('precioCompleto')) || 0
-    };
-
-    const navButtons = document.querySelectorAll('.nav-btn');
-    
-    const dashboardView = document.getElementById('dashboard-view');
-    const metricsView = document.getElementById('metrics-view');
-    const reservasView = document.getElementById('reservas-view');
-    const camaraView = document.getElementById('camara-view');
-    const clientReviewsView = document.getElementById('client-reviews-view');
-    const promocionesView = document.getElementById('promociones-view');
-    const configView = document.getElementById('config-view');
-    const sponsorsView = document.getElementById('sponsors-view');
-    
-    navButtons.forEach(btn => {
-        if (btn.id === 'btn-whatsapp') return;
-        
-        btn.addEventListener('click', () => {
-            // Remove active from all
-            navButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            // Switch views
-            const spanText = btn.querySelector('span').textContent;
-            
-            // Hide all
-            if (dashboardView) dashboardView.style.display = 'none';
-            if (metricsView) metricsView.style.display = 'none';
-            if (reservasView) reservasView.style.display = 'none';
-            if (camaraView) camaraView.style.display = 'none';
-            if (clientReviewsView) clientReviewsView.style.display = 'none';
-            if (promocionesView) promocionesView.style.display = 'none';
-            if (configView) configView.style.display = 'none';
-            if (sponsorsView) sponsorsView.style.display = 'none';
-
-            if (spanText === 'Métricas') {
-                if (metricsView) {
-                    metricsView.style.display = 'block';
-                    updateMetricsUI(); // Render data when tab is opened
-                }
-            } else if (spanText === 'Reservas') {
-                if (reservasView) {
-                    reservasView.style.display = 'block';
-                }
-            } else if (spanText === 'Reseñas de Clientes') {
-                if (clientReviewsView) {
-                    clientReviewsView.style.display = 'block';
-                    if (window.fetchClientReviews) window.fetchClientReviews();
-                }
-            } else if (spanText === 'Cámara de Ingreso') {
-                if (camaraView) {
-                    camaraView.style.display = 'block';
-                }
-            } else if (spanText === 'Promociones') {
-                if (promocionesView) {
-                    promocionesView.style.display = 'block';
-                    if (window.fetchPromociones) window.fetchPromociones();
-                }
-            } else if (spanText === 'Publicidad & Sponsors') {
-                if (sponsorsView) {
-                    sponsorsView.style.display = 'block';
-                    if (window.renderSponsorManager) window.renderSponsorManager();
-                }
-            } else if (spanText === 'Configuración') {
-                if (configView) {
-                    configView.style.display = 'block';
-                }
-            } else if (spanText === 'Panel Principal') {
-                if (dashboardView) dashboardView.style.display = 'flex';
-            } else {
-                // Other tabs not implemented yet
-                if (dashboardView) dashboardView.style.display = 'flex';
+async function fetchLandingLiveState() {
+    try {
+        const res = await fetch(`${API_URL}configuracion.php`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.live_state) {
+                renderLandingCars(data.live_state);
             }
-        });
+        }
+    } catch (e) {
+        console.warn('Error fetching live state:', e);
+    }
+}
+
+// Motor de Simulación Continua para Landing Page (Idéntico al Dashboard)
+const landingSimCars = new Map();
+
+function formatLandingTime(segundos) {
+    if (segundos <= 0) return "00:00";
+    const mins = Math.floor(segundos / 60);
+    const secs = segundos % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+function landingGameLoop() {
+    const now = Date.now();
+
+    landingSimCars.forEach((state) => {
+        let currentTargetX = state.targetX;
+        let currentTargetY = state.targetY;
+
+        // Lógica ortogonal tipo Scalextric (Subir/Bajar y Doblar)
+        if (Math.abs(state.targetX - state.x) > 10 && Math.abs(state.targetY - state.y) > 10) {
+            if (state.y > state.targetY) {
+                currentTargetX = state.x;
+            } else if (state.y < state.targetY) {
+                currentTargetY = state.y;
+            }
+        }
+
+        const dx = currentTargetX - state.x;
+        const dy = currentTargetY - state.y;
+
+        state.x += dx * 0.08;
+        state.y += dy * 0.08;
+
+        let targetAngle = state.desiredAngle !== undefined ? state.desiredAngle : 0;
+        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+            targetAngle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+        }
+
+        let diff = targetAngle - state.angle;
+        while (diff > 180) diff -= 360;
+        while (diff < -180) diff += 360;
+
+        state.angle += diff * 0.12;
+
+        state.wrapper.style.left = `${state.x}px`;
+        state.wrapper.style.top = `${state.y}px`;
+
+        if (state.icon) {
+            state.icon.style.transform = `rotate(${state.angle}deg)`;
+        }
+
+        // Actualizar reloj de tiempo en cada auto (MM:SS cuenta regresiva real)
+        if (state.timerBadge) {
+            if (state.stateName === 'espera') {
+                state.timerBadge.style.display = 'block';
+                if (state.etaSalidaEspera) {
+                    const remaining = Math.max(0, Math.ceil((state.etaSalidaEspera - now) / 1000));
+                    state.timerBadge.textContent = formatLandingTime(remaining);
+                } else if (state.timerText) {
+                    state.timerBadge.textContent = state.timerText;
+                }
+            } else if (state.stateName === 'terminado') {
+                if (state.endTime) {
+                    const remaining = Math.ceil((state.endTime - now) / 1000);
+                    if (remaining > 0) {
+                        state.timerBadge.textContent = formatLandingTime(remaining);
+                        state.timerBadge.style.display = 'block';
+                    } else {
+                        state.timerBadge.textContent = '¡Listo!';
+                        state.timerBadge.style.display = 'block';
+                    }
+                } else {
+                    state.timerBadge.textContent = '¡Listo!';
+                    state.timerBadge.style.display = 'block';
+                }
+            } else if (state.endTime) {
+                const remaining = Math.ceil((state.endTime - now) / 1000);
+                if (remaining > 0) {
+                    state.timerBadge.textContent = formatLandingTime(remaining);
+                    state.timerBadge.style.display = 'block';
+                } else {
+                    state.timerBadge.style.display = 'none';
+                }
+            } else if (state.timerText) {
+                state.timerBadge.textContent = state.timerText;
+                state.timerBadge.style.display = 'block';
+            }
+        }
     });
 
-    // Lógica de Configuración (Ahora es una pestaña/view)
-    const btnSaveConfig = document.getElementById('save-config');
-    
-    const lavadoMin = document.getElementById('lavado-min');
-    const lavadoSec = document.getElementById('lavado-sec');
-    const secadoMin = document.getElementById('secado-min');
-    const secadoSec = document.getElementById('secado-sec');
-    
-    const precioLavadoInput = document.getElementById('precio-lavado');
-    const precioSecadoInput = document.getElementById('precio-secado');
-    const precioCompletoInput = document.getElementById('precio-completo');
-    const configWhatsappInput = document.getElementById('config-whatsapp');
+    requestAnimationFrame(landingGameLoop);
+}
+requestAnimationFrame(landingGameLoop);
 
-    if (btnSaveConfig) {
-        // Populate inputs initially
-        lavadoMin.value = Math.floor(window.APP_CONFIG.tiempoLavado / 60000);
-        lavadoSec.value = (window.APP_CONFIG.tiempoLavado % 60000) / 1000;
-        secadoMin.value = Math.floor(window.APP_CONFIG.tiempoSecado / 60000);
-        secadoSec.value = (window.APP_CONFIG.tiempoSecado % 60000) / 1000;
-        precioLavadoInput.value = window.APP_CONFIG.precioLavado;
-        precioSecadoInput.value = window.APP_CONFIG.precioSecado;
-        precioCompletoInput.value = window.APP_CONFIG.precioCompleto;
-        configWhatsappInput.value = window.APP_CONFIG.whatsapp || '';
+function renderLandingCars(state) {
+    const area = document.getElementById('landing-canvas-area');
+    if (!area || !state) return;
 
-        btnSaveConfig.addEventListener('click', () => {
-            const lMins = parseInt(lavadoMin.value) || 0;
-            const lSecs = parseInt(lavadoSec.value) || 0;
-            window.APP_CONFIG.tiempoLavado = ((lMins * 60) + lSecs) * 1000;
+    const cRect = area.getBoundingClientRect();
+    if (cRect.width === 0) return;
 
-            const sMins = parseInt(secadoMin.value) || 0;
-            const sSecs = parseInt(secadoSec.value) || 0;
-            window.APP_CONFIG.tiempoSecado = ((sMins * 60) + sSecs) * 1000;
+    const activeCarIds = new Set();
+    const ESPERA_ZONES = [11, 12, 17, 18, 23, 24, 29, 30];
+    const LAVADO_ZONE = 4;
+    const SECADO_ZONES = [3, 9];
+    const TERMINADO_ZONES = [25, 19, 13, 7];
 
-            window.APP_CONFIG.precioLavado = parseInt(precioLavadoInput.value) || 0;
-            window.APP_CONFIG.precioSecado = parseInt(precioSecadoInput.value) || 0;
-            window.APP_CONFIG.precioCompleto = parseInt(precioCompletoInput.value) || 0;
-            
-            window.APP_CONFIG.whatsapp = configWhatsappInput ? configWhatsappInput.value.trim() : '';
+    // Limpiar clases visuales de boxes ocupados
+    area.querySelectorAll('.grid-box').forEach(box => {
+        box.classList.remove('box-occupied-lavado', 'box-occupied-secado', 'box-occupied-completo');
+    });
 
-            localStorage.setItem('tiempoLavado', window.APP_CONFIG.tiempoLavado);
-            localStorage.setItem('tiempoSecado', window.APP_CONFIG.tiempoSecado);
-            localStorage.setItem('precioLavado', window.APP_CONFIG.precioLavado);
-            localStorage.setItem('precioSecado', window.APP_CONFIG.precioSecado);
-            localStorage.setItem('precioCompleto', window.APP_CONFIG.precioCompleto);
-            
-            // Sincronizar con Supabase
-            if (window.supabaseClient) {
-                window.supabaseClient.from('configuracion').upsert({
-                    id: 1,
-                    whatsapp_number: window.APP_CONFIG.whatsapp,
-                    tiempo_lavado: window.APP_CONFIG.tiempoLavado,
-                    tiempo_secado: window.APP_CONFIG.tiempoSecado,
-                    precio_lavado: window.APP_CONFIG.precioLavado,
-                    precio_secado: window.APP_CONFIG.precioSecado,
-                    precio_completo: window.APP_CONFIG.precioCompleto
-                }).then(({error}) => {
-                    if (error) console.error("Error guardando config en Supabase:", error);
-                    else alert("¡Configuración guardada correctamente!"); // showToast may not be defined globally or accessible here without DOM elements
-                });
-            } else {
-                alert('Configuración guardada localmente.');
-            }
-        });
-    }
+    function placeCar(boxNumber, timerText, colorGlow = '#38bdf8', rotateDeg = 0, typeClass = 'solo-lavado', carId = '', carObj = null, stateName = 'espera') {
+        const box = area.querySelector(`[data-box-number="${boxNumber}"]`);
+        if (!box) return;
 
-    // Generar layout del plano
-    const canvasGrid = document.getElementById('canvas-grid');
-    if (canvasGrid) {
-        // Título de Terminado (columnas 1 y 2)
-        const titleTerminado = document.createElement('div');
-        titleTerminado.className = 'zone-title';
-        titleTerminado.textContent = 'Terminado';
-        titleTerminado.style.gridColumn = '1 / span 2';
-        titleTerminado.style.gridRow = '1';
-        canvasGrid.appendChild(titleTerminado);
-        // Título de Zona de Espera (columnas 5 y 6)
-        const titleEspera = document.createElement('div');
-        titleEspera.className = 'zone-title';
-        titleEspera.textContent = 'Zona de Espera';
-        titleEspera.style.gridColumn = '5 / span 2';
-        titleEspera.style.gridRow = '1';
-        canvasGrid.appendChild(titleEspera);
+        const uniqueId = carId.toString();
+        activeCarIds.add(uniqueId);
 
-        // Título de Lavado (columna 4)
-        const titleLavado = document.createElement('div');
-        titleLavado.className = 'zone-title';
-        titleLavado.textContent = 'Lavado';
-        titleLavado.style.gridColumn = '4';
-        titleLavado.style.gridRow = '1';
-        canvasGrid.appendChild(titleLavado);
+        // Marcar celda como ocupada
+        let classOcupado = '';
+        if (typeClass === 'solo-lavado') classOcupado = 'box-occupied-lavado';
+        else if (typeClass === 'solo-secado') classOcupado = 'box-occupied-secado';
+        else classOcupado = 'box-occupied-completo';
+        box.classList.add(classOcupado);
 
-        // Título de Secado (columna 3)
-        const titleSecado = document.createElement('div');
-        titleSecado.className = 'zone-title';
-        titleSecado.textContent = 'Interior';
-        titleSecado.style.gridColumn = '3';
-        titleSecado.style.gridRow = '1';
-        canvasGrid.appendChild(titleSecado);
+        const bRect = box.getBoundingClientRect();
+        const targetX = (bRect.left - cRect.left) + bRect.width / 2;
+        const targetY = (bRect.top - cRect.top) + bRect.height / 2;
 
-        const totalBoxes = 8 * 6; // 48
-        for (let i = 0; i < totalBoxes; i++) {
-            const boxNumber = i + 1;
-            const row = Math.floor(i / 6) + 2; 
-            const col = (i % 6) + 1;
+        let wrapper = area.querySelector(`.car-wrapper[data-id="${uniqueId}"]`);
+        let icon, timerBadge;
 
-            if (boxNumber === 35 || boxNumber === 36) {
-                // Al llegar al 35, creamos la zona que ocupa el lugar del 35 y 36 (Fila 7)
-                if (boxNumber === 35) {
-                    const reserva = document.createElement('div');
-                    reserva.className = 'reserva-online';
-                    reserva.textContent = 'Zona Reserva Online';
-                    reserva.style.gridRow = row;
-                    reserva.style.gridColumn = '5 / span 2';
-                    canvasGrid.appendChild(reserva);
-                }
-                continue; // Saltamos la creación del grid-box normal
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.className = `car-wrapper ${typeClass}`;
+            wrapper.dataset.id = uniqueId;
+
+            icon = document.createElement('img');
+            icon.className = 'auto-icon';
+            icon.src = landingCarImageSrc;
+
+            timerBadge = document.createElement('div');
+            timerBadge.className = 'car-timer';
+            timerBadge.textContent = timerText;
+
+            wrapper.appendChild(icon);
+            wrapper.appendChild(timerBadge);
+            area.appendChild(wrapper);
+
+            // Nacer por debajo del carril de entrada (Cajas 7 y 8 de espera)
+            let isOddLane = [0, 2, 4, 6].includes(state.espera ? state.espera.findIndex(e => e && e.id && e.id.toString() === uniqueId) : -1);
+            let entryBoxNum = isOddLane ? 29 : 30;
+            let entryCell = area.querySelector(`[data-box-number="${entryBoxNum}"]`);
+            let startX = targetX;
+            let startY = targetY + 150;
+
+            if (entryCell) {
+                let entryRect = entryCell.getBoundingClientRect();
+                startX = (entryRect.left - cRect.left) + (entryRect.width / 2);
+                startY = (entryRect.top - cRect.top) + (entryRect.height / 2) + 250;
             }
 
-            const box = document.createElement('div');
-            box.className = 'grid-box';
-            box.dataset.boxNumber = boxNumber;
-            
-            // Reemplazo de números específicos para la Zona de Espera, Lavado y Secado
-            const textReplacements = {
-                // Terminado (solo columna izquierda, invertido)
-                25: '1', 19: '2', 13: '3', 7: '4',
-                // Zona de Espera (Desplazada una fila hacia abajo)
-                11: '1', 12: '2', 17: '3', 18: '4',
-                23: '5', 24: '6', 29: '7', 30: '8',
-                // Lavado
-                4: '1',
-                // Secado
-                3: '1', 9: '2'
+            let simState = {
+                x: startX,
+                y: startY,
+                targetX: targetX,
+                targetY: targetY,
+                angle: rotateDeg,
+                desiredAngle: rotateDeg,
+                wrapper: wrapper,
+                icon: icon,
+                timerBadge: timerBadge,
+                etaSalidaEspera: carObj ? carObj.etaSalidaEspera : null,
+                endTime: carObj ? carObj.endTime : null,
+                timerText: timerText,
+                stateName: stateName
             };
-            
-            // Si la caja no pertenece a las zonas funcionales, directamente no la creamos (limpia la pista)
-            if (textReplacements.hasOwnProperty(boxNumber)) {
-                box.textContent = textReplacements[boxNumber];
-                
-                // Ubicación explícita: fila 2 en adelante para dejar la fila 1 para títulos
-                box.style.gridRow = row;
-                box.style.gridColumn = col;
-
-                canvasGrid.appendChild(box);
-            }
-        }
-    }
-
-    // -- LÓGICA DE SIMULACIÓN DE AUTOS --
-    const ESPERA_ZONES = [11, 12, 17, 18, 23, 24, 29, 30]; 
-    const LAVADO_ZONE = 4; // Índice real de lavado
-    const SECADO_ZONES = [3, 9]; // Índices reales de Secado 1 y 2
-    const TERMINADO_ZONES = [25, 19, 13, 7]; // Índices reales de Terminado 1 al 4
-    
-    // Estado (null si está vacío, o un objeto con id de auto y tipo si está ocupado)
-    let estadoEspera = new Array(8).fill(null);
-    let estadoLavado = null; 
-    let estadoSecado = [null, null]; // Dos lugares de secado
-    let estadoTerminado = [null, null, null, null]; // 4 lugares 
-    
-    let activeAutos = {};
-    let autoIdCounter = 1;
-    let isMoving = false; // Flag para evitar overlap de animaciones
-    let timers = {}; // guardamos timers para no superponerlos si hay clicks manuales
-
-    // Función para crear una versión con fondo transparente del auto
-    let carImageSrc = 'f1_car_top_down.png';
-    const img = new Image();
-    img.src = carImageSrc;
-    img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-            // Si el pixel es muy blanco, lo hacemos transparente
-            if (data[i] > 220 && data[i+1] > 220 && data[i+2] > 220) {
-                data[i+3] = 0;
-            }
-        }
-        ctx.putImageData(imageData, 0, 0);
-        carImageSrc = canvas.toDataURL('image/png');
-        
-        // Actualizar autos ya renderizados
-        document.querySelectorAll('.auto-icon').forEach(icon => {
-            icon.src = carImageSrc;
-        });
-    };
-
-    // Event listener para retirar autos terminados con un clic
-    document.addEventListener('click', (e) => {
-        const car = e.target.closest('.car-wrapper');
-        if (car) {
-            const clickedId = parseInt(car.dataset.id);
-            for (let i = 0; i < estadoTerminado.length; i++) {
-                const auto = estadoTerminado[i];
-                if (auto && auto.id === clickedId) {
-                    estadoTerminado[i] = null;
-                    advanceQueueTerminado();
-                    updateVisuals();
-                    checkMovement();
-                    return;
-                }
-            }
-        }
-    });
-
-    // ==========================================
-    // SISTEMA DE RESEÑAS DE CLIENTES
-    // ==========================================
-    window.allReviewsData = [];
-
-    window.fetchClientReviews = async function() {
-        const tbody = document.getElementById('client-reviews-table-body');
-        if (!tbody) return;
-        
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #9ca3af; padding: 20px;"><i class="bx bx-loader-alt bx-spin"></i> Cargando reseñas...</td></tr>';
-        
-        try {
-            const { data, error } = await supabaseClient
-                .from('reservas_pendientes')
-                .select('*')
-                .not('rating', 'is', null)
-                .order('id', { ascending: false })
-                .limit(50);
-                
-            if (error) throw error;
-            
-            window.allReviewsData = data || [];
-            window.renderReviews(window.allReviewsData);
-            
-        } catch (err) {
-            console.error("Error cargando reseñas:", err);
-            const tbody = document.getElementById('client-reviews-table-body');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ef4444; padding: 20px;">Error al cargar las reseñas.</td></tr>';
-        }
-    };
-
-    window.renderReviews = function(data) {
-        const tbody = document.getElementById('client-reviews-table-body');
-        if (!tbody) return;
-        
-        tbody.innerHTML = '';
-        
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #9ca3af; padding: 20px;">No hay reseñas todavía.</td></tr>';
-            return;
-        }
-        
-        const emojis = { '1': '😡', '2': '😞', '3': '😐', '4': '🙂', '5': '😍' };
-        
-        data.forEach(rev => {
-            const tr = document.createElement('tr');
-            
-            let srvName = '';
-            if(rev.tipo_lavado === 'solo_lavado') srvName = 'Solo Lavado';
-            else if (rev.tipo_lavado === 'solo_secado') srvName = 'Solo Interior';
-            else srvName = 'Lavado + Interior';
-            
-            const emoji = emojis[rev.rating] || '⭐';
-            const starsHtml = `<span style="color:#facc15;">${'★'.repeat(rev.rating)}${'☆'.repeat(5-rev.rating)}</span> <span style="font-size: 1.2rem; margin-left: 5px;">${emoji}</span>`;
-            
-            // Format phone if available
-            let phone = rev.telefono || '-';
-            
-            tr.innerHTML = `
-                <td style="font-weight: bold; color: var(--primary-color);">${rev.patente || 'S/D'}</td>
-                <td>${phone}</td>
-                <td>${srvName}</td>
-                <td>${starsHtml}</td>
-                <td style="font-style: italic; color: #d1d5db;">${rev.comentario ? '"' + rev.comentario + '"' : '-'}</td>
-                <td>
-                    <button onclick="if(window.deleteReview) window.deleteReview(${rev.id})" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.2rem; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="Borrar reseña">
-                        <i class='bx bx-trash'></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    };
-
-    window.filterReviews = function(query) {
-        if (!window.allReviewsData) return;
-        const q = query.toLowerCase().trim();
-        const filtered = window.allReviewsData.filter(rev => {
-            const pat = (rev.patente || '').toLowerCase();
-            const tel = (rev.telefono || '').toLowerCase();
-            return pat.includes(q) || tel.includes(q);
-        });
-        window.renderReviews(filtered);
-    };
-
-    window.deleteReview = async function(id) {
-        const client = window.supabaseClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null);
-        if (!client) {
-            alert("Error: No se pudo conectar a Supabase.");
-            return;
-        }
-
-        if (!confirm('¿Estás seguro que deseas borrar esta reseña?')) return;
-        
-        try {
-            const { error } = await client
-                .from('reservas_pendientes')
-                .update({ rating: null, comentario: null })
-                .eq('id', id);
-                
-            if (error) {
-                console.error("Error borrando reseña:", error);
-                alert("Error al borrar la reseña: " + (error.message || JSON.stringify(error)));
-                return;
-            }
-            
-            // Refrescar lista de reseñas
-            if (window.fetchClientReviews) {
-                await window.fetchClientReviews();
-            }
-        } catch (e) {
-            console.error("Excepción borrando reseña:", e);
-            alert("Hubo un error al borrar la reseña: " + (e.message || e));
-        }
-    };
-
-    // --- Motor de Simulación Videojuego ---
-    let simCars = new Map();
-    let nextLaneToCall = 'impar'; 
-
-    function gameLoop() {
-        simCars.forEach((state, id) => {
-            // Logica ortogonal (Scalextric-like)
-            let currentTargetX = state.targetX;
-            let currentTargetY = state.targetY;
-
-            if (Math.abs(state.targetX - state.x) > 10 && Math.abs(state.targetY - state.y) > 10) {
-                // Si va hacia "arriba" (de espera a lavado/secado), primero mueve Y y luego X
-                if (state.y > state.targetY) {
-                    currentTargetX = state.x; // Mantiene la X actual
-                } 
-                // Si va hacia "abajo" (de lavado/secado a terminado), primero mueve X y luego Y
-                else if (state.y < state.targetY) {
-                    currentTargetY = state.y; // Mantiene la Y actual
-                }
-            }
-
-            const dx = currentTargetX - state.x;
-            const dy = currentTargetY - state.y;
-            
-            state.x += dx * 0.08; // Incremento un poco la velocidad para compensar las distancias más largas
-            state.y += dy * 0.08;
-
-            // Si se mueve más de 1 pixel, calcular y aplicar rotación
-            if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-                let targetAngle = Math.atan2(dy, dx) * 180 / Math.PI;
-                
-                // Asumimos que la imagen de top-down F1 mira hacia arriba (Norte),
-                // y que 0 grados en matemática es el Este. Entonces el sprite debe rotarse 90 grados.
-                let targetSpriteAngle = targetAngle + 90;
-                
-                let diff = targetSpriteAngle - state.angle;
-                // Normalizar giro (ruta más corta)
-                while(diff > 180) diff -= 360;
-                while(diff < -180) diff += 360;
-                
-                state.angle += diff * 0.08; // Suavizado de giro
-            }
-
-            // Aplicamos X e Y a la caja completa (incluyendo timer)
-            state.wrapper.style.left = `${state.x}px`;
-            state.wrapper.style.top = `${state.y}px`;
-            
-            // Aplicamos el giro SÓLO a la imagen del auto (para que los textos sigan rectos)
-            state.icon.style.transform = `translate(-15%, -15%) rotate(${state.angle}deg)`;
-        });
-        
-        requestAnimationFrame(gameLoop);
-    }
-    requestAnimationFrame(gameLoop);
-    // ----------------------------------------
-    
-    function getCell(boxNum) {
-        return document.querySelector(`.grid-box[data-box-number="${boxNum}"]`);
-    }
-
-    function renderAuto(boxNum, autoObj) {
-        const cell = getCell(boxNum);
-        const canvas = document.getElementById('canvas-area');
-        if (cell && autoObj && canvas) {
-            let id = autoObj.id;
-            let wrapper = document.querySelector(`.car-wrapper[data-id="${id}"]`);
-            let icon, timer;
-            
-            if (!wrapper) {
-                wrapper = document.createElement('div');
-                wrapper.className = 'car-wrapper';
-                wrapper.dataset.id = id;
-                
-                icon = document.createElement('img');
-                icon.src = carImageSrc; // Usa la imagen procesada transparente
-                let typeClass = '';
-                if (autoObj.tipo === 'solo_lavado') typeClass = 'solo-lavado';
-                else if (autoObj.tipo === 'solo_secado') typeClass = 'solo-secado';
-                else typeClass = 'completo';
-                wrapper.classList.add(typeClass);
-                icon.className = `auto-icon`;
-                
-                timer = document.createElement('div');
-                timer.className = 'car-timer';
-                
-                let plate = document.createElement('div');
-                plate.className = 'car-plate';
-                plate.textContent = autoObj.patente || id;
-                
-                wrapper.appendChild(icon);
-                wrapper.appendChild(timer);
-                wrapper.appendChild(plate);
-                canvas.appendChild(wrapper);
-            } else {
-                icon = wrapper.querySelector('.auto-icon');
-                timer = wrapper.querySelector('.car-timer');
-                let plate = wrapper.querySelector('.car-plate');
-                if (plate) plate.textContent = autoObj.patente || id;
-            }
-            
-            // Calculamos posición destino exacta usando el DOM real
-            const cellRect = cell.getBoundingClientRect();
-            const canvasRect = canvas.getBoundingClientRect();
-            const targetX = (cellRect.left - canvasRect.left) + (cellRect.width / 2);
-            const targetY = (cellRect.top - canvasRect.top) + (cellRect.height / 2);
-            
-            // Actualizar simulador
-            let simState = simCars.get(id);
+            landingSimCars.set(uniqueId, simState);
+            wrapper.style.left = `${simState.x}px`;
+            wrapper.style.top = `${simState.y}px`;
+        } else {
+            icon = wrapper.querySelector('.auto-icon');
+            timerBadge = wrapper.querySelector('.car-timer');
+            let simState = landingSimCars.get(uniqueId);
             if (!simState) {
-                // Determinar en qué carril está para nacer justo abajo de ese carril
-                let isOddLane = [0, 2, 4, 6].includes(estadoEspera.findIndex(e => e && e.id === id));
-                let entryBoxNum = isOddLane ? ESPERA_ZONES[6] : ESPERA_ZONES[7]; // Caja 7 o Caja 8
-                
-                let entryCell = getCell(entryBoxNum);
-                let startX = targetX;
-                let startY = targetY + 100; 
-
-                if (entryCell) {
-                    let entryRect = entryCell.getBoundingClientRect();
-                    startX = (entryRect.left - canvasRect.left) + (entryRect.width / 2);
-                    startY = (entryRect.top - canvasRect.top) + (entryRect.height / 2) + 300; // Nace BIEN por debajo de su carril (fuera de pantalla)
-                }
-
                 simState = {
-                    x: startX,
-                    y: startY, 
+                    x: targetX,
+                    y: targetY,
                     targetX: targetX,
                     targetY: targetY,
-                    angle: 0, // Comienza apuntando hacia arriba (0 grados para el sprite), evita que entre girando
+                    angle: rotateDeg,
+                    desiredAngle: rotateDeg,
                     wrapper: wrapper,
-                    icon: icon
+                    icon: icon,
+                    timerBadge: timerBadge,
+                    etaSalidaEspera: carObj ? carObj.etaSalidaEspera : null,
+                    endTime: carObj ? carObj.endTime : null,
+                    timerText: timerText,
+                    stateName: stateName
                 };
-                simCars.set(id, simState);
-                wrapper.style.left = `${simState.x}px`;
-                wrapper.style.top = `${simState.y}px`;
+                landingSimCars.set(uniqueId, simState);
             } else {
                 simState.targetX = targetX;
                 simState.targetY = targetY;
+                simState.desiredAngle = rotateDeg;
+                if (carObj && carObj.etaSalidaEspera) simState.etaSalidaEspera = carObj.etaSalidaEspera;
+                if (carObj && carObj.endTime) simState.endTime = carObj.endTime;
+                simState.timerText = timerText;
+                simState.stateName = stateName;
             }
-            
-            let classOcupado = '';
-            if (autoObj.tipo === 'solo_lavado') classOcupado = 'box-occupied-lavado';
-            else if (autoObj.tipo === 'solo_secado') classOcupado = 'box-occupied-secado';
-            else classOcupado = 'box-occupied-completo';
-            
-            cell.classList.add(classOcupado);
+
+            wrapper.className = `car-wrapper ${typeClass}`;
         }
     }
 
-    function removeAuto(boxNum) {
-        const cell = getCell(boxNum);
-        if (cell) {
-            cell.classList.remove('box-occupied-lavado', 'box-occupied-secado', 'box-occupied-completo');
-        }
-    }
+    // Tiempos reales desde la configuración del dashboard
+    const msLavado = state.tiempo_lavado_ms || 120000;
+    const msSecado = state.tiempo_secado_ms || 180000;
+    const minLavado = Math.round(msLavado / 60000);
+    const minSecado = Math.round(msSecado / 60000);
+    const minPorTurno = minLavado + minSecado;
 
-    function cleanUpOrphanCars() {
-        // Obtenemos todos los autos válidos de los estados
-        const validIds = new Set();
-        estadoEspera.forEach(a => { if (a) validIds.add(a.id.toString()); });
-        if (estadoLavado) validIds.add(estadoLavado.id.toString());
-        estadoSecado.forEach(a => { if (a) validIds.add(a.id.toString()); });
-        estadoTerminado.forEach(a => { if (a) validIds.add(a.id.toString()); });
-        
-        // Buscamos autos en el DOM que no estén en validIds
-        const domCars = document.querySelectorAll('.car-wrapper');
-        domCars.forEach(car => {
-            if (!validIds.has(car.dataset.id)) {
-                // Hacemos que "se vaya" de la pantalla hacia la derecha
-                car.style.left = '120%';
-                car.style.opacity = '0';
-                // Lo borramos después de la transición
-                setTimeout(() => {
-                    if (car.parentNode) car.remove();
-                }, 1000);
-            }
-        });
-    }
-
-    function updateVisuals() {
-        ESPERA_ZONES.forEach(zoneNum => removeAuto(zoneNum));
-        removeAuto(LAVADO_ZONE);
-        SECADO_ZONES.forEach(zoneNum => removeAuto(zoneNum));
-        TERMINADO_ZONES.forEach(zoneNum => removeAuto(zoneNum));
-
-        estadoEspera.forEach((auto, i) => { if (auto) renderAuto(ESPERA_ZONES[i], auto); });
-        if (estadoLavado) renderAuto(LAVADO_ZONE, estadoLavado);
-        estadoSecado.forEach((auto, i) => { if (auto) renderAuto(SECADO_ZONES[i], auto); });
-        estadoTerminado.forEach((auto, i) => { if (auto) renderAuto(TERMINADO_ZONES[i], auto); });
-        
-        cleanUpOrphanCars();
-    }
-
-    function advanceQueue() {
-        let moved = false;
-        let lanes = [
-            [0, 2, 4, 6], // Carril Impar: suben por cajas 1, 3, 5, 7 en línea recta
-            [1, 3, 5, 7]  // Carril Par: suben por cajas 2, 4, 6, 8 en línea recta
-        ];
-        for (let lane of lanes) {
-            for (let j = 0; j < lane.length; j++) {
-                for (let i = 0; i < lane.length - 1; i++) {
-                    let currentIdx = lane[i];
-                    let nextIdx = lane[i+1];
-                    if (estadoEspera[currentIdx] === null && estadoEspera[nextIdx] !== null) {
-                        estadoEspera[currentIdx] = estadoEspera[nextIdx];
-                        estadoEspera[nextIdx] = null;
-                        moved = true;
-                    }
-                }
-            }
-        }
-        return moved;
-    }
-
-    function advanceQueueTerminado() {
-        let moved = false;
-        let lanes = [
-            [0, 1, 2, 3] // Único carril Terminado (Izquierda)
-        ];
-        for (let lane of lanes) {
-            for (let j = 0; j < lane.length; j++) {
-                for (let i = 0; i < lane.length - 1; i++) {
-                    let currentIdx = lane[i];
-                    let nextIdx = lane[i+1];
-                    if (estadoTerminado[currentIdx] === null && estadoTerminado[nextIdx] !== null) {
-                        estadoTerminado[currentIdx] = estadoTerminado[nextIdx];
-                        estadoTerminado[nextIdx] = null;
-                        moved = true;
-                    }
-                }
-            }
-        }
-        return moved;
-    }
-
-    // Funciones para ingresar autos
-    async function ingresarAuto(tipo, patenteCustom = null) {
-        let targetIndices = [];
-        if (tipo === 'solo_secado') {
-            targetIndices = [0, 2, 4, 6]; // Carril Izquierdo
-        } else {
-            targetIndices = [0, 1, 2, 3, 4, 5, 6, 7]; // Cualquier carril
-        }
-        
-        let freeIdx = targetIndices.find(idx => estadoEspera[idx] === null);
-        
-        let patenteFinal = patenteCustom;
-        if (!patenteFinal) {
-            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            const l1 = letters[Math.floor(Math.random() * 26)];
-            const l2 = letters[Math.floor(Math.random() * 26)];
-            const l3 = letters[Math.floor(Math.random() * 26)];
-            const num = Math.floor(100 + Math.random() * 900);
-            patenteFinal = `A${l1}${l2}${num}${l3}`; // Formato Mercosur simulado
-        }
-
-        if (freeIdx !== undefined) {
-            estadoEspera[freeIdx] = { id: autoIdCounter++, patente: patenteFinal, tipo: tipo, startTime: Date.now() };
-            if (advanceQueue()) {} // Las físicas los empujan hacia adelante dentro de su carril
-            updateVisuals();
-            checkMovement();
-            
-            // --- LOGICA DE PROMOCIONES ---
-            if (window.supabaseClient) {
-                try {
-                    const { count } = await window.supabaseClient
-                        .from('reservas_pendientes')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('patente', patenteFinal)
-                        .eq('estado', 'completado');
-                    
-                    const { data: promos } = await window.supabaseClient
-                        .from('promociones')
-                        .select('*')
-                        .eq('activa', true)
-                        .order('meta_visitas', { ascending: true });
-                        
-                    if (promos && promos.length > 0) {
-                        const visitas = (count || 0) + 1; // +1 porque la que ingresa ya cuenta
-                        
-                        let reachedPromo = promos.find(p => p.meta_visitas === visitas);
-                        let nextPromo = promos.find(p => p.meta_visitas > visitas);
-                        
-                        if (reachedPromo) {
-                            alert(`¡Promoción Alcanzada para la patente ${patenteFinal}!\nVisita #${visitas}.\nTiene disponible: ${reachedPromo.nombre}`);
-                        } else if (nextPromo) {
-                            const faltan = nextPromo.meta_visitas - visitas;
-                            console.log(`Patente ${patenteFinal} (Visita #${visitas}). Faltan ${faltan} para ${nextPromo.nombre}`);
-                        }
-                    }
-                } catch(e) { console.error("Error validando promociones", e); }
-            }
-            
-        } else {
-            alert('El carril correspondiente está lleno.');
-        }
-    }
-
-    const btnSoloLavado = document.getElementById('btn-ingresar-lavado');
-    if (btnSoloLavado) btnSoloLavado.addEventListener('click', () => ingresarAuto('solo_lavado'));
-
-    const btnSoloSecado = document.getElementById('btn-ingresar-secado');
-    if (btnSoloSecado) btnSoloSecado.addEventListener('click', () => ingresarAuto('solo_secado'));
-
-    const btnCompleto = document.getElementById('btn-ingresar-completo');
-    if (btnCompleto) btnCompleto.addEventListener('click', () => ingresarAuto('lavado_secado'));
-
-    function checkMovement() {
-        if (!isMoving) {
-            let frontLeft = estadoEspera[0];
-            let frontRight = estadoEspera[1];
-            
-            let candidates = [];
-            if (frontLeft) candidates.push({ auto: frontLeft, idx: 0 });
-            if (frontRight) candidates.push({ auto: frontRight, idx: 1 });
-            
-            // Priorizar por orden de llegada (startTime)
-            candidates.sort((a, b) => a.auto.startTime - b.auto.startTime);
-
-            for (let candidate of candidates) {
-                let auto = candidate.auto;
-                let idx = candidate.idx;
-
-                if (auto.tipo === 'solo_secado') {
-                    if (estadoSecado[1] === null) {
-                        isMoving = true;
-                        auto.endTime = Date.now() + window.APP_CONFIG.tiempoSecado;
-                        estadoSecado[1] = auto;
-                        estadoEspera[idx] = null;
-                        advanceQueue();
-                        updateVisuals();
-                        clearTimeout(timers.espera);
-                        timers.espera = setTimeout(() => {
-                            isMoving = false;
-                            checkMovement();
-                        }, 2000);
-                        return; // Movemos uno a la vez
-                    }
-                } else { // Lavado o Completo
-                    if (estadoLavado === null) {
-                        isMoving = true;
-                        auto.endTime = Date.now() + window.APP_CONFIG.tiempoLavado;
-                        estadoLavado = auto;
-                        estadoEspera[idx] = null;
-                        advanceQueue();
-                        updateVisuals();
-                        clearTimeout(timers.espera);
-                        timers.espera = setTimeout(() => {
-                            isMoving = false;
-                            checkMovement();
-                        }, 2000);
-                        return; // Movemos uno a la vez
-                    }
-                }
-            }
-            if (advanceQueue()) updateVisuals();
-        }
-    }
-
-    // -- BUCLE DE SIMULACIÓN AUTOMÁTICA --
-    setInterval(() => {
-        const now = Date.now();
-
-        if (!isMoving) {
-            let carReleased = false;
-
-            // Procesar Lavado
-            if (estadoLavado && estadoLavado.endTime <= now) {
-                if (estadoLavado.tipo === 'solo_lavado') {
-                    let targetIndices = [0, 1, 2, 3]; 
-                    const freeIdx = targetIndices.find(idx => estadoTerminado[idx] === null);
-                    
-                    if (freeIdx !== undefined) {
-                        isMoving = true;
-                        estadoTerminado[freeIdx] = estadoLavado;
-                        estadoLavado = null;
-                        estadoTerminado[freeIdx].endTime = Date.now() + 5000;
-                        if (advanceQueue()) {}
-                        if (advanceQueueTerminado()) {}
-                        updateVisuals();
-
-                        clearTimeout(timers.lavadoToTerminado);
-                        timers.lavadoToTerminado = setTimeout(() => {
-                            isMoving = false;
-                            checkMovement();
-                        }, 2500); // 2.5s para asegurar que llegue y no se toquen
-                        carReleased = true;
-                    }
-                } else if (estadoLavado.tipo === 'lavado_secado') {
-                    if (estadoSecado[0] === null) {
-                        isMoving = true;
-                        estadoLavado.endTime = Date.now() + window.APP_CONFIG.tiempoSecado;
-                        estadoSecado[0] = estadoLavado;
-                        estadoLavado = null;
-                        updateVisuals();
-                        
-                        clearTimeout(timers.lavadoToSecado);
-                        timers.lavadoToSecado = setTimeout(() => {
-                            isMoving = false;
-                            checkMovement();
-                        }, 2500);
-                        carReleased = true;
-                    }
-                }
-            }
-
-            // Procesar Interior/Secado si no se liberó nada antes
-            if (!carReleased) {
-                for (let i = 0; i < estadoSecado.length; i++) {
-                    const auto = estadoSecado[i];
-                    if (auto && auto.endTime && now >= auto.endTime) {
-                        let targetIndices = [0, 1, 2, 3];
-                        const freeIdx = targetIndices.find(idx => estadoTerminado[idx] === null);
-                        
-                        if (freeIdx !== undefined) {
-                            isMoving = true;
-                            estadoTerminado[freeIdx] = auto;
-                            estadoSecado[i] = null;
-                            estadoTerminado[freeIdx].endTime = Date.now() + 5000;
-                            if (advanceQueueTerminado()) {}
-                            updateVisuals();
-                            
-                            clearTimeout(timers.secadoToTerminado);
-                            timers.secadoToTerminado = setTimeout(() => {
-                                isMoving = false;
-                                checkMovement();
-                            }, 2500);
-                            carReleased = true;
-                            break; // Solo mover uno a la vez
-                        }
-                    }
-                }
-            }
-        }
-
-        // Procesar Terminado (simulando retiro automático)
-        for (let i = 0; i < estadoTerminado.length; i++) {
-            const auto = estadoTerminado[i];
-            if (auto && auto.endTime && now >= auto.endTime) {
-                recordMetric(auto); // Registrar métrica antes de borrarlo
-                estadoTerminado[i] = null;
-                setTimeout(() => {
-                    advanceQueueTerminado();
-                    updateVisuals();
-                    checkMovement();
-                }, 100);
-            }
-        }
-
-        // Siempre chequear si la zona de espera puede avanzar
-        checkMovement();
-        
-        updateTimers();
-        updateStatusBoard();
-    }, 1000);
-    
-    function updateStatusBoard() {
-        const timeEl = document.getElementById('status-time');
-        const badgeEl = document.getElementById('status-badge');
-        if (!timeEl || !badgeEl) return;
-
-        let autos = estadoEspera.filter(a => a !== null).length;
-        const now = Date.now();
-        let maxEta = now;
-        
-        estadoEspera.forEach(a => {
-            if (a && a.etaSalidaEspera > maxEta) {
-                maxEta = a.etaSalidaEspera;
-            }
-        });
-        
-        let remainingSegundos = Math.ceil((maxEta - now) / 1000);
-        if (remainingSegundos < 0 || autos === 0) remainingSegundos = 0;
-        
-        // Formato MM:SS
-        let mins = Math.floor(remainingSegundos / 60);
-        let secs = remainingSegundos % 60;
-        timeEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        
-        // Actualizar Etiqueta y Colores
-        badgeEl.className = 'status-badge';
-        if (autos === 0) {
-            badgeEl.classList.add('badge-libre');
-            badgeEl.textContent = 'Sin Demora';
-        } else if (autos <= 4) {
-            badgeEl.classList.add('badge-normal');
-            badgeEl.textContent = 'Demora Normal';
-        } else if (autos <= 6) {
-            badgeEl.classList.add('badge-alta');
-            badgeEl.textContent = 'Demora Alta';
-        } else {
-            badgeEl.classList.add('badge-critica');
-            badgeEl.textContent = 'Cap. Máxima';
-        }
-    }
-
-    function updateTimers() {
-        const now = Date.now();
-        
-        // 1. Initial Resource availability
-        let T_LavadoFree = now;
-        if (estadoLavado && estadoLavado.endTime) {
-            T_LavadoFree = estadoLavado.endTime + 2000;
-        } else if (isMoving) {
-            T_LavadoFree = now + 2000;
-        }
-        
-        let T_Secado1Free = now;
-        if (estadoSecado[1] && estadoSecado[1].endTime) {
-            T_Secado1Free = estadoSecado[1].endTime + 2000;
-        }
-
-        let T_LaneFree = {
-            impar: now, // 0, 2, 4, 6
-            par: now    // 1, 3, 5, 7
-        };
-
-        // 2. Ordenar autos en espera por startTime
-        let waitingCars = [];
-        estadoEspera.forEach((auto, idx) => {
-            if (auto) waitingCars.push({ auto: auto, idx: idx });
-        });
-        waitingCars.sort((a, b) => a.auto.startTime - b.auto.startTime);
-
-        // 3. Simular ETAs
-        waitingCars.forEach(item => {
-            let auto = item.auto;
-            let idx = item.idx;
-            let lane = (idx % 2 === 0) ? 'impar' : 'par';
-
-            let myDestFree = (auto.tipo === 'solo_secado') ? T_Secado1Free : T_LavadoFree;
-
-            // El auto sale cuando el carril de adelante está libre Y su destino está libre
-            let T_leave_queue = Math.max(T_LaneFree[lane], myDestFree);
-            
-            auto.etaSalidaEspera = T_leave_queue;
-
-            // Actualizar disponibilidad de recursos para los autos de atrás
-            if (auto.tipo === 'solo_secado') {
-                T_Secado1Free = T_leave_queue + window.APP_CONFIG.tiempoSecado + 2000;
-            } else {
-                let processTime = window.APP_CONFIG.tiempoLavado;
-                if (auto.tipo === 'lavado_secado') processTime += window.APP_CONFIG.tiempoSecado;
-                T_LavadoFree = T_leave_queue + processTime + 2000;
-            }
-
-            // El siguiente auto en este mismo carril no puede salir hasta que yo salga (+2s)
-            T_LaneFree[lane] = T_leave_queue + 2000;
-        });
-
-        // 4. Agrupamos y preparamos para pintar
-        const activeAutos = {};
-        estadoEspera.forEach(a => { if (a) { a.state = 'espera'; activeAutos[a.id] = a; }});
-        if (estadoLavado) { estadoLavado.state = 'lavado'; activeAutos[estadoLavado.id] = estadoLavado; }
-        estadoSecado.forEach(a => { if (a) { a.state = 'secado'; activeAutos[a.id] = a; }});
-        estadoTerminado.forEach(a => { if (a) { a.state = 'terminado'; activeAutos[a.id] = a; }});
-        
-        // Helper para formato MM:SS
-        const formatTime = (segundos) => {
-            if (segundos <= 0) return "00:00";
-            const mins = Math.floor(segundos / 60);
-            const secs = segundos % 60;
-            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        };
-
-        document.querySelectorAll('.car-wrapper').forEach(wrapper => {
-            const id = wrapper.dataset.id;
-            const timer = wrapper.querySelector('.car-timer');
-            const autoObj = activeAutos[id];
-            
-            if (autoObj) {
-                if (autoObj.state === 'espera') {
-                    timer.style.display = 'block';
-                    let remaining = Math.max(0, Math.ceil((autoObj.etaSalidaEspera - now) / 1000));
-                    timer.textContent = formatTime(remaining);
-                } else if (autoObj.state === 'terminado') {
-                    if (autoObj.endTime) {
-                        const remaining = Math.ceil((autoObj.endTime - now) / 1000);
-                        if (remaining > 0) {
-                            timer.textContent = formatTime(remaining);
-                            timer.style.display = 'block';
-                        } else {
-                            timer.style.display = 'none';
-                        }
-                    } else {
-                        timer.textContent = `¡Listo!`;
-                        timer.style.display = 'block';
-                    }
-                } else if (autoObj.endTime) {
-                    const remaining = Math.ceil((autoObj.endTime - now) / 1000);
-                    if (remaining > 0) {
-                        timer.textContent = formatTime(remaining);
-                        timer.style.display = 'block';
-                    } else {
-                        timer.style.display = 'none';
-                    }
-                } else {
-                    timer.style.display = 'none';
-                }
-            } else {
-                timer.style.display = 'none';
-            }
-        });
-    }
-
-    // Dibujar la pista real (Asfalto + Neón) dinámicamente
-    function drawScalextricPaths() {
-        const trackInterior = document.getElementById('track-interior');
-        const trackLavado = document.getElementById('track-lavado');
-        const baseInterior = document.getElementById('base-interior');
-        const baseLavado = document.getElementById('base-lavado');
-        const railsInterior = document.getElementById('rails-interior');
-        const slotInterior = document.getElementById('slot-interior');
-        const railsLavado = document.getElementById('rails-lavado');
-        const slotLavado = document.getElementById('slot-lavado');
-        const canvasArea = document.getElementById('canvas-area');
-        
-        if (!trackInterior || !trackLavado || !canvasArea) return;
-
-        // Función auxiliar para obtener el centro de un box por su boxNumber (1-48)
-        function getBoxCenter(boxNumber) {
-            const box = document.querySelector(`.grid-box[data-box-number="${boxNumber}"]`);
-            if (!box) return { x: 0, y: 0 };
-            const boxRect = box.getBoundingClientRect();
-            const canvasRect = canvasArea.getBoundingClientRect();
-            return {
-                x: boxRect.left - canvasRect.left + (boxRect.width / 2),
-                y: boxRect.top - canvasRect.top + (boxRect.height / 2)
-            };
-        }
-
-        // Pista Solo Interior (Circuito Interno)
-        // Espera Izq: 29 (bot) -> 11 (top). Secado 2: 9. Terminado Único: 7 (top) -> 25 (bot).
-        const eIzqBot = getBoxCenter(29);
-        const eIzqTop = getBoxCenter(11);
-        const secado2 = getBoxCenter(9);
-        
-        // Pista Lavado (Circuito Externo)
-        // Espera Der: 30 (bot) -> 12 (top). Lavado: 4. Secado 1: 3. Terminado Único: 7 (top) -> 25 (bot).
-        const eDerBot = getBoxCenter(30);
-        const eDerTop = getBoxCenter(12);
-        const lavado = getBoxCenter(4);
-        const secado1 = getBoxCenter(3);
-        
-        // Terminado (único carril)
-        const tTop = getBoxCenter(7);
-        const tBot = getBoxCenter(25);
-
-        if (eIzqBot.x === 0 || eDerBot.x === 0 || tTop.x === 0) return; // Si aún no se renderizaron
-
-        let R = 45; // Radio de curva para las esquinas
-
-        // Path Interno (Interior) - Dobla en la Fila 3
-        let pathIzq = `
-            M ${eIzqBot.x} ${eIzqBot.y + 300} 
-            L ${eIzqTop.x} ${eIzqTop.y + R} 
-            Q ${eIzqTop.x} ${eIzqTop.y} ${eIzqTop.x - R} ${eIzqTop.y}
-            L ${tTop.x + R} ${tTop.y}
-            Q ${tTop.x} ${tTop.y} ${tTop.x} ${tTop.y + R}
-            L ${tBot.x} ${tBot.y + 300}
-        `;
-
-        // Path Externo (Lavado) - Sube hasta la Fila 2 y luego dobla
-        let pathDer = `
-            M ${eDerBot.x} ${eDerBot.y + 300} 
-            L ${eDerTop.x} ${lavado.y + R} 
-            Q ${eDerTop.x} ${lavado.y} ${eDerTop.x - R} ${lavado.y}
-            L ${tTop.x + R} ${lavado.y}
-            Q ${tTop.x} ${lavado.y} ${tTop.x} ${lavado.y + R}
-            L ${tBot.x} ${tBot.y + 300}
-        `;
-
-        trackInterior.setAttribute('d', pathIzq);
-        trackLavado.setAttribute('d', pathDer);
-        
-        if (baseInterior) baseInterior.setAttribute('d', pathIzq);
-        if (baseLavado) baseLavado.setAttribute('d', pathDer);
-        if (railsInterior) railsInterior.setAttribute('d', pathIzq);
-        if (slotInterior) slotInterior.setAttribute('d', pathIzq);
-        if (railsLavado) railsLavado.setAttribute('d', pathDer);
-        if (slotLavado) slotLavado.setAttribute('d', pathDer);
-    }
-
-    // Dibujar pistas constantemente para asegurar que se adapten a cualquier cambio (y que el DOM est cargado)
-    setInterval(drawScalextricPaths, 500);
-    window.addEventListener('resize', drawScalextricPaths);
-    // Llamada inicial para intentar renderizar rápido
-    drawScalextricPaths();
-
-    // === MÓDULO DE MÉTRICAS ===
-    let metricsHistory = JSON.parse(localStorage.getItem('metricsHistory')) || [];
-
-    window.recordMetric = function(auto) {
-        let rev = 0;
-        if (auto.tipo === 'solo_lavado') { rev = window.APP_CONFIG.precioLavado; }
-        else if (auto.tipo === 'solo_secado') { rev = window.APP_CONFIG.precioSecado; }
-        else { rev = window.APP_CONFIG.precioCompleto; }
-        
-        const metricData = {
-            id: Date.now() + Math.random(),
-            patente: auto.patente || 'S/D',
-            timestamp: Date.now(),
-            tipo: auto.tipo,
-            revenue: rev,
-            profit: rev // La ganancia ahora es el 100% de la recaudación
-        };
-
-        metricsHistory.push(metricData);
-        localStorage.setItem('metricsHistory', JSON.stringify(metricsHistory));
-        
-        const metricsView = document.getElementById('metrics-view');
-        if (metricsView && metricsView.style.display === 'block') {
-            window.updateMetricsUI();
-        }
-
-        // --- SUPABASE BACKEND INTEGRATION ---
-        const fechaStr = new Date(metricData.timestamp).toLocaleString();
-        let srvName = '';
-        if(metricData.tipo === 'solo_lavado') srvName = 'Solo Lavado';
-        else if (metricData.tipo === 'solo_secado') srvName = 'Solo Interior';
-        else srvName = 'Lavado + Interior';
-
-        const insertToSupabase = async () => {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('metricas')
-                    .insert([
-                        { 
-                            patente: metricData.patente, 
-                            fecha: fechaStr, 
-                            servicio: srvName, 
-                            recaudacion: metricData.revenue, 
-                            ganancia: metricData.profit 
-                        }
-                    ]);
-                
-                if (error) throw error;
-                console.log("Datos sincronizados con Supabase correctamente:", metricData.patente);
-            } catch (error) {
-                console.error("Error al enviar datos a Supabase:", error);
-            }
-        };
-        
-        insertToSupabase();
-    };
-
-    window.updateMetricsUI = function() {
-        const dateFrom = document.getElementById('filter-date-from').value;
-        const dateTo = document.getElementById('filter-date-to').value;
-        const service = document.getElementById('filter-service').value;
-        
-        let filtered = metricsHistory.filter(record => {
-            let pass = true;
-            if (service !== 'all' && record.tipo !== service) pass = false;
-            
-            // Normalize dates for comparison
-            const recDate = new Date(record.timestamp);
-            recDate.setHours(0,0,0,0);
-            
-            if (dateFrom) {
-                const df = new Date(dateFrom);
-                df.setHours(0,0,0,0);
-                df.setMinutes(df.getMinutes() + df.getTimezoneOffset());
-                if (recDate < df) pass = false;
-            }
-            if (dateTo) {
-                const dt = new Date(dateTo);
-                dt.setHours(0,0,0,0);
-                dt.setMinutes(dt.getMinutes() + dt.getTimezoneOffset());
-                if (recDate > dt) pass = false;
-            }
-            return pass;
-        });
-        
-        // Calcular Totales
-        let tLavados = filtered.length;
-        let tRev = filtered.reduce((acc, curr) => acc + (Number(curr.revenue) || 0), 0);
-        let tProfit = filtered.reduce((acc, curr) => acc + (Number(curr.profit) || 0), 0);
-        
-        document.getElementById('metric-total-lavados').textContent = tLavados;
-        document.getElementById('metric-total-revenue').textContent = '$' + tRev.toFixed(2);
-        document.getElementById('metric-net-profit').textContent = '$' + tProfit.toFixed(2);
-        
-        // Poblar Tabla
-        filtered.sort((a,b) => b.timestamp - a.timestamp);
-        const tbody = document.getElementById('metrics-table-body');
-        tbody.innerHTML = '';
-        filtered.forEach(rec => {
-            const dateStr = new Date(rec.timestamp).toLocaleString();
-            let srvName = '';
-            if(rec.tipo === 'solo_lavado') srvName = 'Solo Lavado';
-            else if (rec.tipo === 'solo_secado') srvName = 'Solo Interior';
-            else srvName = 'Lavado + Interior';
-            
-            const revNum = Number(rec.revenue) || 0;
-            const profNum = Number(rec.profit) || 0;
-            
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="font-weight: bold; color: var(--primary-color);">${rec.patente || 'S/D'}</td>
-                <td>${dateStr}</td>
-                <td>${srvName}</td>
-                <td style="color: #60a5fa;">$${revNum.toFixed(2)}</td>
-                <td style="color: #4ade80; font-weight: bold;">$${profNum.toFixed(2)}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    };
-    
-    // Filtros Listeners
-    const btnApplyFilters = document.getElementById('btn-apply-filters');
-    if (btnApplyFilters) {
-        btnApplyFilters.addEventListener('click', () => {
-            window.updateMetricsUI();
-        });
-    }
-    
-    // Borrar Historial
-    const btnClearHistory = document.getElementById('btn-clear-history');
-    if (btnClearHistory) {
-        btnClearHistory.addEventListener('click', () => {
-            if(confirm("¿Estás seguro de que quieres borrar TODAS las métricas? Esta acción no se puede deshacer.")) {
-                metricsHistory = [];
-                localStorage.setItem('metricsHistory', JSON.stringify([]));
-                window.updateMetricsUI();
-            }
-        });
-    }
-    
-    // ==========================================
-    // SISTEMA DE CÁMARA LPR (Webcam)
-    // ==========================================
-    const btnStartCamera = document.getElementById('btn-start-camera');
-    const videoElement = document.getElementById('camera-stream');
-    const cameraLoading = document.getElementById('camera-loading');
-    const cameraOverlay = document.getElementById('camera-overlay');
-
-    if (btnStartCamera) {
-        btnStartCamera.addEventListener('click', async () => {
-            try {
-                btnStartCamera.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Conectando...";
-                
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error("El navegador no soporta el acceso a la cámara. Si estás en celular, asegúrate de usar HTTPS o acceder vía localhost.");
-                }
-
-                // Solicitar permisos y acceso a la cámara (idealmente trasera, pero acepta cualquiera)
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: { ideal: "environment" } } 
-                });
-                
-                videoElement.srcObject = stream;
-                
-                // Mostrar video y ocultar loading
-                videoElement.onloadedmetadata = () => {
-                    videoElement.style.display = 'block';
-                    cameraOverlay.style.display = 'block';
-                    cameraLoading.style.display = 'none';
-                };
-
-            } catch (err) {
-                console.error("Error al acceder a la cámara:", err);
-                let msg = "No se pudo acceder a la cámara.";
-                if (err.name === "NotAllowedError") msg = "Permiso denegado. Haz clic en el ícono del candado en la barra de direcciones y permite la cámara.";
-                else if (err.name === "NotFoundError") msg = "No se encontró ninguna cámara conectada al equipo.";
-                else if (err.message) msg = err.message;
-                
-                alert(msg);
-                btnStartCamera.innerHTML = "<i class='bx bx-error'></i> Reintentar";
-            }
-        });
-    }
-
-    // ==========================================
-    // SISTEMA DE RESERVAS (TIEMPO REAL)
-    // ==========================================
-    let pendingReservations = [];
-
-    // Función para renderizar la tabla de reservas
-    function renderReservations() {
-        const tbody = document.getElementById('reservas-table-body');
-        if (!tbody) return;
-        
-        tbody.innerHTML = '';
-        
-        // Actualizar el texto en el Dashboard (Panel Principal)
-        const zonaReserva = document.querySelector('.reserva-online');
-        if (zonaReserva) {
-            if (pendingReservations.length > 0) {
-                zonaReserva.innerHTML = `Zona Reserva Online<br><span style="color: #facc15; font-weight: bold; font-size: 1.1rem;">(${pendingReservations.length} en espera)</span>`;
-            } else {
-                zonaReserva.innerHTML = 'Zona Reserva Online';
-            }
-        }
-
-        if (pendingReservations.length === 0) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td colspan="4" style="text-align: center; color: #9ca3af; padding: 20px;">No hay autos en cola.</td>`;
-            tbody.appendChild(tr);
-            return;
-        }
-
-        pendingReservations.forEach(reserva => {
-            const tr = document.createElement('tr');
-            
-            let srvName = '';
-            if(reserva.tipo_lavado === 'solo_lavado') srvName = 'Solo Lavado';
-            else if (reserva.tipo_lavado === 'solo_secado') srvName = 'Solo Interior';
-            else srvName = 'Lavado + Interior';
-
-            tr.innerHTML = `
-                <td style="font-weight: bold; color: var(--primary-color);">${reserva.patente}</td>
-                <td>${srvName}</td>
-                <td>${reserva.telefono || 'S/D'}</td>
-                <td>
-                    <button class="btn-dar-ingreso" data-id="${reserva.id}" style="padding: 8px 15px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                        Dar Ingreso
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        // Asignar eventos a los botones
-        document.querySelectorAll('.btn-dar-ingreso').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const reservaId = parseInt(e.target.getAttribute('data-id'));
-                const reserva = pendingReservations.find(r => r.id === reservaId);
-                if (reserva) {
-                    // Cambiar estado en BD
-                    const { error } = await supabaseClient
-                        .from('reservas_pendientes')
-                        .update({ estado: 'ingresado' })
-                        .eq('id', reservaId);
-                    
-                    if (!error) {
-                        // 1. Cambiar a la vista del Dashboard para que las coordenadas (getBoundingClientRect) no sean 0
-                        const navBtns = document.querySelectorAll('.nav-btn');
-                        navBtns.forEach(b => b.classList.remove('active'));
-                        const btnDashboard = Array.from(navBtns).find(b => b.textContent.includes('Panel Principal'));
-                        if (btnDashboard) btnDashboard.classList.add('active');
-                        
-                        const reservasView = document.getElementById('reservas-view');
-                        const dashboardView = document.getElementById('dashboard-view');
-                        if (reservasView) reservasView.style.display = 'none';
-                        if (dashboardView) dashboardView.style.display = 'flex';
-
-                        // 2. Ingresar el auto a la pista (ahora con dimensiones reales)
-                        ingresarAuto(reserva.tipo_lavado, reserva.patente);
-                        
-                        // 3. Quitar de la lista local
-                        pendingReservations = pendingReservations.filter(r => r.id !== reservaId);
-                        renderReservations();
-                    } else {
-                        console.error('Error actualizando reserva:', error);
-                        alert('Error al dar ingreso. Intente nuevamente.');
-                    }
+    if (state.espera || state.lavado || state.secado || state.terminado) {
+        if (Array.isArray(state.espera)) {
+            state.espera.forEach((item, index) => {
+                if (item && ESPERA_ZONES[index]) {
+                    const totalMin = (index + 1) * minPorTurno;
+                    const timeStr = `${totalMin.toString().padStart(2, '0')}:00`;
+                    const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
+                    placeCar(ESPERA_ZONES[index], timeStr, '#fde047', 0, type, item.id || `esp-${index}`, item, 'espera');
                 }
             });
+        }
+
+        if (state.lavado) {
+            const item = state.lavado;
+            const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
+            const lavMin = minLavado.toString().padStart(2, '0');
+            placeCar(LAVADO_ZONE, `${lavMin}:00`, '#38bdf8', 270, type, item.id || 'lavado-1', item, 'lavado');
+        }
+
+        if (Array.isArray(state.secado)) {
+            state.secado.forEach((item, index) => {
+                if (item && SECADO_ZONES[index]) {
+                    const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
+                    const secMin = minSecado.toString().padStart(2, '0');
+                    placeCar(SECADO_ZONES[index], `${secMin}:00`, '#f59e0b', 270, type, item.id || `sec-${index}`, item, 'secado');
+                }
+            });
+        }
+
+        if (Array.isArray(state.terminado)) {
+            state.terminado.forEach((item, index) => {
+                if (item && TERMINADO_ZONES[index]) {
+                    const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
+                    placeCar(TERMINADO_ZONES[index], '¡Listo!', '#34d399', 180, type, item.id || `term-${index}`, item, 'terminado');
+                }
+            });
+        }
+    } 
+    else if (Array.isArray(state.cars)) {
+        state.cars.forEach((c, idx) => {
+            const type = (c.tipo === 'completo_auto' || c.tipo === 'completo_camioneta' || c.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
+            const carKey = (c.id || idx).toString();
+            if (c.slot && c.slot.startsWith('espera_')) {
+                const sIdx = parseInt(c.slot.split('_')[1]) || 0;
+                if (ESPERA_ZONES[sIdx]) {
+                    const totalMin = (sIdx + 1) * minPorTurno;
+                    const timeStr = `${totalMin.toString().padStart(2, '0')}:00`;
+                    placeCar(ESPERA_ZONES[sIdx], timeStr, '#fde047', 0, type, carKey, c, 'espera');
+                }
+            } else if (c.slot === 'lavado') {
+                const lavMin = minLavado.toString().padStart(2, '0');
+                placeCar(LAVADO_ZONE, `${lavMin}:00`, '#38bdf8', 270, type, carKey, c, 'lavado');
+            } else if (c.slot && (c.slot.startsWith('secado_') || c.slot.startsWith('interior_'))) {
+                const sIdx = parseInt(c.slot.split('_')[1]) || 0;
+                if (SECADO_ZONES[sIdx]) {
+                    const secMin = minSecado.toString().padStart(2, '0');
+                    placeCar(SECADO_ZONES[sIdx], `${secMin}:00`, '#f59e0b', 270, type, carKey, c, 'secado');
+                }
+            } else if (c.slot && c.slot.startsWith('terminado_')) {
+                const sIdx = parseInt(c.slot.split('_')[1]) || 0;
+                if (TERMINADO_ZONES[sIdx]) {
+                    placeCar(TERMINADO_ZONES[sIdx], '¡Listo!', '#34d399', 180, type, carKey, c, 'terminado');
+                }
+            }
         });
     }
 
-    // Cargar reservas iniciales
-    async function loadReservations() {
-        const { data, error } = await supabaseClient
-            .from('reservas_pendientes')
-            .select('*')
-            .eq('estado', 'pendiente')
-            .order('created_at', { ascending: true });
-            
-        if (!error && data) {
-            pendingReservations = data;
-            renderReservations();
-        } else {
-            console.error('Error cargando reservas:', error);
+    // Limpiar autos inactivos con animación de salida hacia la derecha
+    area.querySelectorAll('.car-wrapper').forEach(wrapper => {
+        const id = wrapper.dataset.id;
+        if (!activeCarIds.has(id)) {
+            wrapper.style.left = '120%';
+            wrapper.style.opacity = '0';
+            landingSimCars.delete(id);
+            setTimeout(() => {
+                if (wrapper.parentNode) wrapper.remove();
+            }, 1000);
         }
-    }
+    });
 
-    // Suscribirse a cambios en tiempo real
-    function subscribeToReservations() {
-        supabaseClient
-            .channel('reservas_channel')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reservas_pendientes' }, payload => {
-                if (payload.new.estado === 'pendiente') {
-                    pendingReservations.push(payload.new);
-                    renderReservations();
-                    
-                    // Notificación visual o sonora (opcional)
-                    console.log('¡Nueva reserva recibida!', payload.new.patente);
+    // Actualizar telemetría de la cabecera (Demora Total Estimada)
+    const waitTimeEl = document.getElementById('live-wait-time');
+    const landingWaitTimeEl = document.getElementById('landing-status-time');
+    const landingBadgeEl = document.getElementById('landing-status-badge');
+
+    let maxEta = Date.now();
+    let autosEsperaCount = 0;
+
+    if (Array.isArray(state.espera)) {
+        state.espera.forEach(a => {
+            if (a) {
+                autosEsperaCount++;
+                if (a.etaSalidaEspera && a.etaSalidaEspera > maxEta) {
+                    maxEta = a.etaSalidaEspera;
                 }
-            })
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'reservas_pendientes' }, payload => {
-                if (payload.new.estado !== 'pendiente') {
-                    // Remover si alguien más le dio ingreso o se canceló
-                    pendingReservations = pendingReservations.filter(r => r.id !== payload.new.id);
-                    renderReservations();
-                }
-            })
-            .subscribe();
-    }
-
-    // Iniciar carga y suscripción
-    loadReservations();
-    subscribeToReservations();
-
-    // ==========================================
-    // SISTEMA DE PROMOCIONES
-    // ==========================================
-    window.fetchPromociones = async function() {
-        const container = document.getElementById('promociones-container');
-        if (!container || !window.supabaseClient) return;
-
-        container.innerHTML = '<p style="color: #9ca3af;"><i class="bx bx-loader-alt bx-spin"></i> Cargando promociones...</p>';
-
-        try {
-            const { data, error } = await window.supabaseClient
-                .from('promociones')
-                .select('*')
-                .order('meta_visitas', { ascending: true });
-
-            if (error) throw error;
-
-            container.innerHTML = '';
-            
-            if (!data || data.length === 0) {
-                container.innerHTML = '<p style="color: #9ca3af;">No hay promociones configuradas.</p>';
-                return;
             }
+        });
+    }
 
-            data.forEach(promo => {
-                const isChecked = promo.activa ? 'checked' : '';
-                const card = document.createElement('div');
-                card.className = 'promo-card';
-                card.style = 'background-color: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px;';
-                card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div>
-                            <h3 style="color: #facc15; margin: 0 0 5px 0; font-size: 1.1rem;">${promo.nombre}</h3>
-                            <p style="color: #9ca3af; margin: 0; font-size: 0.9rem;">Requiere: <strong>${promo.meta_visitas} lavados</strong></p>
-                        </div>
-                        <div class="toggle-container" style="margin-left: 15px;">
-                            <label class="switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
-                                <input type="checkbox" onchange="window.togglePromo(${promo.id}, this.checked)" ${isChecked} style="opacity: 0; width: 0; height: 0;">
-                                <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
-                                    <!-- CSS para el slider debería estar en style.css pero inyectamos lo básico si falta -->
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-                `;
-                // Add inline style for toggle switch functionality just in case
-                const styleId = 'toggle-switch-style';
-                if(!document.getElementById(styleId)) {
-                    const style = document.createElement('style');
-                    style.id = styleId;
-                    style.innerHTML = `
-                        .switch input:checked + .slider { background-color: #10b981; }
-                        .switch input:focus + .slider { box-shadow: 0 0 1px #10b981; }
-                        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-                        .switch input:checked + .slider:before { transform: translateX(26px); }
-                    `;
-                    document.head.appendChild(style);
-                }
-                container.appendChild(card);
-            });
-        } catch (err) {
-            console.error("Error cargando promociones:", err);
-            container.innerHTML = '<p style="color: #ef4444;">Error al cargar las promociones.</p>';
+    let remainingSegundos = Math.ceil((maxEta - Date.now()) / 1000);
+    if (remainingSegundos < 0 || autosEsperaCount === 0) remainingSegundos = 0;
+
+    const timeStr = formatLandingTime(remainingSegundos);
+
+    if (waitTimeEl) waitTimeEl.textContent = timeStr;
+    if (landingWaitTimeEl) landingWaitTimeEl.textContent = timeStr;
+
+    if (landingBadgeEl) {
+        landingBadgeEl.className = 'status-badge';
+        if (autosEsperaCount === 0) {
+            landingBadgeEl.textContent = 'Sin Demora';
+            landingBadgeEl.classList.add('badge-libre');
+        } else if (autosEsperaCount <= 4) {
+            landingBadgeEl.textContent = 'Demora Normal';
+            landingBadgeEl.classList.add('badge-normal');
+        } else if (autosEsperaCount <= 6) {
+            landingBadgeEl.textContent = 'Demora Alta';
+            landingBadgeEl.classList.add('badge-alta');
+        } else {
+            landingBadgeEl.textContent = 'Cap. Máxima';
+            landingBadgeEl.classList.add('badge-critica');
         }
-    };
+    }
+}
 
-    window.togglePromo = async function(id, activa) {
-        if (!window.supabaseClient) return;
-        try {
-            const { error } = await window.supabaseClient
-                .from('promociones')
-                .update({ activa: activa })
-                .eq('id', id);
-
-            if (error) throw error;
-        } catch (err) {
-            console.error("Error actualizando promo:", err);
-            alert("No se pudo actualizar el estado de la promoción.");
-        }
-    };
-
-    // ==========================================
-    // SISTEMA DE PUBLICIDAD & SPONSORS (PANTALLA LED)
-    // ==========================================
-    const DEFAULT_SPONSORS = [
-        {
-            id: 'sp-1',
-            title: 'Shell Helix Ultra',
-            subtitle: 'Máximo rendimiento y protección de motor F1',
-            type: 'image',
-            url: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80',
-            duration: 7
-        },
-        {
-            id: 'sp-2',
-            title: 'Pirelli P Zero',
-            subtitle: 'Neumáticos de ultra alto rendimiento deportivo',
-            type: 'image',
-            url: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=80',
-            duration: 7
-        },
-        {
-            id: 'sp-3',
-            title: 'Red Bull Racing',
-            subtitle: 'Gives You Wings - Tecnología de Competición',
-            type: 'image',
-            url: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1200&q=80',
-            duration: 8
-        },
-        {
-            id: 'sp-4',
-            title: 'Mobil 1 Synthetic Oil',
-            subtitle: 'Lubricante sintético oficial para motores de carrera',
-            type: 'image',
-            url: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80',
-            duration: 7
-        },
-        {
-            id: 'sp-5',
-            title: 'Brembo Racing Brakes',
-            subtitle: 'Frenado de precisión extrema de alta temperatura',
-            type: 'image',
-            url: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=1200&q=80',
-            duration: 7
-        }
+// ============================================================
+// 4. PANTALLA DIGITAL DE SPONSORS / PUBLICIDAD EN LANDING
+// ============================================================
+function initLandingSponsors() {
+    landingSponsorsList = [
+        { id: 'sp-1', title: 'Pirelli P Zero', subtitle: 'Neumáticos de ultra alto rendimiento', type: 'image', url: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80' },
+        { id: 'sp-2', title: 'Mobil 1 Super Synthetic', subtitle: 'Protección extrema para tu motor', type: 'image', url: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1200&q=80' },
+        { id: 'sp-3', title: 'Brembo Racing', subtitle: 'Sistemas de frenos de alta precisión', type: 'image', url: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80' }
     ];
 
-    let sponsorsList = JSON.parse(localStorage.getItem('aura_sponsors')) || DEFAULT_SPONSORS;
-    let currentSponsorIndex = 0;
-    let sponsorTimer = null;
-    let sponsorProgressTimer = null;
-    let sponsorIsPlaying = true;
+    renderLandingSponsorSlide();
+}
 
-    function getSponsors() {
-        return sponsorsList && sponsorsList.length > 0 ? sponsorsList : DEFAULT_SPONSORS;
-    }
+function renderLandingSponsorSlide() {
+    const wrapper = document.getElementById('landing-screen-media-wrapper');
+    const titleEl = document.getElementById('landing-sponsor-title');
+    const subEl = document.getElementById('landing-sponsor-subtitle');
 
-    function saveSponsorsState() {
-        localStorage.setItem('aura_sponsors', JSON.stringify(sponsorsList));
-    }
+    if (!wrapper || landingSponsorsList.length === 0) return;
 
-    window.renderSponsorSlide = function() {
-        const wrapper = document.getElementById('screen-media-wrapper');
-        const titleEl = document.getElementById('sponsor-title');
-        const subEl = document.getElementById('sponsor-subtitle');
-        
-        if (!wrapper) return;
-        const sponsors = getSponsors();
-        if (sponsors.length === 0) return;
-        
-        if (currentSponsorIndex >= sponsors.length) currentSponsorIndex = 0;
-        const current = sponsors[currentSponsorIndex];
+    const current = landingSponsorsList[currentLandingSponsorIndex];
+    if (!current) return;
 
-        if (titleEl) titleEl.textContent = current.title;
-        if (subEl) subEl.textContent = current.subtitle || 'Sponsor Oficial';
+    if (titleEl) titleEl.textContent = current.title;
+    if (subEl) subEl.textContent = current.subtitle || 'Sponsor Oficial';
 
-        wrapper.innerHTML = '';
-        if (current.type === 'video') {
-            const video = document.createElement('video');
-            video.src = current.url;
-            video.autoplay = true;
-            video.muted = true;
-            video.loop = false;
-            video.playsInline = true;
-            video.className = 'screen-media-item';
-            video.onended = () => { window.nextSponsor(); };
-            video.onerror = () => {
-                wrapper.innerHTML = `<img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80" class="screen-media-item">`;
-            };
-            wrapper.appendChild(video);
-        } else {
-            const img = document.createElement('img');
-            img.src = current.url;
-            img.alt = current.title;
-            img.className = 'screen-media-item';
-            img.onerror = () => {
-                img.src = 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80';
-            };
-            wrapper.appendChild(img);
-        }
+    wrapper.innerHTML = `<img src="${current.url}" alt="${current.title}" style="width:100%; height:100%; object-fit:cover;">`;
 
-        startSponsorProgress(current.duration || 7);
-    };
+    clearTimeout(landingSponsorTimer);
+    landingSponsorTimer = setTimeout(() => {
+        currentLandingSponsorIndex = (currentLandingSponsorIndex + 1) % landingSponsorsList.length;
+        renderLandingSponsorSlide();
+    }, 6000);
+}
 
-    function startSponsorProgress(durationSec) {
-        clearInterval(sponsorProgressTimer);
-        clearTimeout(sponsorTimer);
-        
-        const progressEl = document.getElementById('sponsor-progress');
-        if (!progressEl) return;
-        
-        progressEl.style.width = '0%';
-        if (!sponsorIsPlaying) return;
-
-        let startTime = Date.now();
-        const durationMs = durationSec * 1000;
-
-        sponsorProgressTimer = setInterval(() => {
-            if (!sponsorIsPlaying) return;
-            const elapsed = Date.now() - startTime;
-            const pct = Math.min(100, (elapsed / durationMs) * 100);
-            progressEl.style.width = pct + '%';
-            if (pct >= 100) {
-                clearInterval(sponsorProgressTimer);
+// ============================================================
+// 5. POLING EN TIEMPO REAL VÍA DONWEB API
+// ============================================================
+function setupRealtimeSubscriptions() {
+    setInterval(async () => {
+        try {
+            const res = await fetch(`${API_URL}configuracion.php`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && !data.error) {
+                    landingConfig = { ...landingConfig, ...data };
+                    updateLandingUI();
+                    if (data.live_state) {
+                        renderLandingCars(data.live_state);
+                    }
+                }
             }
-        }, 50);
+        } catch (e) {}
+    }, 4000);
+}
 
-        sponsorTimer = setTimeout(() => {
-            if (sponsorIsPlaying) {
-                window.nextSponsor();
-            }
-        }, durationMs);
+function handleContactForm(e) {
+    e.preventDefault();
+    alert('¡Gracias por tu mensaje! Te responderemos a la brevedad por WhatsApp.');
+    e.target.reset();
+}
+
+// ============================================================
+// 6. INICIALIZACIÓN GLOBAL Y REDIBUJO CONTINUO DE PISTA
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+    loadLandingConfig();
+    initLandingTrackGrid();
+    initLandingSponsors();
+    fetchLandingLiveState();
+    setupRealtimeSubscriptions();
+
+    // Redibujar pista dinámicamente
+    setInterval(drawLandingSVGTracks, 400);
+    window.addEventListener('resize', drawLandingSVGTracks);
+    window.addEventListener('load', drawLandingSVGTracks);
+
+    // Fallback de sincronización periódica
+    setInterval(() => {
+        loadLandingConfig();
+        fetchLandingLiveState();
+    }, 5000);
+});
+
+// ============================================================
+// 7. MANEJO DEL MENÚ LATERAL DESPLEGABLE (SIDEBAR DRAWER)
+// ============================================================
+function openSidebar() {
+    const sidebar = document.getElementById('sidebar-menu');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (sidebar) sidebar.classList.add('active');
+    if (overlay) overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar-menu');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (sidebar) sidebar.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar-menu');
+    if (sidebar && sidebar.classList.contains('active')) {
+        closeSidebar();
+    } else {
+        openSidebar();
     }
+}
 
-    window.nextSponsor = function() {
-        const sponsors = getSponsors();
-        currentSponsorIndex = (currentSponsorIndex + 1) % sponsors.length;
-        window.renderSponsorSlide();
-    };
+window.openSidebar = openSidebar;
+window.closeSidebar = closeSidebar;
+window.toggleSidebar = toggleSidebar;
 
-    window.prevSponsor = function() {
-        const sponsors = getSponsors();
-        currentSponsorIndex = (currentSponsorIndex - 1 + sponsors.length) % sponsors.length;
-        window.renderSponsorSlide();
-    };
-
-    window.toggleSponsorPlay = function() {
-        sponsorIsPlaying = !sponsorIsPlaying;
-        const btn = document.getElementById('btn-toggle-play');
-        if (btn) {
-            btn.innerHTML = sponsorIsPlaying ? "<i class='bx bx-pause'></i>" : "<i class='bx bx-play'></i>";
-        }
-        if (sponsorIsPlaying) {
-            const sponsors = getSponsors();
-            startSponsorProgress(sponsors[currentSponsorIndex]?.duration || 7);
-        } else {
-            clearInterval(sponsorProgressTimer);
-            clearTimeout(sponsorTimer);
-        }
-    };
-
-    window.openAddSponsorModal = function() {
-        const modal = document.getElementById('modal-sponsor');
-        if (modal) modal.style.display = 'flex';
-    };
-
-    window.closeAddSponsorModal = function() {
-        const modal = document.getElementById('modal-sponsor');
-        if (modal) modal.style.display = 'none';
-    };
-
-    window.saveSponsor = function(e) {
-        e.preventDefault();
-        const title = document.getElementById('sponsor-input-title').value.trim();
-        const type = document.getElementById('sponsor-input-type').value;
-        const url = document.getElementById('sponsor-input-url').value.trim();
-        const duration = parseInt(document.getElementById('sponsor-input-duration').value) || 7;
-        const subtitle = document.getElementById('sponsor-input-subtitle').value.trim();
-
-        if (!title || !url) return;
-
-        const newSponsor = {
-            id: 'sp-' + Date.now(),
-            title,
-            subtitle: subtitle || 'Sponsor Oficial',
-            type,
-            url,
-            duration
-        };
-
-        sponsorsList.unshift(newSponsor);
-        saveSponsorsState();
-        window.closeAddSponsorModal();
-        document.getElementById('form-sponsor').reset();
-        window.renderSponsorManager();
-        window.renderSponsorSlide();
-        alert('¡Anuncio guardado correctamente!');
-    };
-
-    window.deleteSponsor = function(id) {
-        if (!confirm('¿Estás seguro que deseas eliminar este anuncio?')) return;
-        sponsorsList = sponsorsList.filter(s => s.id !== id);
-        saveSponsorsState();
-        window.renderSponsorManager();
-        window.renderSponsorSlide();
-    };
-
-    window.renderSponsorManager = function() {
-        const container = document.getElementById('sponsors-list-container');
-        if (!container) return;
-
-        const sponsors = getSponsors();
-        container.innerHTML = '';
-
-        sponsors.forEach(sp => {
-            const card = document.createElement('div');
-            card.className = 'sponsor-card';
-            
-            const mediaContent = sp.type === 'video' 
-                ? `<video src="${sp.url}" muted></video>` 
-                : `<img src="${sp.url}" alt="${sp.title}" onerror="this.src='https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80'">`;
-
-            const iconType = sp.type === 'video' ? "<i class='bx bx-video'></i> Video" : "<i class='bx bx-image'></i> Imagen";
-
-            card.innerHTML = `
-                <div class="sponsor-card-media">
-                    ${mediaContent}
-                    <div class="sponsor-card-type-badge">${iconType}</div>
-                </div>
-                <div class="sponsor-card-body">
-                    <div>
-                        <div class="sponsor-card-title">${sp.title}</div>
-                        <div class="sponsor-card-sub">${sp.subtitle || '-'}</div>
-                    </div>
-                    <div class="sponsor-card-footer">
-                        <span><i class='bx bx-time'></i> ${sp.duration} seg</span>
-                        <button onclick="deleteSponsor('${sp.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1.2rem;" title="Eliminar Sponsor">
-                            <i class='bx bx-trash'></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    };
-
-    // Inicializar reproductor de sponsors al cargar
-    setTimeout(() => {
-        window.renderSponsorSlide();
-        window.renderSponsorManager();
-    }, 400);
-
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSidebar();
 });

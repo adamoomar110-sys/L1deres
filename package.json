@@ -1,5 +1,9 @@
 {
+  "name": "lava2",
+  "version": "1.6.0",
+  "description": "L1deres AutoWash - App con Backend Nativo DonWeb MySQL",
+  "private": true,
   "dependencies": {
-    "@supabase/supabase-js": "^2.110.7"
+    "jimp": "^0.16.1"
   }
 }

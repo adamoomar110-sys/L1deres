@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administrativo - Aura v1.6</title>
+    <link rel="stylesheet" href="style.css?v=1.6">
+    <!-- Google Fonts: Inter and Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <!-- Boxicons for icons -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+
+    <!-- ===== PANTALLA DE LOGIN ===== -->
+    <div id="login-screen">
+        <div class="login-bg-glow"></div>
+        <div class="login-card">
+            <div class="login-logo-wrap">
+                <img src="../logo.jpg" alt="L1deres" class="login-logo" onerror="this.src='logo.jpg'; this.onerror=null;">
+            </div>
+            <div class="login-header">
+                <h1 class="login-title">Panel Administrativo</h1>
+                <p class="login-subtitle">Ingresá tus credenciales para continuar</p>
+            </div>
+
+
+
+            <div class="login-form">
+                <div class="login-field">
+                    <label for="login-dni"><i class='bx bx-user'></i> DNI o Email</label>
+                    <input type="text" id="login-dni" placeholder="DNI o Email" autocomplete="off">
+                </div>
+                <div class="login-field">
+                    <label for="login-pass"><i class='bx bx-lock-alt'></i> Clave</label>
+                    <div class="login-pass-wrap">
+                        <input type="password" id="login-pass" placeholder="••••••" autocomplete="off">
+                        <button class="toggle-pass" type="button" onclick="toggleLoginPass(this)" tabindex="-1">
+                            <i class='bx bx-show'></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="login-error" class="login-error" style="display:none;">
+                    <i class='bx bx-error-circle'></i> <span id="login-error-text">Credenciales incorrectas</span>
+                </div>
+
+                <button id="login-btn" onclick="handleLogin()">
+                    <span id="login-btn-text"><i class='bx bx-log-in-circle'></i> Ingresar</span>
+                    <span id="login-btn-loader" style="display:none;"><i class='bx bx-loader-alt bx-spin'></i> Verificando...</span>
+                </button>
+            </div>
+
+            <p class="login-footer-text">© 2026 Aura · L1deres Lavado Automático</p>
+        </div>
+    </div>
+    <!-- ===== FIN LOGIN ===== -->
+
+    <div class="dashboard-container" id="main-dashboard" style="display:none;">
+        
+        <!-- Menú Lateral -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <img src="../logo.jpg" alt="Logo L1deres" class="sidebar-logo" onerror="this.src='logo.jpg'; this.onerror=null;">
+                    <div class="logo-fallback" style="display: none;">
+                        <i class='bx bx-image-alt'></i>
+                        <span>Logo</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <button class="nav-btn active">
+                    <i class='bx bx-grid-alt'></i>
+                    <span>Panel Principal</span>
+                </button>
+                <button class="nav-btn">
+                    <i class='bx bx-camera'></i>
+                    <span>Cámara de Ingreso</span>
+                </button>
+                <button class="nav-btn">
+                    <i class='bx bx-time-five'></i>
+                    <span>Reservas</span>
+                </button>
+                <button class="nav-btn">
+                    <i class='bx bx-star'></i>
+                    <span>Reseñas de Clientes</span>
+                </button>
+                <button class="nav-btn" data-role="admin">
+                    <i class='bx bx-line-chart'></i>
+                    <span>Métricas</span>
+                </button>
+                <button class="nav-btn" data-role="admin">
+                    <i class='bx bx-cog'></i>
+                    <span>Configuración</span>
+                </button>
+                <button class="nav-btn" data-role="admin">
+                    <i class='bx bx-gift'></i>
+                    <span>Promociones</span>
+                </button>
+                <button class="nav-btn" data-role="admin" id="btn-nav-socio-black">
+                    <i class='bx bx-crown' style="color: #fbbf24;"></i>
+                    <span>Socio Fundador Black</span>
+                </button>
+                <button class="nav-btn" data-role="admin" id="btn-nav-socio-gold">
+                    <i class='bx bxs-award' style="color: #f59e0b;"></i>
+                    <span>Socio Fundador Gold</span>
+                </button>
+                <button class="nav-btn" data-role="admin">
+                    <i class='bx bx-tv'></i>
+                    <span>Publicidad & Sponsors</span>
+                </button>
+                <button class="nav-btn" data-role="admin">
+                    <i class='bx bx-bell'></i>
+                    <span>Notificaciones Push</span>
+                </button>
+                <button class="nav-btn">
+                    <i class='bx bx-key'></i>
+                    <span>Cambiar Clave</span>
+                </button>
+                <button class="nav-btn" id="btn-whatsapp" onclick="window.open('https://web.whatsapp.com/', '_blank')">
+                    <i class='bx bxl-whatsapp' style="color: #25D366;"></i>
+                    <span>WhatsApp</span>
+                </button>
+                <button class="nav-btn btn-logout" id="btn-logout" onclick="handleLogout()" style="margin-top: 15px; background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3);">
+                    <i class='bx bx-log-out'></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div id="user-role-badge" style="margin-bottom: 8px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3);">
+                    <i class='bx bx-shield-alt-2'></i> <span id="user-role-text">Rol: Administrador</span>
+                </div>
+                <p>&copy; 2026 Aura. Todos los derechos reservados. | v1.6</p>
+            </div>
+        </aside>
+
+        <!-- Área Principal (Paño Limpio) -->
+        <main class="main-content" id="dashboard-view">
+            <div class="controls-header">
+                <div id="status-board" class="status-board-top">
+                    <div class="status-info">
+                        <div class="status-title">Demora Estimada</div>
+                        <div class="status-time" id="status-time">00:00</div>
+                    </div>
+                    <div class="status-badge badge-libre" id="status-badge">Sin Demora</div>
+                </div>
+
+                <div class="header-buttons">
+                    <button id="btn-ingresar-express-auto" style="padding: 10px 20px; background: #0ea5e9; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s;">
+                        <i class='bx bx-car'></i> Express Auto
+                    </button>
+                    <button id="btn-ingresar-express-camioneta" style="padding: 10px 20px; background: #0284c7; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s;">
+                        <i class='bx bx-car'></i> Express Camioneta
+                    </button>
+                    <button id="btn-ingresar-completo-auto" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s;">
+                        <i class='bx bx-car'></i> Completo Auto
+                    </button>
+                    <button id="btn-ingresar-completo-camioneta" style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: opacity 0.2s;">
+                        <i class='bx bx-car'></i> Completo Camioneta
+                    </button>
+                </div>
+            </div>
+            <div class="canvas-area" id="canvas-area">
+                <!-- Scalextric Tracks -->
+                <svg width="100%" height="100%" class="scalextric-svg" style="position:absolute; top:0; left:0; z-index:0; pointer-events:none;">
+                    <defs>
+                        <linearGradient id="neonAzulAmarillo" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#38bdf8" />
+                            <stop offset="100%" stop-color="#fde047" />
+                        </linearGradient>
+                        <linearGradient id="neonMarronVioleta" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#d97706" />
+                            <stop offset="100%" stop-color="#8b5cf6" />
+                        </linearGradient>
+                        <filter id="glowAzul">
+                            <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                        <filter id="glowVioleta">
+                            <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    
+                    <path id="base-interior" d="" fill="none" class="track-base" />
+                    <path id="track-interior" d="" fill="none" stroke="url(#neonMarronVioleta)" stroke-width="8" filter="url(#glowVioleta)" class="track-line" style="opacity: 0.8;"/>
+                    
+                    <path id="base-lavado" d="" fill="none" class="track-base" />
+                    <path id="track-lavado" d="" fill="none" stroke="url(#neonAzulAmarillo)" stroke-width="8" filter="url(#glowAzul)" class="track-line" style="opacity: 0.8;"/>
+                </svg>
+
+                <div class="canvas-grid" id="canvas-grid" style="position:relative; z-index:1;">
+                    <!-- Los boxes se agregarán con Javascript -->
+                </div>
+
+                <!-- Pantalla Digital LED de Publicidad / Sponsors (Área Central) -->
+                <div id="sponsor-screen-container" class="sponsor-screen-container">
+                    <div class="sponsor-screen-frame">
+                        <div class="screen-header">
+                            <span class="screen-badge"><i class='bx bx-broadcast bx-flashing'></i> SPONSORS OFICIALES</span>
+                            <div class="screen-controls-mini">
+                                <button onclick="prevSponsor()" title="Anterior"><i class='bx bx-chevron-left'></i></button>
+                                <button id="btn-toggle-play" onclick="toggleSponsorPlay()" title="Pausar/Reproducir"><i class='bx bx-pause'></i></button>
+                                <button onclick="nextSponsor()" title="Siguiente"><i class='bx bx-chevron-right'></i></button>
+                            </div>
+                        </div>
+                        <div class="screen-media-wrapper" id="screen-media-wrapper"></div>
+                        <div class="screen-footer">
+                            <div class="sponsor-info">
+                                <div class="sponsor-title" id="sponsor-title">Cargando anuncios...</div>
+                                <div class="sponsor-subtitle" id="sponsor-subtitle">Aura Racing Telemetry</div>
+                            </div>
+                            <div class="sponsor-progress-bar"><div class="sponsor-progress-fill" id="sponsor-progress"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Vista de Métricas -->
+        <main class="main-content" id="metrics-view" style="display: none;">
+            <div class="metrics-header">
+                <h2>Panel de Métricas y Estadísticas</h2>
+            </div>
+            
+            <div class="metrics-cards">
+                <div class="metric-card">
+                    <div class="metric-title">Lavados Totales</div>
+                    <div class="metric-value" id="metric-total-lavados">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Recaudación Total</div>
+                    <div class="metric-value" id="metric-total-revenue">$0</div>
+                </div>
+                <div class="metric-card highlight">
+                    <div class="metric-title">Ganancia Neta</div>
+                    <div class="metric-value" id="metric-net-profit">$0</div>
+                </div>
+            </div>
+            
+            <div class="metrics-filters">
+                <label>Desde: <input type="date" id="filter-date-from"></label>
+                <label>Hasta: <input type="date" id="filter-date-to"></label>
+                <label>Servicio: 
+                    <select id="filter-service">
+                        <option value="all">Todos</option>
+                        <option value="express_auto">Lavado Express Auto</option>
+                        <option value="express_camioneta">Lavado Express Camioneta</option>
+                        <option value="completo_auto">Lavado Completo Auto</option>
+                        <option value="completo_camioneta">Lavado Completo Camioneta</option>
+                        <option value="solo_lavado">Solo Lavado (Heredado)</option>
+                        <option value="solo_secado">Solo Interior (Heredado)</option>
+                        <option value="lavado_secado">Lavado + Interior (Heredado)</option>
+                    </select>
+                </label>
+                <button class="btn btn-primary" id="btn-apply-filters">Filtrar</button>
+                <button class="btn btn-danger" id="btn-clear-history" style="margin-left: auto; background: #ef4444; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer;">Borrar Historial</button>
+            </div>
+            
+            <div class="metrics-table-container">
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Patente</th>
+                            <th>Fecha y Hora</th>
+                            <th>Servicio</th>
+                            <th>Recaudación</th>
+                            <th>Ganancia</th>
+                        </tr>
+                    </thead>
+                    <tbody id="metrics-table-body"></tbody>
+                </table>
+            </div>
+        </main>
+
+        <!-- Vista de Reservas -->
+        <main class="main-content" id="reservas-view" style="display: none;">
+            <div class="metrics-header">
+                <h2>Reservas / Cola de Espera</h2>
+            </div>
+            
+            <div class="reservas-container">
+                <p>Los autos pagados desde el celular (PWA) aparecerán aquí en tiempo real.</p>
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Patente</th>
+                            <th>Servicio</th>
+                            <th>Teléfono</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reservas-table-body"></tbody>
+                </table>
+            </div>
+        </main>
+
+        <!-- Vista de Cámara de Ingreso -->
+        <main class="main-content" id="camara-view" style="display: none;">
+            <div class="metrics-header">
+                <h2>Cámara de Ingreso LPR</h2>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh; background: #0a0a0a; border-radius: 12px; border: 2px dashed #222; box-shadow: inset 0 0 50px rgba(0,0,0,0.5); overflow: hidden; position: relative;">
+                <video id="camera-stream" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
+                
+                <div id="camera-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; border: 4px solid rgba(255, 215, 0, 0.3);">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 300px; border: 3px solid #ffd700; border-radius: 12px; box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);">
+                        <div style="position: absolute; top: -16px; left: 16px; background: #0a0a0a; color: #ffd700; padding: 0 10px; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px;">ZONA DE ESCANEO LPR</div>
+                        <div style="width: 100%; height: 3px; background: rgba(255, 215, 0, 0.9); box-shadow: 0 0 10px rgba(255, 215, 0, 1); position: absolute; top: 0; animation: scan 2.5s ease-in-out infinite alternate;"></div>
+                    </div>
+                </div>
+
+                <div id="camera-loading" style="display: flex; flex-direction: column; align-items: center;">
+                    <i class='bx bx-cctv' style="font-size: 6rem; color: #333; margin-bottom: 20px;"></i>
+                    <p style="color: #9ca3af; font-size: 1.5rem; font-weight: bold; letter-spacing: 1px;">Cámara Desconectada</p>
+                    <p style="color: #6b7280; margin-top: 5px;">(Sistema de Reconocimiento Automático de Patentes)</p>
+                    <button class="btn btn-primary" id="btn-start-camera" style="margin-top: 30px; font-size: 1.2rem; padding: 12px 24px; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-power-off'></i> Encender Cámara
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Vista de Reseñas de Clientes -->
+        <main class="main-content" id="client-reviews-view" style="display: none;">
+            <div class="metrics-header">
+                <h2>Reseñas de Clientes</h2>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="review-filter" placeholder="Buscar patente o teléfono..." class="price-input" style="padding: 8px 12px; width: 250px;" onkeyup="if(window.filterReviews) window.filterReviews(this.value)">
+                    <button class="btn btn-primary" onclick="if(window.fetchClientReviews) window.fetchClientReviews()" style="display: flex; align-items: center; gap: 5px;">
+                        <i class='bx bx-refresh'></i> Actualizar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="metrics-table-container">
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Patente</th>
+                            <th>Teléfono</th>
+                            <th>Servicio</th>
+                            <th>Calificación</th>
+                            <th>Comentario</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="client-reviews-table-body">
+                        <tr><td colspan="4" style="text-align: center; color: #9ca3af; padding: 20px;">Cargando reseñas...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <!-- Vista de Promociones y Fidelidad por Patente -->
+        <main class="main-content" id="promociones-view" style="display: none; padding: 2rem; overflow-y: auto;">
+            <div class="metrics-header" style="margin-bottom: 2rem;">
+                <div>
+                    <h2><i class='bx bx-gift' style="color: #38bdf8;"></i> Promociones & Beneficios por Patente</h2>
+                    <p style="color: var(--text-secondary); margin-top: 5px;">Asigná descuentos, lavados gratis y beneficios especiales a patentes individuales o grupos de vehículos.</p>
+                </div>
+                <button class="btn btn-primary" onclick="openAddPromoModal()" style="display: flex; align-items: center; gap: 8px; padding: 12px 20px;">
+                    <i class='bx bx-plus-circle' style="font-size: 1.2rem;"></i> Crear Nueva Promoción / Grupo
+                </button>
+            </div>
+
+            <!-- Regla de Fidelidad por Defecto (Lavado Gratis cada N lavados) -->
+            <div class="card" style="padding: 1.5rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 2rem; box-shadow: var(--shadow-sm);">
+                <h3 style="color: #38bdf8; font-size: 1.15rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class='bx bx-trophy'></i> Programa de Fidelidad Automático por Patente (F1 Club)
+                </h3>
+                <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 18px;">
+                    Premia automáticamente a tus clientes según la cantidad de lavados acumulados de su patente.
+                </p>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+                    <div style="flex: 1; min-width: 220px;">
+                        <label style="display: block; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">Cada cuántos lavados premiar:</label>
+                        <select id="promo-fidelidad-frecuencia" class="price-input" style="width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; color: #fff;">
+                            <option value="3">Cada 3 Lavados</option>
+                            <option value="5" selected>Cada 5 Lavados (Recomendado)</option>
+                            <option value="8">Cada 8 Lavados</option>
+                            <option value="10">Cada 10 Lavados</option>
+                        </select>
+                    </div>
+
+                    <div style="flex: 1; min-width: 220px;">
+                        <label style="display: block; font-weight: 600; color: #e2e8f0; margin-bottom: 6px;">Premio al alcanzar el objetivo:</label>
+                        <select id="promo-fidelidad-premio" class="price-input" style="width: 100%; padding: 10px; background: #0f172a; border: 1px solid var(--border-color); border-radius: 8px; color: #fff;">
+                            <option value="100">Próximo Lavado 100% GRATIS</option>
+                            <option value="50">50% de Descuento en el Próximo Lavado</option>
+                            <option value="30">30% de Descuento en el Próximo Lavado</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-end;">
+                        <button class="btn btn-primary" onclick="handleSaveFidelidadConfig()" style="padding: 11px 20px; border-radius: 8px;">
+                            <i class='bx bx-save'></i> Guardar Regla de Fidelidad
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grilla de Promociones Específicas por Patente / Grupo -->
+            <div id="promociones-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;"></div>
+        </main>
+
+        <!-- Vista de Configuración -->
+        <main class="main-content" id="config-view" style="display: none; padding: 2rem; overflow-y: auto;">
+            <div class="metrics-header" style="margin-bottom: 2rem;">
+                <div>
+                    <h2><i class='bx bx-cog'></i> Configuración</h2>
+                    <p style="color: var(--text-secondary); margin-top: 5px;">Ajusta los tiempos, precios y contacto de tu lavadero.</p>
+                </div>
+                <button class="btn btn-primary" id="save-config" style="padding: 12px 24px; font-size: 1.1rem;"><i class='bx bx-save'></i> Guardar Cambios</button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div class="card" style="padding: 1.5rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 12px;">
+                    <h3 class="section-title" style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: var(--primary-color);"><i class='bx bx-time'></i> Tiempos de Servicio</h3>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">Tiempo de Lavado:</label>
+                        <div class="time-inputs" style="display: flex; gap: 10px; align-items: center;">
+                            <input type="number" id="lavado-min" min="0" max="60" value="0" class="price-input" style="width: 70px;">
+                            <span>min</span>
+                            <input type="number" id="lavado-sec" min="0" max="59" value="5" class="price-input" style="width: 70px;">
+                            <span>seg</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 5px;">Tiempo de Interior:</label>
+                        <div class="time-inputs" style="display: flex; gap: 10px; align-items: center;">
+                            <input type="number" id="secado-min" min="0" max="60" value="0" class="price-input" style="width: 70px;">
+                            <span>min</span>
+                            <input type="number" id="secado-sec" min="0" max="59" value="5" class="price-input" style="width: 70px;">
+                            <span>seg</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card" style="padding: 1.5rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 12px;">
+                    <h3 class="section-title" style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: var(--primary-color);"><i class='bx bxl-whatsapp'></i> Contacto</h3>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 5px;">Número de WhatsApp:</label>
+                        <input type="text" id="config-whatsapp" placeholder="Ej: 5491123456789" class="price-input" style="width: 100%;">
+                        <small style="color: #6b7280; font-size: 0.8rem; margin-top: 8px; display: block;">Ingresa el código de país sin el + (ej. 549...)</small>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 1.5rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 12px;">
+                    <h3 class="section-title" style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: var(--primary-color);"><i class='bx bx-dollar-circle'></i> Precios</h3>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">Precio Lavado Express Auto ($):</label>
+                        <input type="number" id="precio-express-auto" min="0" value="0" class="price-input" style="width: 100%;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">Precio Lavado Express Camioneta ($):</label>
+                        <input type="number" id="precio-express-camioneta" min="0" value="0" class="price-input" style="width: 100%;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">Precio Lavado Completo Auto ($):</label>
+                        <input type="number" id="precio-completo-auto" min="0" value="0" class="price-input" style="width: 100%;">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 5px;">Precio Lavado Completo Camioneta ($):</label>
+                        <input type="number" id="precio-completo-camioneta" min="0" value="0" class="price-input" style="width: 100%;">
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 1.5rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 12px; grid-column: span 1 / -1;">
+                    <h3 class="section-title" style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: var(--primary-color);"><i class='bx bx-calendar-event'></i> Horarios y Días de Apertura</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 5px;">Días de Atención:</label>
+                            <input type="text" id="config-dias-atencion" placeholder="Ej: Lunes a Sábados" class="price-input" style="width: 100%;" value="Lunes a Sábados">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 5px;">Horario de Apertura:</label>
+                            <input type="time" id="config-hora-apertura" class="price-input" style="width: 100%; color-scheme: dark;" value="08:00">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; margin-bottom: 5px;">Horario de Cierre:</label>
+                            <input type="time" id="config-hora-cierre" class="price-input" style="width: 100%; color-scheme: dark;" value="20:00">
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #e2e8f0; font-weight: 500;">
+                            <input type="checkbox" id="config-atiende-domingos" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                            <span><i class='bx bx-sun' style="color: #f59e0b;"></i> Abre Domingos</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #e2e8f0; font-weight: 500;">
+                            <input type="checkbox" id="config-atiende-feriados" style="width: 18px; height: 18px; accent-color: #0ea5e9;">
+                            <span><i class='bx bx-calendar-star' style="color: #ec4899;"></i> Abre Feriados</span>
+                        </label>
+                    </div>
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">Aviso / Mensaje de Feriados o Especiales:</label>
+                        <input type="text" id="config-mensaje-feriados" placeholder="Ej: ¡Atención especial en feriados de 09:00 a 18:00 hs!" class="price-input" style="width: 100%;">
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Vista de Gestión de Publicidad & Sponsors -->
+        <main class="main-content" id="sponsors-view" style="display: none;">
+            <div class="metrics-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <div>
+                    <h2>Gestión de Publicidad & Sponsors</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Administrá las imágenes y videos que se proyectan en la pantalla central del circuito.</p>
+                </div>
+                <button class="btn btn-primary" onclick="openAddSponsorModal()" style="display: flex; align-items: center; gap: 8px; padding: 12px 20px;">
+                    <i class='bx bx-plus-circle' style="font-size: 1.2rem;"></i> Nuevo Anuncio / Sponsor
+                </button>
+            </div>
+
+            <div class="sponsors-grid" id="sponsors-list-container"></div>
+        </main>
+
+        <!-- Vista de Notificaciones Push (OneSignal) -->
+        <main class="main-content" id="push-notifications-view" style="display: none; padding: 2rem; overflow-y: auto;">
+            <div class="metrics-header" style="margin-bottom: 2rem;">
+                <div>
+                    <h2><i class='bx bx-bell' style="color: #38bdf8;"></i> Notificaciones Push (OneSignal)</h2>
+                    <p style="color: var(--text-secondary); margin-top: 5px;">Enviá alertas en tiempo real directo a la pantalla del celular de tus clientes.</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+                <!-- Tarjeta Enviar Notificación Push -->
+                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
+                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-paper-plane'></i> Enviar Notificación Push Masiva o Individual
+                    </h3>
+
+                    <form id="form-send-push" onsubmit="handleSendPushSubmit(event)">
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Destinatario:</label>
+                            <select id="push-destinatario-select" class="price-input" style="width: 100%; background: #0f172a; color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);" onchange="togglePushPhoneInput(this.value)">
+                                <option value="all">Todos los Clientes Suscriptos (Masivo)</option>
+                                <option value="specific">Número de Teléfono Específico</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="group-push-phone" style="display: none; margin-bottom: 18px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Número de Teléfono del Cliente:</label>
+                            <input type="text" id="push-phone-input" placeholder="Ej: 1112345678" class="price-input" style="width: 100%;">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Título del Aviso:</label>
+                            <input type="text" id="push-titulo-input" placeholder="Ej: ¡Tu auto está listo! 🚗" class="price-input" style="width: 100%;" value="L1deres AutoWash" required>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Mensaje / Alerta:</label>
+                            <textarea id="push-mensaje-input" rows="3" placeholder="Ej: Tu vehículo ya finalizó el lavado completo en el Box 1. Podés retirarlo." class="price-input" style="width: 100%; resize: vertical;" required></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 24px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Enlace de Destino (Opcional):</label>
+                            <input type="url" id="push-url-input" placeholder="https://l1deres.site/cliente/" value="https://l1deres.site/cliente/" class="price-input" style="width: 100%;">
+                        </div>
+
+                        <div id="push-send-alert" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 18px; font-size: 0.9rem; font-weight: 600;"></div>
+
+                        <button type="submit" id="btn-send-push-submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class='bx bx-send'></i> Enviar Notificación Push Ahora
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tarjeta Configuración Credenciales OneSignal -->
+                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
+                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-cog'></i> Configuración de Credenciales OneSignal
+                    </h3>
+                    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
+                        Ingresá tus claves de OneSignal de tu panel oficial (<a href="https://onesignal.com" target="_blank" style="color: #38bdf8; text-decoration: underline;">onesignal.com</a>).
+                    </p>
+
+                    <form id="form-onesignal-config" onsubmit="handleSaveOneSignalConfig(event)">
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">OneSignal App ID:</label>
+                            <input type="text" id="onesignal-app-id-input" value="263bf04a-ad7a-4d11-842d-210cea51387c" class="price-input" style="width: 100%;" required>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 24px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">OneSignal REST API Key:</label>
+                            <input type="password" id="onesignal-rest-key-input" placeholder="Ej: os_v2_app_..." class="price-input" style="width: 100%;" required>
+                        </div>
+
+                        <div id="onesignal-cfg-alert" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 18px; font-size: 0.9rem; font-weight: 600;"></div>
+
+                        <button type="submit" id="btn-save-onesignal-cfg" class="btn btn-secondary" style="width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 700; background: #334155; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class='bx bx-save'></i> Guardar Credenciales OneSignal
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+        <!-- Vista de Gestión Socio Fundador Black -->
+        <main class="main-content" id="socio-black-view" style="display: none; padding: 2rem; overflow-y: auto;">
+            <div class="metrics-header" style="margin-bottom: 2rem;">
+                <div>
+                    <h2><i class='bx bx-crown' style="color: #fbbf24;"></i> Gestión Socio Fundador Black</h2>
+                    <p style="color: var(--text-secondary); margin-top: 5px;">Registrá las patentes pertenecientes a Socios Black y configurá sus beneficios y condiciones de premios.</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 2rem;">
+                <!-- Cargar Patente Socio Black -->
+                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
+                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: #fbbf24; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-plus-circle'></i> Registrar Nueva Patente Socio Black
+                    </h3>
+                    <form onsubmit="handleAddSocioBlack(event)">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Dominio / Patente:</label>
+                            <input type="text" id="black-patente-input" placeholder="Ej: AA123BC" class="price-input" style="width: 100%; text-transform: uppercase;" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Nombre del Titular / Socio:</label>
+                            <input type="text" id="black-titular-input" placeholder="Ej: Omar" class="price-input" style="width: 100%;" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Teléfono / WhatsApp:</label>
+                            <input type="tel" id="black-telefono-input" placeholder="Ej: 1112345678" class="price-input" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Observaciones / Notas:</label>
+                            <input type="text" id="black-obs-input" placeholder="Ej: Socio Fundador Vip" class="price-input" style="width: 100%;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; background: linear-gradient(135deg, #0f172a, #1e293b); color: #fbbf24; border: 1px solid #fbbf24; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class='bx bx-check-shield'></i> Registrar Patente Socio Black
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Configurar Condiciones y Premios Socio Black -->
+                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
+                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-slider-alt'></i> Condiciones & Beneficios Socio Black
+                    </h3>
+                    <form onsubmit="handleSaveSocioBlackConfig(event)">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Descuento Permanente (% OFF):</label>
+                            <input type="number" id="black-discount-input" min="0" max="100" value="20" class="price-input" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Prioridad en Pit Lane:</label>
+                            <select id="black-priority-input" class="price-input" style="width: 100%; background: #0f172a; color: white; padding: 10px; border-radius: 8px;">
+                                <option value="1">Prioridad Absoluta (Sin Esperas)</option>
+                                <option value="0">Prioridad Normal</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Beneficio Adicional Incluido:</label>
+                            <input type="text" id="black-extra-input" value="Encerado rápido con polímeros sin cargo" class="price-input" style="width: 100%;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class='bx bx-save'></i> Guardar Condiciones Black
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabla de Patentes Black Registradas -->
+            <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px;">
+                <h3 style="color: #fbbf24; font-size: 1.2rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                    <i class='bx bx-list-check'></i> Listado de Patentes Socios Fundadores Black (<span id="black-count-text">0</span>)
+                </h3>
+                <div class="metrics-table-container">
+                    <table class="metrics-table">
+                        <thead>
+                            <tr>
+                                <th>Patente</th>
+                                <th>Titular</th>
+                                <th>Teléfono</th>
+                                <th>Observaciones</th>
+                                <th>Fecha Registro</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="black-table-body">
+                            <tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 20px;">No hay patentes registradas en Socio Black.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Vista de Gestión Socio Fundador Gold -->
+        <main class="main-content" id="socio-gold-view" style="display: none; padding: 2rem; overflow-y: auto;">
+            <div class="metrics-header" style="margin-bottom: 2rem;">
+                <div>
+                    <h2><i class='bx bxs-award' style="color: #f59e0b;"></i> Gestión Socio Fundador Gold</h2>
+                    <p style="color: var(--text-secondary); margin-top: 5px;">Registrá las patentes pertenecientes a Socios Gold y configurá sus beneficios y condiciones de premios.</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 2rem;">
+                <!-- Cargar Patente Socio Gold -->
+                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid #f59e0b; border-radius: 16px; box-shadow: var(--shadow-sm);">
+                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 12px; color: #f59e0b; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-plus-circle'></i> Registrar Nueva Patente Socio Gold
+                    </h3>
+                    <form onsubmit="handleAddSocioGold(event)">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Dominio / Patente:</label>
+                            <input type="text" id="gold-patente-input" placeholder="Ej: AB987CD" class="price-input" style="width: 100%; text-transform: uppercase;" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Nombre del Titular / Socio:</label>
+                            <input type="text" id="gold-titular-input" placeholder="Ej: Omar" class="price-input" style="width: 100%;" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Teléfono / WhatsApp:</label>
+                            <input type="tel" id="gold-telefono-input" placeholder="Ej: 1198765432" class="price-input" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Observaciones / Notas:</label>
+                            <input type="text" id="gold-obs-input" placeholder="Ej: Socio Gold Pase Definitivo" class="price-input" style="width: 100%;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; background: linear-gradient(135deg, #d97706, #f59e0b); color: #ffffff; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class='bx bxs-award'></i> Registrar Patente Socio Gold
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Configurar Condiciones y Premios Socio Gold -->
+                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
+                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: #f59e0b; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-slider-alt'></i> Condiciones & Beneficios Socio Gold
+                    </h3>
+                    <form onsubmit="handleSaveSocioGoldConfig(event)">
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Lavados Gratis por Mes:</label>
+                            <input type="number" id="gold-free-washes-input" min="0" max="10" value="1" class="price-input" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Descuento en Completo + Motor (% OFF):</label>
+                            <input type="number" id="gold-discount-input" min="0" max="100" value="35" class="price-input" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Beneficio Adicional Incluido:</label>
+                            <input type="text" id="gold-extra-input" value="Notificaciones Push prioritarias de Box en tiempo real" class="price-input" style="width: 100%;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class='bx bx-save'></i> Guardar Condiciones Gold
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabla de Patentes Gold Registradas -->
+            <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px;">
+                <h3 style="color: #f59e0b; font-size: 1.2rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                    <i class='bx bx-list-check'></i> Listado de Patentes Socios Fundadores Gold (<span id="gold-count-text">0</span>)
+                </h3>
+                <div class="metrics-table-container">
+                    <table class="metrics-table">
+                        <thead>
+                            <tr>
+                                <th>Patente</th>
+                                <th>Titular</th>
+                                <th>Teléfono</th>
+                                <th>Observaciones</th>
+                                <th>Fecha Registro</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gold-table-body">
+                            <tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 20px;">No hay patentes registradas en Socio Gold.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Vista de Cambiar Contraseña / Gestión de Usuarios -->
+        <main class="main-content" id="change-password-view" style="display: none; padding: 2rem; overflow-y: auto;">
+            <div class="metrics-header" style="margin-bottom: 2rem;">
+                <div>
+                    <h2><i class='bx bx-key' style="color: #38bdf8;"></i> Cambiar Contraseña / Usuarios</h2>
+                    <p style="color: var(--text-secondary); margin-top: 5px;">Actualizá las credenciales de tu cuenta o gestioná los usuarios habilitados.</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+                <!-- Tarjeta Formulario de Cambio de Clave -->
+                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
+                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-lock-open-alt'></i> Formulario de Actualización
+                    </h3>
+
+                    <form id="form-change-pass" onsubmit="handleChangePasswordSubmit(event)">
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Usuario a Actualizar:</label>
+                            <select id="change-pass-user-select" class="price-input" style="width: 100%; background: #0f172a; color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                <option value="current">Usuario Actual en Sesión</option>
+                                <option value="claudia@l1deres.com">Claudia (claudia@l1deres.com)</option>
+                                <option value="javier@l1deres.com">Javier (javier@l1deres.com)</option>
+                                <option value="admin@aura.com">Administrador (admin@aura.com)</option>
+                                <option value="empleado@aura.com">Empleado (empleado@aura.com)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Contraseña Actual:</label>
+                            <div class="login-pass-wrap" style="position: relative;">
+                                <input type="password" id="change-pass-current" placeholder="Clave actual (ej. 123456)" class="price-input" style="width: 100%; padding-right: 40px;" required>
+                                <button class="toggle-pass" type="button" onclick="toggleLoginPass(this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;">
+                                    <i class='bx bx-show'></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 18px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Nueva Contraseña:</label>
+                            <div class="login-pass-wrap" style="position: relative;">
+                                <input type="password" id="change-pass-new" placeholder="Mínimo 4 caracteres" class="price-input" style="width: 100%; padding-right: 40px;" required>
+                                <button class="toggle-pass" type="button" onclick="toggleLoginPass(this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;">
+                                    <i class='bx bx-show'></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 24px;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Confirmar Nueva Contraseña:</label>
+                            <div class="login-pass-wrap" style="position: relative;">
+                                <input type="password" id="change-pass-confirm" placeholder="Repetí la nueva clave" class="price-input" style="width: 100%; padding-right: 40px;" required>
+                                <button class="toggle-pass" type="button" onclick="toggleLoginPass(this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;">
+                                    <i class='bx bx-show'></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="change-pass-alert" style="display: none; padding: 12px; border-radius: 8px; margin-bottom: 18px; font-size: 0.9rem; font-weight: 600;"></div>
+
+                        <button type="submit" id="btn-save-pass" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <i class='bx bx-check-shield'></i> Guardar Nueva Contraseña
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Tarjeta Usuarios del Sistema -->
+                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
+                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: var(--primary-color); display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-group'></i> Usuarios Registrados en el Sistema
+                    </h3>
+                    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
+                        Los usuarios pueden ingresar usando su nombre o email con su clave correspondiente.
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        <!-- Usuario Claudia -->
+                        <div style="background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.2); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 42px; height: 42px; border-radius: 50%; background: rgba(56,189,248,0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800;">C</div>
+                                <div>
+                                    <div style="font-weight: 700; color: white;">Claudia</div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8;">claudia@l1deres.com</div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="background: rgba(16,185,129,0.2); color: #34d399; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">Administrador</span>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 123456</div>
+                            </div>
+                        </div>
+
+                        <!-- Usuario Javier -->
+                        <div style="background: rgba(15,23,42,0.6); border: 1px solid rgba(56,189,248,0.2); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 42px; height: 42px; border-radius: 50%; background: rgba(168,85,247,0.15); color: #c084fc; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800;">J</div>
+                                <div>
+                                    <div style="font-weight: 700; color: white;">Javier</div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8;">javier@l1deres.com</div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="background: rgba(16,185,129,0.2); color: #34d399; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">Administrador</span>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 123456</div>
+                            </div>
+                        </div>
+
+                        <!-- Usuario Admin -->
+                        <div style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 42px; height: 42px; border-radius: 50%; background: rgba(245,158,11,0.15); color: #fbbf24; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800;">A</div>
+                                <div>
+                                    <div style="font-weight: 700; color: white;">Admin Maestro</div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8;">admin@aura.com</div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="background: rgba(56,189,248,0.2); color: #38bdf8; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">Admin General</span>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 123456</div>
+                            </div>
+                        </div>
+
+                        <!-- Usuario Empleado -->
+                        <div style="background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); padding: 14px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 42px; height: 42px; border-radius: 50%; background: rgba(100,116,139,0.2); color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800;">E</div>
+                                <div>
+                                    <div style="font-weight: 700; color: white;">Empleado Pit Stop</div>
+                                    <div style="font-size: 0.8rem; color: #94a3b8;">empleado@aura.com</div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="background: rgba(234,179,8,0.2); color: #facc15; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">Empleado</span>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 123456</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Nuevo Sponsor / Publicidad -->
+    <div id="modal-sponsor" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class='bx bx-tv'></i> Agregar Publicidad / Sponsor</h3>
+                <button class="modal-close" onclick="closeAddSponsorModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-sponsor" onsubmit="saveSponsor(event)">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Título del Anuncio / Sponsor</label>
+                        <input type="text" id="sponsor-input-title" placeholder="Ej: Red Bull Racing" class="price-input" style="width: 100%;" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Tipo de Contenido</label>
+                        <select id="sponsor-input-type" class="price-input" style="width: 100%; background: #0f172a; color: white;" required>
+                            <option value="image">Imagen (URL o Banner)</option>
+                            <option value="video">Video (MP4 / WebM / Direct Link)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">URL del Recurso (Imagen o Video)</label>
+                        <input type="url" id="sponsor-input-url" placeholder="https://ejemplo.com/video.mp4 o imagen.jpg" class="price-input" style="width: 100%;" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Duración en Pantalla (Segundos)</label>
+                        <input type="number" id="sponsor-input-duration" min="3" max="60" value="7" class="price-input" style="width: 100%;" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Eslogan / Descripción (Opcional)</label>
+                        <input type="text" id="sponsor-input-subtitle" placeholder="Ej: Rendimiento de alta velocidad" class="price-input" style="width: 100%;">
+                    </div>
+                    <div class="modal-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddSponsorModal()" style="background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">Guardar Anuncio</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Crear Promoción por Patente -->
+    <div class="modal-overlay" id="add-promo-modal" style="display: none;">
+        <div class="modal-card" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3><i class='bx bx-gift'></i> Nueva Promoción / Beneficio por Patente</h3>
+                <button class="modal-close" onclick="closeAddPromoModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-promo" onsubmit="handleSaveCustomPromo(event)">
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Título de la Promoción:</label>
+                        <input type="text" id="promo-title-input" placeholder="Ej: 50% OFF Cliente Frecuente" class="price-input" style="width: 100%;" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Patente Específica (Opcional - dejar en blanco para todas):</label>
+                        <input type="text" id="promo-patente-input" placeholder="Ej: AB123CD" class="price-input" style="width: 100%; text-transform: uppercase;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Porcentaje de Descuento (%):</label>
+                        <input type="number" id="promo-descuento-input" min="1" max="100" placeholder="Ej: 50" value="20" class="price-input" style="width: 100%;" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Descripción para el Cliente:</label>
+                        <textarea id="promo-desc-input" rows="3" placeholder="Ej: Presentando esta patente tenés un 50% de descuento automático en tu lavado." class="price-input" style="width: 100%; resize: vertical;"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700;">
+                        <i class='bx bx-check'></i> Guardar Promoción
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Dashboard Admin -->
+    <script src="script.js?v=1.6"></script>
+</body>
+</html>

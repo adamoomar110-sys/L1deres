@@ -49,7 +49,7 @@ body::before {
     flex: 1;
     position: relative;
     width: 100%;
-    max-width: 500px;
+    max-width: 480px;
     margin: 0 auto;
     overflow: hidden;
 }
@@ -65,8 +65,15 @@ body::before {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 20px;
-    background: url('../background_neon.png') no-repeat center center / cover;
+    padding: 6px 4px;
+    background: #020617;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.screen::-webkit-scrollbar {
+    display: none;
 }
 
 .screen.active {
@@ -78,13 +85,14 @@ body::before {
     background: rgba(17, 17, 17, 0.9);
     border: 1px solid #333;
     border-radius: 16px;
-    padding: 30px 20px;
+    padding: 16px 8px;
     width: 100%;
-    max-width: 400px;
+    max-width: 460px;
     text-align: center;
     box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
     backdrop-filter: blur(10px);
     position: relative;
+    margin: auto;
 }
 
 .card h1, .card h2 {
@@ -398,45 +406,46 @@ input:focus {
     width: 100%;
     height: 100%;
     position: relative;
-    background-color: #111;
-    background-image: 
-      repeating-linear-gradient(45deg, #1a1a1a 25%, transparent 25%, transparent 75%, #1a1a1a 75%, #1a1a1a),
-      repeating-linear-gradient(45deg, #1a1a1a 25%, #111 25%, #111 75%, #1a1a1a 75%, #1a1a1a);
-    background-position: 0 0, 15px 15px;
-    background-size: 30px 30px;
+    background-color: #0b0f19;
 }
 
-/* Widget de Demora Posicionado sobre INTERIOR */
+/* Widget de Demora Posicionado ARRIBA de la pista */
 .client-status-board {
-    position: absolute;
-    top: 6px;
-    left: 31%;
-    transform: translateX(-50%);
+    position: relative;
+    width: 100%;
+    margin-bottom: 10px;
     z-index: 10;
     background: rgba(15, 23, 42, 0.95);
     border: 1.5px solid #334155;
-    border-radius: 10px;
-    padding: 4px 10px;
+    border-radius: 12px;
+    padding: 8px 16px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(8px);
+    box-sizing: border-box;
+}
+
+.client-status-board .status-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .client-status-board .status-title {
-    font-size: 0.55rem;
-    font-weight: 700;
+    font-size: 0.7rem;
+    font-weight: 800;
     color: #94a3b8;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
 .client-status-board .status-time {
-    font-size: 0.9rem;
+    font-size: 1.25rem;
     font-weight: 900;
     color: #fff;
     font-family: 'Racing Sans One', sans-serif;
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
 }
 
 .client-status-board .status-badge {
@@ -471,84 +480,107 @@ input:focus {
     border: 1px solid #ef4444;
 }
 
-/* Grilla Responsiva para el Lienzo del Cliente */
-.live-track-container {
+/* Lienzo Responsivo Zona de Espera Cliente */
+.track-mirror-wrapper {
+    background: #090d16;
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 18px;
+    padding: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(56, 189, 248, 0.1);
+    overflow: hidden;
     position: relative;
     width: 100%;
-    height: 280px;
-    margin: 12px 0;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #000;
-    border: 1.5px solid rgba(225, 6, 0, 0.4);
-    box-shadow: 0 0 20px rgba(225, 6, 0, 0.2);
+    box-sizing: border-box;
+    margin: 15px 0;
 }
 
 .client-canvas-area {
     width: 100%;
-    height: 100%;
-    position: relative;
+    min-height: 310px;
+    background: radial-gradient(circle at center, #111827 0%, #030712 100%);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 8px;
+    box-sizing: border-box;
 }
 
-.client-canvas-area .canvas-grid {
-    display: grid !important;
-    grid-template-columns: repeat(6, 1fr) !important;
-    grid-template-rows: 24px repeat(8, 1fr) !important;
-    width: 100% !important;
-    height: 100% !important;
-    padding: 6px !important;
-    gap: 2px !important;
-    box-sizing: border-box !important;
+/* Grid del cliente — 2 columnas con boxes más altos */
+.client-canvas-area .espera-grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 290px;
+    width: 100%;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
 }
 
 .client-canvas-area .grid-box {
-    width: 100% !important;
-    height: 100% !important;
+    width: 100%;
+    height: 62px;
+    min-height: 62px;
+    background: rgba(15, 23, 42, 0.75);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 4px;
-    background: linear-gradient(145deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.8));
+    border-radius: 10px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.6rem;
-    font-weight: bold;
-    backdrop-filter: blur(4px);
+    justify-content: center;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.95rem;
+    position: relative;
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.client-canvas-area .grid-box.box-occupied-lavado {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8;
+    box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.3);
+}
+
+.client-canvas-area .grid-box.box-occupied-secado {
+    background: rgba(217, 119, 6, 0.15);
+    border-color: #f59e0b;
+    box-shadow: inset 0 0 20px rgba(245, 158, 11, 0.3);
+}
+
+.client-canvas-area .grid-box.box-occupied-completo {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10b981;
+    box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .client-canvas-area .zone-title {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Racing Sans One', sans-serif;
-    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
     text-transform: uppercase;
-    font-size: 0.55rem;
-    letter-spacing: 0.3px;
+    font-size: 0.95rem;
+    letter-spacing: 1.5px;
     color: #fff;
-    text-shadow: 0 0 6px var(--primary-color);
-    border-bottom: 2px solid var(--primary-color);
-    background: rgba(15, 23, 42, 0.85);
-    border-radius: 4px 4px 0 0;
-    padding: 2px;
+    text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+    border-bottom: 3px solid var(--primary-color);
+    margin-bottom: 8px;
+    background: rgba(15, 23, 42, 0.7);
+    border-radius: 6px 6px 0 0;
+    padding: 4px;
 }
 
-/* Pantalla Digital LED de Publicidad adaptada al cliente */
-.sponsor-screen-container {
-    position: absolute;
-    top: 67%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 5;
-    width: 170px;
-    height: 105px;
-}
-
+/* Pantalla Digital LED de Publicidad adaptada al cliente (Ubicación limpia en área libre izquierda) */
 .client-canvas-area .sponsor-screen-container {
     width: 170px !important;
-    height: 105px !important;
-    top: 55% !important;
-    left: 41% !important;
+    height: 100px !important;
+    top: 73% !important;
+    left: 25% !important;
     transform: translate(-50%, -50%) !important;
     position: absolute !important;
     z-index: 5 !important;
@@ -655,18 +687,75 @@ input:focus {
     font-size: 0.6rem !important;
 }
 
-/* Estilo para los autos en el mapa del cliente (Patentes ocultas) */
+/* Vehículos en el Cliente */
 .car-wrapper {
     position: absolute;
-    width: 28px;
-    height: 28px;
-    z-index: 10;
-    pointer-events: none;
-    transition: left 0.5s linear, top 0.5s linear;
+    width: 60px;
+    height: 60px;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+}
+
+.car-wrapper.solo-secado .auto-icon {
+    filter: hue-rotate(270deg) drop-shadow(0 0 10px #a855f7);
+}
+
+.car-wrapper.completo .auto-icon {
+    filter: drop-shadow(0 0 10px #3b82f6);
+}
+
+.car-wrapper.solo-lavado .auto-icon {
+    filter: hue-rotate(90deg) drop-shadow(0 0 10px #22c55e);
 }
 
 .auto-icon {
-    width: 28px;
-    height: 28px;
+    width: 150%;
+    height: 150%;
     object-fit: contain;
+    mix-blend-mode: multiply;
+    filter: brightness(1.1) contrast(1.2) drop-shadow(0 5px 5px rgba(0,0,0,0.5));
 }
+
+/* Underglow neón igual que admin */
+.car-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2.5cm; height: 1.2cm;
+    border-radius: 50%;
+    filter: blur(15px);
+    z-index: -1;
+    opacity: 0.85;
+}
+
+/* Colores por tipo de servicio */
+.car-wrapper.solo-lavado::before { background: #3b82f6; }
+.car-wrapper.solo-secado::before { background: #22c55e; }
+.car-wrapper.completo::before    { background: #f97316; }
+
+/* Ocultar patentes en vista cliente por privacidad pero mostrar el timer superior */
+.car-plate { display: none !important; }
+
+.car-timer {
+    position: absolute;
+    top: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #ffffff;
+    padding: 2px 7px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+    white-space: nowrap;
+    text-shadow: 0 0 5px rgba(0,0,0,0.8);
+    z-index: 30;
+    pointer-events: none;
+    display: block !important;
+}
+
+.car-wrapper.solo-lavado .car-timer { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+.car-wrapper.solo-secado .car-timer { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+.car-wrapper.completo .car-timer    { background: #f97316; box-shadow: 0 0 10px #f97316; }
+
