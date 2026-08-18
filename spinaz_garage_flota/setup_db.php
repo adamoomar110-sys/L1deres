@@ -122,6 +122,15 @@ CREATE TABLE IF NOT EXISTS `spinaz_service_orders` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `spinaz_chat_messages` (
+  `id` VARCHAR(64) PRIMARY KEY,
+  `channel` VARCHAR(50) NOT NULL,
+  `sender` VARCHAR(50) NOT NULL,
+  `message` TEXT NOT NULL,
+  `is_read` TINYINT(1) DEFAULT 0,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `spinaz_settings` (
   `setting_key` VARCHAR(100) PRIMARY KEY,
   `setting_value` LONGTEXT NOT NULL,

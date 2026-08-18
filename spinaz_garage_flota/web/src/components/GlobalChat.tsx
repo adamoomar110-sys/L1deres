@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageCircle, Send, X, ShieldAlert, Wrench, Droplets, Car } from 'lucide-react';
+import { MessageCircle, Send, X, ShieldAlert, Wrench, Droplets, Car, Sparkles } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { ChatMessage } from '@/lib/types';
 
@@ -22,13 +22,15 @@ const SENDER_STYLES: Record<string, string> = {
   TALLER: 'text-yellow-500',
   LUBRICENTRO: 'text-blue-400',
   LAVADERO: 'text-cyan-400',
+  CHOFER: 'text-lime-400',
+  CHOFERES: 'text-lime-400'
 };
 
 const ADMIN_TABS = [
-  { id: 'TALLER', icon: Wrench, color: 'text-yellow-500', activeBg: 'bg-yellow-500/20 border-yellow-500/50' },
-  { id: 'LUBRICENTRO', icon: Droplets, color: 'text-blue-400', activeBg: 'bg-blue-500/20 border-blue-500/50' },
-  { id: 'LAVADERO', icon: Droplets, color: 'text-cyan-400', activeBg: 'bg-cyan-500/20 border-cyan-500/50' },
-  { id: 'CHOFERES', icon: Car, color: 'text-lime-400', activeBg: 'bg-lime-500/20 border-lime-500/50' },
+  { id: 'TALLER', label: 'Taller', icon: Wrench, color: 'text-yellow-500', activeBg: 'bg-yellow-500/20 border-yellow-500/50' },
+  { id: 'LUBRICENTRO', label: 'Lubri', icon: Droplets, color: 'text-blue-400', activeBg: 'bg-blue-500/20 border-blue-500/50' },
+  { id: 'LAVADERO', label: 'Lavadero', icon: Droplets, color: 'text-cyan-400', activeBg: 'bg-cyan-500/20 border-cyan-500/50' },
+  { id: 'CHOFERES', label: 'Choferes', icon: Car, color: 'text-lime-400', activeBg: 'bg-lime-500/20 border-lime-500/50' },
 ];
 
 export default function GlobalChat({ module, accentColor = 'yellow' }: GlobalChatProps) {
@@ -42,88 +44,83 @@ export default function GlobalChat({ module, accentColor = 'yellow' }: GlobalCha
   const resolveChannel = (mod: string) => mod === 'CHOFER' ? 'CHOFERES' : mod;
   const [activeChannel, setActiveChannel] = useState(module === 'ADMIN' ? 'TALLER' : resolveChannel(module));
   
-  // Refs to avoid stale closures in the realtime callback
-  const activeChannelRef = useRef(activeChannel);
-  const openRef = useRef(open);
-  
-  useEffect(() => { activeChannelRef.current = activeChannel; }, [activeChannel]);
-  useEffect(() => { openRef.current = open; }, [open]);
-
   const c = COLOR_MAP[accentColor] || COLOR_MAP.yellow;
 
-  // Fetch messages whenever channel changes
-  const fetchMessages = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .select('*')
-      .eq('channel', activeChannel)
-      .order('created_at', { ascending: true })
-      .limit(50);
-    
-    if (data && !error) {
-      setMessages(data);
+  // Fetch messages
+  const fetchMessages = useCallback(async (silent = false) => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('channel', activeChannel)
+        .order('created_at', { ascending: true })
+        .limit(100);
+      
+      if (data && !error && Array.isArray(data)) {
+        setMessages(data);
+      }
+    } catch (e) {
+      if (!silent) console.error("Error cargando mensajes:", e);
     }
   }, [activeChannel]);
 
+  // Initial load on channel change or open
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
 
-  // Separate effect for realtime subscription — only created once per module
+  // Live polling: every 2.5s when open, every 10s when closed
   useEffect(() => {
-    const channel = supabase
-      .channel(`chat_realtime_${module}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, payload => {
-        const newMsg = payload.new as ChatMessage;
-        
-        // Only add if it belongs to the active channel (using ref to avoid stale closure)
-        if (newMsg.channel === activeChannelRef.current) {
-          setMessages(prev => [...prev, newMsg]);
-        }
-        
-        // Notify if chat is closed
-        if (!openRef.current) {
-          if (module === 'ADMIN' || newMsg.channel === resolveChannel(module)) {
-            setUnreadCount(prev => prev + 1);
-          }
-        }
-      })
-      .subscribe();
+    const intervalMs = open ? 2500 : 10000;
+    const interval = setInterval(() => {
+      fetchMessages(true);
+    }, intervalMs);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [module]); // Only re-subscribe when module changes (never in practice)
+    return () => clearInterval(interval);
+  }, [open, fetchMessages]);
 
-  // Auto-scroll and clear unread when opening
+  // Auto-scroll when messages change or chat is opened
   useEffect(() => {
     if (open) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       setUnreadCount(0);
     }
-  }, [messages, open]);
-
-  // Re-fetch when switching channels (admin tabs)
-  useEffect(() => {
-    if (open) fetchMessages();
-  }, [activeChannel, open, fetchMessages]);
+  }, [messages.length, open]);
 
   const handleSend = async () => {
     if (!newMessage.trim() || sending) return;
+    const text = newMessage.trim();
+    setNewMessage('');
     setSending(true);
-    
-    const { error } = await supabase.from('chat_messages').insert([{
+
+    const tempId = 'temp-' + Date.now();
+    const optimisticMsg: ChatMessage = {
+      id: tempId,
       channel: activeChannel,
       sender: module,
-      message: newMessage.trim()
-    }]);
+      message: text,
+      created_at: new Date().toISOString()
+    };
 
-    if (!error) {
-      setNewMessage('');
-    } else {
-      console.error(error);
+    setMessages(prev => [...prev, optimisticMsg]);
+
+    try {
+      const { error } = await supabase.from('chat_messages').insert([{
+        channel: activeChannel,
+        sender: module,
+        message: text
+      }]);
+
+      if (error) {
+        console.error("Error al enviar mensaje:", error);
+      } else {
+        fetchMessages(true);
+      }
+    } catch (err) {
+      console.error("Error al enviar mensaje:", err);
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   };
 
   const getSenderStyle = (senderName: string) => SENDER_STYLES[senderName] || 'text-lime-400';
@@ -145,7 +142,7 @@ export default function GlobalChat({ module, accentColor = 'yellow' }: GlobalCha
       <button
         onClick={() => setOpen(!open)}
         className={`fixed ${buttonPos} z-[90] w-14 h-14 ${c.btn} rounded-full flex items-center justify-center shadow-2xl ${c.glow} transition-all hover:scale-110 active:scale-95 border border-black/20`}
-        title="Abrir Chat de Comunicación"
+        title="Abrir Chat Interno"
       >
         {open ? <X size={24} className="text-black" /> : <MessageCircle size={26} className="text-black" />}
         {!open && unreadCount > 0 && (
@@ -157,17 +154,31 @@ export default function GlobalChat({ module, accentColor = 'yellow' }: GlobalCha
 
       {open && (
         <div className={`fixed ${modalPos} z-[90] w-[360px] max-w-[90vw] animate-in slide-in-from-bottom-4 fade-in duration-300`}>
-          <div className={`bg-zinc-900/95 backdrop-blur-2xl border ${c.border} rounded-[2rem] shadow-2xl overflow-hidden flex flex-col h-[550px] max-h-[75vh]`}>
+          <div className={`bg-zinc-950/95 backdrop-blur-2xl border ${c.border} rounded-[2rem] shadow-2xl overflow-hidden flex flex-col h-[550px] max-h-[75vh]`}>
             
             {/* Header */}
-            <div className="p-4 border-b border-white/5 flex items-center gap-3 bg-black/40">
-              <div className={`w-10 h-10 ${c.bg} rounded-xl flex items-center justify-center`}>
-                <MessageCircle size={18} className={c.text} />
+            <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/50">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 ${c.bg} rounded-xl flex items-center justify-center border border-white/5`}>
+                  <MessageCircle size={18} className={c.text} />
+                </div>
+                <div>
+                  <h3 className="text-white font-black text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    {module === 'ADMIN' ? 'Centro de Comunicación' : 'Chat Directo con Admin'}
+                    <span className="w-2 h-2 rounded-full bg-lime-500 animate-pulse inline-block" />
+                  </h3>
+                  <p className="text-zinc-500 text-[10px] font-bold">
+                    {module === 'ADMIN' ? `Canal: ${activeChannel}` : 'Canal Privado y Seguro'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-white font-black text-sm uppercase tracking-widest">{module === 'ADMIN' ? 'Centro de Comando' : 'Chat con Admin'}</h3>
-                <p className="text-zinc-500 text-[10px] font-bold">{module === 'ADMIN' ? 'Mensajes Privados' : 'Canal Privado y Seguro'}</p>
-              </div>
+
+              <button 
+                onClick={() => setOpen(false)}
+                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+              >
+                <X size={16} />
+              </button>
             </div>
 
             {/* Admin Tabs */}
@@ -177,45 +188,53 @@ export default function GlobalChat({ module, accentColor = 'yellow' }: GlobalCha
                   <button 
                     key={tab.id}
                     onClick={() => setActiveChannel(tab.id)}
-                    className={`flex-1 py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border border-transparent ${activeChannel === tab.id ? tab.activeBg : 'hover:bg-white/5 opacity-50 hover:opacity-100'}`}
+                    className={`flex-1 py-2 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border ${activeChannel === tab.id ? tab.activeBg : 'border-transparent hover:bg-white/5 opacity-50 hover:opacity-100'}`}
                   >
-                    <tab.icon size={14} className={tab.color} />
-                    <span className="text-[8px] font-black tracking-widest uppercase text-white">{tab.id}</span>
+                    <tab.icon size={13} className={tab.color} />
+                    <span className="text-[8px] font-black tracking-widest uppercase text-white">{tab.label}</span>
                   </button>
                 ))}
               </div>
             )}
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              <div className="text-center pb-4">
-                <ShieldAlert size={16} className="text-zinc-600 mx-auto mb-2" />
-                <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">
-                  {module === 'ADMIN' ? `Canal Privado con ${activeChannel}` : 'Tus mensajes solo los ve el Administrador'}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-black/20">
+              <div className="text-center pb-2">
+                <ShieldAlert size={14} className="text-zinc-600 mx-auto mb-1" />
+                <p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">
+                  {module === 'ADMIN' ? `Canal privado con ${activeChannel}` : 'Tus mensajes van directo a Administración'}
                 </p>
               </div>
 
-              {messages.map((msg) => {
-                const isMe = msg.sender === module;
-                return (
-                  <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                    <span className={`text-[10px] font-black uppercase tracking-widest mb-1 px-1 ${getSenderStyle(msg.sender)}`}>
-                      {isMe ? 'Tú' : msg.sender}
-                    </span>
-                    <div className={`max-w-[85%] p-3 rounded-2xl ${isMe ? 'bg-white/10 border border-white/10 text-white rounded-tr-sm' : 'bg-black/50 border border-white/5 text-zinc-300 rounded-tl-sm'}`}>
-                      <p className="text-sm font-medium leading-relaxed break-words">{msg.message}</p>
+              {messages.length === 0 ? (
+                <div className="py-16 text-center text-zinc-600">
+                  <MessageCircle size={32} className="mx-auto mb-2 opacity-30 text-yellow-500" />
+                  <p className="text-xs font-bold italic">No hay mensajes aún.</p>
+                  <p className="text-[10px] text-zinc-700">Sé el primero en enviar un mensaje.</p>
+                </div>
+              ) : (
+                messages.map((msg) => {
+                  const isMe = msg.sender === module;
+                  return (
+                    <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                      <span className={`text-[9px] font-black uppercase tracking-widest mb-1 px-1 ${getSenderStyle(msg.sender)}`}>
+                        {isMe ? 'Tú' : msg.sender}
+                      </span>
+                      <div className={`max-w-[85%] p-3 rounded-2xl ${isMe ? 'bg-yellow-500/15 border border-yellow-500/30 text-white rounded-tr-sm' : 'bg-zinc-900 border border-white/10 text-zinc-200 rounded-tl-sm'}`}>
+                        <p className="text-xs font-medium leading-relaxed break-words">{msg.message}</p>
+                      </div>
+                      <span className="text-[8px] text-zinc-600 font-bold mt-1 px-1">
+                        {msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Ahora'}
+                      </span>
                     </div>
-                    <span className="text-[9px] text-zinc-600 font-bold mt-1">
-                      {new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
-            <div className="p-4 border-t border-white/5 bg-black/40">
+            <div className="p-3.5 border-t border-white/5 bg-black/60">
               <div className="flex items-center gap-2">
                 <input
                   type="text"
@@ -223,14 +242,14 @@ export default function GlobalChat({ module, accentColor = 'yellow' }: GlobalCha
                   onChange={e => setNewMessage(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSend()}
                   placeholder="Escribe un mensaje..."
-                  className="flex-1 bg-black/50 border border-white/10 rounded-2xl px-4 py-3 text-white font-medium text-sm outline-none focus:border-white/30 transition-colors"
+                  className="flex-1 bg-black/60 border border-white/10 rounded-2xl px-4 py-2.5 text-white font-medium text-xs outline-none focus:border-yellow-500/50 transition-colors"
                 />
                 <button
                   onClick={handleSend}
                   disabled={sending || !newMessage.trim()}
-                  className={`w-12 h-12 rounded-2xl ${c.btn} flex items-center justify-center text-black disabled:opacity-50 transition-all`}
+                  className={`w-10 h-10 rounded-2xl ${c.btn} flex items-center justify-center text-black disabled:opacity-40 transition-all shrink-0`}
                 >
-                  <Send size={18} className={newMessage.trim() ? "translate-x-0.5 -translate-y-0.5" : ""} />
+                  <Send size={16} className={newMessage.trim() ? "translate-x-0.5 -translate-y-0.5" : ""} />
                 </button>
               </div>
             </div>

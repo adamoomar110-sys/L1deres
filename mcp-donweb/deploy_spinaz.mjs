@@ -26,7 +26,8 @@ const SPINAZ_FILES = [
   "payments.php",
   "announcements.php",
   "applicants.php",
-  "upload.php"
+  "upload.php",
+  "chat_messages.php"
 ];
 
 // Archivos temporales o de test que deben ser eliminados del servidor remoto

@@ -115,6 +115,7 @@ export function donwebFrom(tableName: string) {
     case 'benefits': endpoint += 'announcements.php?type=benefits'; break;
     case 'daily_reports': endpoint += 'daily_reports.php'; break;
     case 'service_orders': endpoint += 'taller.php'; break;
+    case 'chat_messages': endpoint += 'chat_messages.php'; break;
     default: endpoint += `${tableName}.php`; break;
   }
 
@@ -133,7 +134,7 @@ export function donwebFrom(tableName: string) {
         return { data: [], error: { message: d.error || `Error HTTP ${res.status}` } };
       }
 
-      const list = d[tableName] || d.profiles || d.vehicles || d.applicants || d.payments || d.incidents || d.announcements || d.benefits || d.reports || d.orders || d.service_orders || (Array.isArray(d) ? d : [d]);
+      const list = d[tableName] || d.chat_messages || d.messages || d.profiles || d.vehicles || d.applicants || d.payments || d.incidents || d.announcements || d.benefits || d.reports || d.orders || d.service_orders || (Array.isArray(d) ? d : [d]);
       return { data: Array.isArray(list) ? list : (list ? [list] : []), error: null };
     } catch (err: any) {
       return { data: [], error: { message: err.message } };
