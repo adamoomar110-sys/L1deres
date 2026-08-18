@@ -765,5 +765,321 @@ window.closeSidebar = closeSidebar;
 window.toggleSidebar = toggleSidebar;
 
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeSidebar();
+    if (e.key === 'Escape') {
+        closeSidebar();
+        closeDirectBookingModal();
+    }
 });
+
+// --- Modal de Reserva Directa (Modo Cliente) ---
+function openDirectBookingModal() {
+    const modal = document.getElementById('direct-booking-modal');
+    if (!modal) return;
+    document.getElementById('booking-step-1').style.display = 'block';
+    document.getElementById('booking-step-2').style.display = 'none';
+    document.getElementById('modal-booking-error').style.display = 'none';
+    document.getElementById('modal-input-plate').value = '';
+    document.getElementById('modal-input-phone').value = '';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDirectBookingModal() {
+    const modal = document.getElementById('direct-booking-modal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+async function submitDirectBooking() {
+    const plateInput = document.getElementById('modal-input-plate');
+    const serviceSelect = document.getElementById('modal-select-service');
+    const phoneInput = document.getElementById('modal-input-phone');
+    const errorDiv = document.getElementById('modal-booking-error');
+    const btnConfirm = document.getElementById('modal-btn-confirm');
+
+    const plate = (plateInput ? plateInput.value : '').trim().toUpperCase();
+    const service = serviceSelect ? serviceSelect.value : 'express_auto';
+    const phone = (phoneInput ? phoneInput.value : '').trim();
+
+    if (!plate || plate.length < 5) {
+        errorDiv.textContent = 'Por favor ingresá una patente válida (Ej: AA123BB).';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    errorDiv.style.display = 'none';
+    btnConfirm.disabled = true;
+    btnConfirm.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> INGRESANDO TURNO...";
+
+    const serviceNames = {
+        'express_auto': 'Lavado Express Auto',
+        'express_camioneta': 'Lavado Express Camioneta',
+        'completo_auto': 'Lavado Completo Auto (VIP)',
+        'completo_camioneta': 'Lavado Completo Camioneta (VIP)'
+    };
+
+    try {
+        const response = await fetch('api/reservas.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cliente_nombre: 'Cliente Web',
+                cliente_telefono: phone ? '+54 ' + phone : '',
+                patente: plate,
+                modelo_auto: service.includes('camioneta') ? 'Camioneta' : 'Auto',
+                tipo_servicio: service,
+                precio: 0,
+                estado: 'pendiente'
+            })
+        });
+
+        const resData = await response.json();
+        if (!response.ok || !resData.success) {
+            throw new Error(resData.error || 'Error al procesar la reserva.');
+        }
+
+        document.getElementById('ticket-patente').textContent = plate;
+        document.getElementById('ticket-servicio').textContent = serviceNames[service] || service;
+
+        document.getElementById('booking-step-1').style.display = 'none';
+        document.getElementById('booking-step-2').style.display = 'block';
+
+        // Actualizar circuito en vivo inmediatamente
+        if (typeof updateLandingMirror === 'function') {
+            updateLandingMirror();
+        }
+    } catch (err) {
+        errorDiv.textContent = err.message || 'Error al conectar con el servidor.';
+        errorDiv.style.display = 'block';
+    } finally {
+        btnConfirm.disabled = false;
+        btnConfirm.innerHTML = "<i class='bx bx-check-circle' style='font-size: 1.3rem;'></i> CONFIRMAR MI TURNO";
+    }
+}
+
+window.openDirectBookingModal = openDirectBookingModal;
+window.closeDirectBookingModal = closeDirectBookingModal;
+window.submitDirectBooking = submitDirectBooking;
+
+// --- Visor de Convenios, Empresas & Apps (Estilo Noticias LED) ---
+let convenioItems = [];
+let convenioCurrentIndex = 0;
+let convenioProgressInterval = null;
+let convenioIsPlaying = true;
+const CONVENIO_DURATION = 5000; // 5 segundos por noticia
+
+async function initConveniosTicker() {
+    try {
+        const res = await fetch('api/sponsors.php');
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+                convenioItems = data.filter(item => parseInt(item.activo) !== 0);
+            }
+        }
+    } catch (e) {
+        console.warn('Error al cargar convenios:', e);
+    }
+
+    if (!convenioItems || convenioItems.length === 0) {
+        convenioItems = [
+            { nombre: 'Socio Fundador Black', categoria: 'Socio Fundador', descripcion: 'Acceso prioritario VIP #1 en Pit Lane sin fila, 30% OFF en todos los lavados y encerado cerámico sin cargo.', logo_url: 'bx bx-crown', enlace: 'https://wa.me/5491123456789?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Black' },
+            { nombre: 'Socio Fundador Gold', categoria: 'Socio Fundador', descripcion: 'Atención preferencial en boxes, 20% OFF en todos los lavados y obsequio de perfumería en cada visita.', logo_url: 'bx bxs-award', enlace: 'https://wa.me/5491123456789?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Gold' },
+            { nombre: 'Uber, Cabify & DiDi Pro', categoria: 'Apps de Viajes', descripcion: '20% de descuento exclusivo en lavado completo para conductores de aplicaciones registradas.', logo_url: 'bx bxs-taxi', enlace: 'https://wa.me/5491123456789?text=Hola,%20soy%20conductor%20de%20app%20de%20viajes' },
+            { nombre: 'Country Club Los Lagartos', categoria: 'Barrios Cerrados', descripcion: 'Atención prioritaria en Pit Lane y tarifa preferencial para residentes de Los Lagartos C.C. y zona.', logo_url: 'bx bx-home-alt', enlace: 'https://wa.me/5491123456789?text=Hola,%20soy%20residente%20de%20Los%20Lagartos' },
+            { nombre: 'Empresas & Flotas Corporativas', categoria: 'Corporativo', descripcion: 'Planes de mantenimiento mensual con Factura A y facturación consolidada para flotas de empresas.', logo_url: 'bx bx-building-house', enlace: 'https://wa.me/5491123456789?text=Hola,%20quiero%20informacion%20para%20flota%20empresa' },
+            { nombre: 'Remises & Taxis Pilar', categoria: 'Servicio Público', descripcion: 'Lavado express acelerado y combos especiales para unidades de agencias de remises y taxis de Pilar.', logo_url: 'bx bx-car', enlace: 'https://wa.me/5491123456789?text=Hola,%20soy%20remisero%20de%20Pilar' },
+            { nombre: 'Mercado Pago & Bancos', categoria: 'Medios de Pago', descripcion: 'Promociones especiales y cuotas sin interés abonando con Mercado Pago y bancos adheridos.', logo_url: 'bx bx-credit-card', enlace: '#' },
+            { nombre: 'Aseguradoras Partner', categoria: 'Beneficios', descripcion: 'Descuentos del 15% presentando póliza activa de La Caja, Sancor Seguros o Federación Patronal.', logo_url: 'bx bx-shield-quarter', enlace: '#' }
+        ];
+    }
+
+    renderConvenioDots();
+    showConvenioSlide(0);
+    startConvenioAutoplay();
+}
+
+function renderConvenioDots() {
+    const dotsContainer = document.getElementById('convenio-dots');
+    if (!dotsContainer) return;
+    dotsContainer.innerHTML = convenioItems.map((_, idx) => `
+        <span onclick="goToConvenioSlide(${idx})" style="width: 8px; height: 8px; border-radius: 50%; background: ${idx === 0 ? '#38bdf8' : 'rgba(255,255,255,0.2)'}; cursor: pointer; transition: all 0.3s;" id="convenio-dot-${idx}"></span>
+    `).join('');
+}
+
+function showConvenioSlide(index) {
+    if (!convenioItems || convenioItems.length === 0) return;
+    convenioCurrentIndex = (index + convenioItems.length) % convenioItems.length;
+    const item = convenioItems[convenioCurrentIndex];
+
+    const slideContent = document.getElementById('convenio-slide-content');
+    const titleEl = document.getElementById('convenio-title');
+    const catEl = document.getElementById('convenio-cat-badge');
+    const descEl = document.getElementById('convenio-desc');
+    const iconBox = document.getElementById('convenio-icon-box');
+    const linkEl = document.getElementById('convenio-action-link');
+
+    if (slideContent) {
+        slideContent.style.opacity = '0';
+        slideContent.style.transform = 'translateY(6px)';
+    }
+
+    setTimeout(() => {
+        if (titleEl) titleEl.textContent = item.nombre;
+        if (catEl) catEl.textContent = item.categoria || 'Convenio';
+        if (descEl) descEl.textContent = item.descripcion || '';
+        if (iconBox) {
+            const iconClass = item.logo_url && item.logo_url.startsWith('bx') ? item.logo_url : 'bx bx-star';
+            iconBox.innerHTML = `<i class='${iconClass}'></i>`;
+        }
+        if (linkEl) {
+            linkEl.href = item.enlace && item.enlace !== '#' ? item.enlace : 'https://wa.me/5491123456789?text=' + encodeURIComponent('Hola, me interesa el convenio de ' + item.nombre);
+        }
+
+        // Actualizar indicadores (dots)
+        convenioItems.forEach((_, idx) => {
+            const dot = document.getElementById(`convenio-dot-${idx}`);
+            if (dot) {
+                dot.style.background = idx === convenioCurrentIndex ? '#38bdf8' : 'rgba(255,255,255,0.2)';
+                dot.style.transform = idx === convenioCurrentIndex ? 'scale(1.3)' : 'scale(1)';
+            }
+        });
+
+        if (slideContent) {
+            slideContent.style.opacity = '1';
+            slideContent.style.transform = 'translateY(0)';
+        }
+    }, 150);
+
+    resetConvenioProgressBar();
+}
+
+function startConvenioAutoplay() {
+    stopConvenioAutoplay();
+    convenioIsPlaying = true;
+    updatePauseBtnIcon();
+
+    let startTime = Date.now();
+    const progressBar = document.getElementById('convenio-progress-bar');
+
+    convenioProgressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const pct = Math.min((elapsed / CONVENIO_DURATION) * 100, 100);
+        if (progressBar) progressBar.style.width = pct + '%';
+        if (elapsed >= CONVENIO_DURATION) {
+            nextConvenioSlide();
+        }
+    }, 50);
+}
+
+function stopConvenioAutoplay() {
+    if (convenioProgressInterval) clearInterval(convenioProgressInterval);
+    convenioIsPlaying = false;
+    updatePauseBtnIcon();
+}
+
+function resetConvenioProgressBar() {
+    const progressBar = document.getElementById('convenio-progress-bar');
+    if (progressBar) progressBar.style.width = '0%';
+}
+
+function nextConvenioSlide() {
+    showConvenioSlide(convenioCurrentIndex + 1);
+    if (convenioIsPlaying) startConvenioAutoplay();
+}
+
+function prevConvenioSlide() {
+    showConvenioSlide(convenioCurrentIndex - 1);
+    if (convenioIsPlaying) startConvenioAutoplay();
+}
+
+function goToConvenioSlide(idx) {
+    showConvenioSlide(idx);
+    if (convenioIsPlaying) startConvenioAutoplay();
+}
+
+function toggleConvenioPlay() {
+    if (convenioIsPlaying) {
+        stopConvenioAutoplay();
+    } else {
+        startConvenioAutoplay();
+    }
+}
+
+function updatePauseBtnIcon() {
+    const btn = document.getElementById('btn-pause-convenio');
+    if (btn) {
+        btn.innerHTML = convenioIsPlaying ? "<i class='bx bx-pause'></i>" : "<i class='bx bx-play'></i>";
+    }
+}
+
+window.nextConvenioSlide = nextConvenioSlide;
+window.prevConvenioSlide = prevConvenioSlide;
+window.goToConvenioSlide = goToConvenioSlide;
+window.toggleConvenioPlay = toggleConvenioPlay;
+
+document.addEventListener('DOMContentLoaded', () => {
+    initConveniosTicker();
+    initCamaraViewer();
+});
+
+// --- Visor de Cámara Real de Espera en Vivo (Polled cada 3 min) ---
+let camaraCountdownSeconds = 180;
+let camaraCountdownTimer = null;
+
+async function fetchCamaraSnapshot() {
+    const imgEl = document.getElementById('camara-real-img');
+    const placeholderEl = document.getElementById('camara-placeholder');
+    const timeEl = document.getElementById('camara-timestamp');
+
+    try {
+        const res = await fetch('api/camara.php');
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.success && data.has_camera && data.image_url) {
+                if (imgEl) {
+                    imgEl.src = data.image_url;
+                    imgEl.style.display = 'block';
+                }
+                if (placeholderEl) placeholderEl.style.display = 'none';
+                if (timeEl && data.timestamp) {
+                    timeEl.textContent = 'Foto: ' + (data.timestamp.split(' ')[1] || data.timestamp);
+                }
+            } else {
+                if (imgEl && !imgEl.src) imgEl.style.display = 'none';
+                if (placeholderEl && (!imgEl || imgEl.style.display === 'none')) {
+                    placeholderEl.style.display = 'block';
+                }
+            }
+        }
+    } catch (err) {
+        console.warn('Error al consultar cámara:', err);
+    }
+}
+
+function startCamaraCountdown() {
+    if (camaraCountdownTimer) clearInterval(camaraCountdownTimer);
+    camaraCountdownSeconds = 180;
+
+    const timerEl = document.getElementById('camara-live-timer');
+
+    camaraCountdownTimer = setInterval(() => {
+        camaraCountdownSeconds--;
+        if (camaraCountdownSeconds <= 0) {
+            camaraCountdownSeconds = 180;
+            fetchCamaraSnapshot();
+        }
+
+        if (timerEl) {
+            const m = Math.floor(camaraCountdownSeconds / 60).toString().padStart(2, '0');
+            const s = (camaraCountdownSeconds % 60).toString().padStart(2, '0');
+            timerEl.textContent = `Actualiza en ${m}:${s}`;
+        }
+    }, 1000);
+}
+
+function initCamaraViewer() {
+    fetchCamaraSnapshot();
+    startCamaraCountdown();
+}

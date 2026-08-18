@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Vercel
+.vercel
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Development scripts (contain sensitive data)
+check_announcements.js
+check_policies.js
+check_profile.js
+confirm_user.js
+create_dev_user.js
+run_api.js
+run_prod_api.js
+run_sql_local.js
+set_admin.js
+signup_user.js
+test_auth_insert.js
+build_migration.js
+
+# OS
+.DS_Store
+Thumbs.db

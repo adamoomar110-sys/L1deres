@@ -782,6 +782,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 let plate = wrapper.querySelector('.car-plate');
                 if (plate) plate.textContent = autoObj.patente || id;
             }
+
+            wrapper.style.cursor = 'pointer';
+            wrapper._autoObj = autoObj;
+            wrapper._boxNum = boxNum;
+            wrapper.onclick = (e) => {
+                e.stopPropagation();
+                openCarActionModal(autoObj, boxNum);
+            };
             
             // Calculamos posición destino exacta usando el DOM real
             const cellRect = cell.getBoundingClientRect();
@@ -956,8 +964,50 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // SINCRONIZACIÓN LIVE STATE → DONWEB MYSQL
     // ==========================================
+    let isLiveStateRestored = false;
     let _syncDebounce = null;
+
+    async function restoreLiveState() {
+        try {
+            const res = await fetch(`${API_URL}configuracion.php`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.live_state) {
+                    const ls = typeof data.live_state === 'string' ? JSON.parse(data.live_state) : data.live_state;
+                    if (ls) {
+                        if (Array.isArray(ls.espera) && ls.espera.length === 8) estadoEspera = ls.espera;
+                        if (ls.lavado !== undefined) estadoLavado = ls.lavado;
+                        if (Array.isArray(ls.secado) && ls.secado.length === 2) estadoSecado = ls.secado;
+                        if (Array.isArray(ls.terminado) && ls.terminado.length === 4) estadoTerminado = ls.terminado;
+
+                        // Restaurar id max counter para no colisionar IDs
+                        const allCars = [
+                            ...(Array.isArray(estadoEspera) ? estadoEspera : []),
+                            estadoLavado,
+                            ...(Array.isArray(estadoSecado) ? estadoSecado : []),
+                            ...(Array.isArray(estadoTerminado) ? estadoTerminado : [])
+                        ].filter(Boolean);
+
+                        allCars.forEach(c => {
+                            if (c && c.id && typeof c.id === 'number' && c.id >= autoIdCounter) {
+                                autoIdCounter = c.id + 1;
+                            }
+                        });
+
+                        updateVisuals();
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Error al restaurar live_state:', e);
+        } finally {
+            isLiveStateRestored = true;
+            syncLiveState();
+        }
+    }
+
     function syncLiveState() {
+        if (!isLiveStateRestored) return; // Evitar pisar la BD en el arranque
         clearTimeout(_syncDebounce);
         _syncDebounce = setTimeout(async () => {
             try {
@@ -1004,6 +1054,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 150);
     }
     window.syncLiveState = syncLiveState;
+
+    // Ejecutar restauración al iniciar
+    restoreLiveState();
 
     const btnExpressAuto = document.getElementById('btn-ingresar-express-auto');
     if (btnExpressAuto) btnExpressAuto.addEventListener('click', () => ingresarAuto('express_auto'));
@@ -1542,38 +1595,169 @@ document.addEventListener('DOMContentLoaded', () => {
     const cameraLoading = document.getElementById('camera-loading');
     const cameraOverlay = document.getElementById('camera-overlay');
 
+    let camaraTransmitTimer = null;
+
+    window.captureAndSendCamaraFrame = async function() {
+        const video = document.getElementById('camera-stream');
+        if (!video || video.paused || video.ended || video.readyState < 2) return;
+
+        let canvas = document.getElementById('camera-canvas');
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.id = 'camera-canvas';
+            canvas.style.display = 'none';
+            document.body.appendChild(canvas);
+        }
+
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+        try {
+            const res = await fetch(`${API_URL}camara.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: dataUrl })
+            });
+            const data = await res.json();
+            if (data.success && window.showToast) {
+                window.showToast('📸 Captura transmitida a l1deres.site', 'success');
+            }
+        } catch (e) {
+            console.warn('Error al transmitir captura de cámara:', e);
+        }
+    };
+
+    window.uploadManualCamaraPhoto = function(input) {
+        if (!input || !input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async function(e) {
+            const dataUrl = e.target.result;
+            try {
+                const res = await fetch(`${API_URL}camara.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: dataUrl })
+                });
+                const data = await res.json();
+                if (data.success && window.showToast) {
+                    window.showToast('📸 Foto subida manualmente a l1deres.site', 'success');
+                }
+            } catch (err) {
+                alert('Error al subir la foto.');
+            }
+        };
+
+        reader.readAsDataURL(file);
+    };
+
+    let activeCameraStream = null;
+
+    async function populateCameraDevices() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(d => d.kind === 'videoinput');
+            const select = document.getElementById('camera-device-select');
+            if (select && videoDevices.length > 0) {
+                select.style.display = 'inline-block';
+                select.innerHTML = videoDevices.map((d, i) => `
+                    <option value="${d.deviceId}">📷 ${d.label || `Cámara de PC #${i + 1}`}</option>
+                `).join('');
+                
+                const savedId = localStorage.getItem('aura_selected_camera_id');
+                if (savedId && videoDevices.some(d => d.deviceId === savedId)) {
+                    select.value = savedId;
+                }
+            }
+        } catch (e) {
+            console.warn('Error listando dispositivos de cámara:', e);
+        }
+    }
+
+    window.switchCameraDevice = async function(deviceId) {
+        if (!deviceId) return;
+        localStorage.setItem('aura_selected_camera_id', deviceId);
+        if (activeCameraStream) {
+            activeCameraStream.getTracks().forEach(track => track.stop());
+            activeCameraStream = null;
+        }
+        const btn = document.getElementById('btn-start-camera');
+        if (btn) btn.click();
+    };
+
     if (btnStartCamera) {
         btnStartCamera.addEventListener('click', async () => {
             try {
                 btnStartCamera.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Conectando...";
                 
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error("El navegador no soporta el acceso a la cámara. Si estás en celular, asegúrate de usar HTTPS o acceder vía localhost.");
+                    throw new Error("El navegador no soporta el acceso a la cámara. Asegúrate de usar HTTPS o acceder vía localhost.");
                 }
 
-                // Solicitar permisos y acceso a la cámara (idealmente trasera, pero acepta cualquiera)
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: { ideal: "environment" } } 
-                });
+                if (activeCameraStream) {
+                    activeCameraStream.getTracks().forEach(track => track.stop());
+                    activeCameraStream = null;
+                }
+
+                const savedDeviceId = localStorage.getItem('aura_selected_camera_id');
+                let videoConstraints = true;
+                if (savedDeviceId) {
+                    videoConstraints = { deviceId: { exact: savedDeviceId } };
+                }
+
+                let stream = null;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
+                } catch (e1) {
+                    console.warn("Fallo con restricción guardada, probando video: true...", e1);
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    } catch (e2) {
+                        throw e1;
+                    }
+                }
                 
+                activeCameraStream = stream;
                 videoElement.srcObject = stream;
                 
-                // Mostrar video y ocultar loading
                 videoElement.onloadedmetadata = () => {
                     videoElement.style.display = 'block';
-                    cameraOverlay.style.display = 'block';
-                    cameraLoading.style.display = 'none';
+                    if (cameraOverlay) cameraOverlay.style.display = 'block';
+                    if (cameraLoading) cameraLoading.style.display = 'none';
+                    btnStartCamera.style.display = 'none';
+
+                    const snapBtn = document.getElementById('btn-snap-now');
+                    if (snapBtn) snapBtn.style.display = 'inline-flex';
+
+                    populateCameraDevices();
+
+                    // Primera captura inmediata y programar cada 3 minutos (180.000 ms)
+                    setTimeout(window.captureAndSendCamaraFrame, 1500);
+                    if (camaraTransmitTimer) clearInterval(camaraTransmitTimer);
+                    camaraTransmitTimer = setInterval(window.captureAndSendCamaraFrame, 180000);
                 };
 
             } catch (err) {
                 console.error("Error al acceder a la cámara:", err);
                 let msg = "No se pudo acceder a la cámara.";
-                if (err.name === "NotAllowedError") msg = "Permiso denegado. Haz clic en el ícono del candado en la barra de direcciones y permite la cámara.";
-                else if (err.name === "NotFoundError") msg = "No se encontró ninguna cámara conectada al equipo.";
-                else if (err.message) msg = err.message;
+                if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+                    msg = "🔒 Permiso denegado. Haz clic en el ícono del candado en la barra de direcciones del navegador y autoriza el uso de la cámara.";
+                } else if (err.name === "NotReadableError" || err.name === "TrackStartError" || (err.message && err.message.includes("Could not start video source"))) {
+                    msg = "📷 La cámara de la PC está ocupada por otro programa (como Zoom, Teams, WhatsApp Web o la App de Cámara de Windows).\n\nPor favor, cerrá esos programas e intentá presionar 'Encender Cámara PC' nuevamente.";
+                } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+                    msg = "🔌 No se detectó ninguna cámara web conectada a la computadora.";
+                } else if (err.message) {
+                    msg = err.message;
+                }
                 
                 alert(msg);
-                btnStartCamera.innerHTML = "<i class='bx bx-error'></i> Reintentar";
+                btnStartCamera.innerHTML = "<i class='bx bx-error'></i> Reintentar Encendido";
             }
         });
     }
@@ -2713,3 +2897,448 @@ async function handleSaveOneSignalConfig(event) {
     }
 }
 window.handleSaveOneSignalConfig = handleSaveOneSignalConfig;
+
+// --- Modal de Reserva Directa (Modo Cliente) en Dashboard Admin ---
+function openDirectBookingModalAdmin() {
+    const modal = document.getElementById('admin-direct-booking-modal');
+    if (!modal) return;
+    document.getElementById('admin-booking-step-1').style.display = 'block';
+    document.getElementById('admin-booking-step-2').style.display = 'none';
+    document.getElementById('admin-modal-booking-error').style.display = 'none';
+    document.getElementById('admin-modal-input-plate').value = '';
+    document.getElementById('admin-modal-input-phone').value = '';
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDirectBookingModalAdmin() {
+    const modal = document.getElementById('admin-direct-booking-modal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+async function submitDirectBookingAdmin() {
+    const plateInput = document.getElementById('admin-modal-input-plate');
+    const serviceSelect = document.getElementById('admin-modal-select-service');
+    const phoneInput = document.getElementById('admin-modal-input-phone');
+    const errorDiv = document.getElementById('admin-modal-booking-error');
+    const btnConfirm = document.getElementById('admin-modal-btn-confirm');
+
+    const plate = (plateInput ? plateInput.value : '').trim().toUpperCase();
+    const service = serviceSelect ? serviceSelect.value : 'express_auto';
+    const phone = (phoneInput ? phoneInput.value : '').trim();
+
+    if (!plate || plate.length < 5) {
+        errorDiv.textContent = 'Por favor ingresá una patente válida (Ej: AA123BB).';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    errorDiv.style.display = 'none';
+    btnConfirm.disabled = true;
+    btnConfirm.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> INGRESANDO TURNO...";
+
+    const serviceNames = {
+        'express_auto': 'Lavado Express Auto',
+        'express_camioneta': 'Lavado Express Camioneta',
+        'completo_auto': 'Lavado Completo Auto (VIP)',
+        'completo_camioneta': 'Lavado Completo Camioneta (VIP)'
+    };
+
+    try {
+        const response = await fetch(`${API_URL}reservas.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cliente_nombre: 'Cliente Web',
+                cliente_telefono: phone ? '+54 ' + phone : '',
+                patente: plate,
+                modelo_auto: service.includes('camioneta') ? 'Camioneta' : 'Auto',
+                tipo_servicio: service,
+                precio: 0,
+                estado: 'pendiente'
+            })
+        });
+
+        const resData = await response.json();
+        if (!response.ok || !resData.success) {
+            throw new Error(resData.error || 'Error al procesar la reserva.');
+        }
+
+        document.getElementById('admin-ticket-patente').textContent = plate;
+        document.getElementById('admin-ticket-servicio').textContent = serviceNames[service] || service;
+
+        document.getElementById('admin-booking-step-1').style.display = 'none';
+        document.getElementById('admin-booking-step-2').style.display = 'block';
+
+        if (window.fetchDashboardData) {
+            window.fetchDashboardData();
+        }
+    } catch (err) {
+        errorDiv.textContent = err.message || 'Error al conectar con el servidor.';
+        errorDiv.style.display = 'block';
+    } finally {
+        btnConfirm.disabled = false;
+        btnConfirm.innerHTML = "<i class='bx bx-check-circle' style='font-size: 1.3rem;'></i> CONFIRMAR INGRESAR TURNO";
+    }
+}
+
+window.openDirectBookingModalAdmin = openDirectBookingModalAdmin;
+window.closeDirectBookingModalAdmin = closeDirectBookingModalAdmin;
+window.submitDirectBookingAdmin = submitDirectBookingAdmin;
+
+// --- GESTIÓN DE CONVENIOS, EMPRESAS & APPS EN DASHBOARD ADMIN ---
+let adminConveniosList = [];
+
+async function loadAdminConvenios() {
+    const container = document.getElementById('convenios-admin-list');
+    if (!container) return;
+
+    try {
+        const res = await fetch(`${API_URL}sponsors.php`);
+        if (res.ok) {
+            adminConveniosList = await res.json();
+            renderAdminConvenios(adminConveniosList);
+        }
+    } catch (e) {
+        console.warn('Error al cargar convenios admin:', e);
+        if (container) container.innerHTML = "<p style='color:#f87171;'>Error al conectar con la base de datos de convenios.</p>";
+    }
+}
+
+function renderAdminConvenios(items) {
+    const container = document.getElementById('convenios-admin-list');
+    if (!container) return;
+
+    if (!items || items.length === 0) {
+        container.innerHTML = "<p style='color: #94a3b8;'>No hay convenios registrados. Hacé clic en 'Nuevo Convenio / Alianza' para agregar uno.</p>";
+        return;
+    }
+
+    container.innerHTML = items.map(c => `
+        <div style="background: rgba(15,23,42,0.8); border: 1px solid ${parseInt(c.activo) !== 0 ? 'rgba(56,189,248,0.3)' : 'rgba(239,68,68,0.3)'}; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; position: relative;">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(56,189,248,0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                        <i class='${c.logo_url || 'bx bx-star'}'></i>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.68rem; font-weight: 700; background: rgba(251,191,36,0.15); color: #fbbf24; padding: 2px 6px; border-radius: 10px; text-transform: uppercase;">${c.categoria || 'Convenio'}</span>
+                        <h4 style="margin: 3px 0 0 0; font-size: 1rem; color: #f8fafc;">${c.nombre}</h4>
+                    </div>
+                </div>
+                <span style="font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 12px; background: ${parseInt(c.activo) !== 0 ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color: ${parseInt(c.activo) !== 0 ? '#34d399' : '#fca5a5'}; border: 1px solid ${parseInt(c.activo) !== 0 ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)'};">
+                    ${parseInt(c.activo) !== 0 ? 'ACTIVO' : 'PAUSADO'}
+                </span>
+            </div>
+
+            <p style="color: #cbd5e1; font-size: 0.82rem; margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                ${c.descripcion || ''}
+            </p>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px; margin-top: 4px;">
+                <button onclick="toggleConvenioActiveAdmin(${c.id}, ${c.activo})" style="background: rgba(255,255,255,0.08); border: none; color: ${parseInt(c.activo) !== 0 ? '#fde047' : '#34d399'}; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <i class='bx ${parseInt(c.activo) !== 0 ? 'bx-pause-circle' : 'bx-play-circle'}'></i> ${parseInt(c.activo) !== 0 ? 'Pausar' : 'Activar'}
+                </button>
+                <div style="display: flex; gap: 6px;">
+                    <button onclick='editConvenioAdmin(${JSON.stringify(c).replace(/'/g, "&apos;")})' style="background: rgba(56,189,248,0.2); border: none; color: #38bdf8; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+                        <i class='bx bx-edit'></i> Editar
+                    </button>
+                    <button onclick="deleteConvenioAdmin(${c.id})" style="background: rgba(239,68,68,0.2); border: none; color: #fca5a5; padding: 6px 10px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer;">
+                        <i class='bx bx-trash'></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openAddConvenioModal() {
+    document.getElementById('convenio-id-input').value = '0';
+    document.getElementById('convenio-input-nombre').value = '';
+    document.getElementById('convenio-input-categoria').value = '';
+    document.getElementById('convenio-input-descripcion').value = '';
+    document.getElementById('convenio-input-logo').value = 'bx bx-star';
+    document.getElementById('convenio-input-enlace').value = '';
+    document.getElementById('modal-convenio-title-text').innerHTML = "<i class='bx bx-handshake'></i> Nuevo Convenio / Alianza";
+    document.getElementById('modal-convenio').style.display = 'flex';
+}
+
+function editConvenioAdmin(item) {
+    if (!item) return;
+    document.getElementById('convenio-id-input').value = item.id;
+    document.getElementById('convenio-input-nombre').value = item.nombre || '';
+    document.getElementById('convenio-input-categoria').value = item.categoria || '';
+    document.getElementById('convenio-input-descripcion').value = item.descripcion || '';
+    document.getElementById('convenio-input-logo').value = item.logo_url || 'bx bx-star';
+    document.getElementById('convenio-input-enlace').value = item.enlace || '';
+    document.getElementById('modal-convenio-title-text').innerHTML = "<i class='bx bx-edit'></i> Editar Convenio";
+    document.getElementById('modal-convenio').style.display = 'flex';
+}
+
+function closeConvenioModal() {
+    const modal = document.getElementById('modal-convenio');
+    if (modal) modal.style.display = 'none';
+}
+
+async function saveConvenioAdmin(e) {
+    e.preventDefault();
+    const id = parseInt(document.getElementById('convenio-id-input').value) || 0;
+    const nombre = document.getElementById('convenio-input-nombre').value.trim();
+    const categoria = document.getElementById('convenio-input-categoria').value.trim();
+    const descripcion = document.getElementById('convenio-input-descripcion').value.trim();
+    const logo_url = document.getElementById('convenio-input-logo').value.trim() || 'bx bx-star';
+    const enlace = document.getElementById('convenio-input-enlace').value.trim() || '#';
+
+    try {
+        const res = await fetch(`${API_URL}sponsors.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, nombre, categoria, descripcion, logo_url, enlace, activo: 1, orden: 1 })
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeConvenioModal();
+            loadAdminConvenios();
+            if (window.showToast) window.showToast('Convenio guardado correctamente', 'success');
+        } else {
+            alert(data.error || 'Error al guardar convenio.');
+        }
+    } catch (err) {
+        alert('Error al conectar con el servidor.');
+    }
+}
+
+async function toggleConvenioActiveAdmin(id, currentActive) {
+    const newActive = parseInt(currentActive) !== 0 ? 0 : 1;
+    const item = adminConveniosList.find(c => c.id == id);
+    if (!item) return;
+
+    try {
+        await fetch(`${API_URL}sponsors.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: item.id,
+                nombre: item.nombre,
+                categoria: item.categoria,
+                descripcion: item.descripcion,
+                logo_url: item.logo_url,
+                enlace: item.enlace,
+                activo: newActive,
+                orden: item.orden || 1
+            })
+        });
+        loadAdminConvenios();
+    } catch (err) {
+        console.error('Error al cambiar estado de convenio:', err);
+    }
+}
+
+async function deleteConvenioAdmin(id) {
+    if (!confirm('¿Seguro que querés eliminar este convenio?')) return;
+    try {
+        const res = await fetch(`${API_URL}sponsors.php?id=${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+            loadAdminConvenios();
+            if (window.showToast) window.showToast('Convenio eliminado', 'info');
+        }
+    } catch (err) {
+        alert('Error al eliminar convenio.');
+    }
+}
+
+window.loadAdminConvenios = loadAdminConvenios;
+window.openAddConvenioModal = openAddConvenioModal;
+window.editConvenioAdmin = editConvenioAdmin;
+window.closeConvenioModal = closeConvenioModal;
+window.saveConvenioAdmin = saveConvenioAdmin;
+window.toggleConvenioActiveAdmin = toggleConvenioActiveAdmin;
+window.deleteConvenioAdmin = deleteConvenioAdmin;
+
+document.addEventListener('click', (e) => {
+    if (e.target && e.target.closest('.nav-btn')) {
+        const btn = e.target.closest('.nav-btn');
+        if (btn.textContent.includes('Publicidad') || btn.textContent.includes('Sponsors') || btn.textContent.includes('Convenios')) {
+            setTimeout(loadAdminConvenios, 100);
+        }
+    }
+});
+
+// --- MENÚ RÁPIDO DE ACCIÓN SOBRE VEHÍCULO (OPCIÓN 1) ---
+let selectedCarForAction = null;
+
+function openCarActionModal(autoObj, boxNum) {
+    if (!autoObj) return;
+    selectedCarForAction = { auto: autoObj, boxNum: boxNum };
+
+    const modal = document.getElementById('car-action-modal');
+    if (!modal) return;
+
+    document.getElementById('car-action-plate').textContent = autoObj.patente || 'SIN PATENTE';
+    
+    const serviceNames = {
+        'express_auto': '🚘 Lavado Express Auto',
+        'express_camioneta': '🛻 Lavado Express Camioneta',
+        'completo_auto': '⭐ Lavado Completo Auto (VIP)',
+        'completo_camioneta': '👑 Lavado Completo Camioneta (VIP)'
+    };
+    document.getElementById('car-action-service').textContent = serviceNames[autoObj.tipo] || autoObj.tipo || 'Servicio General';
+
+    // Determinar nombre del Box actual
+    let boxName = `Box ${boxNum || 'En Pista'}`;
+    let statusText = 'En Espera';
+
+    if (estadoEspera.includes(autoObj)) {
+        const idx = estadoEspera.indexOf(autoObj);
+        boxName = `Espera (Posición ${idx + 1})`;
+        statusText = 'En Cola de Espera';
+    } else if (estadoLavado === autoObj) {
+        boxName = `Box de Lavado Principal (Box 9/10)`;
+        statusText = 'En Lavado Activo';
+    } else if (estadoSecado.includes(autoObj)) {
+        const idx = estadoSecado.indexOf(autoObj);
+        boxName = `Box de Secado / Detailing (${idx + 1})`;
+        statusText = 'En Secado & Detailing';
+    } else if (estadoTerminado.includes(autoObj)) {
+        boxName = `Zona de Terminados / Salida`;
+        statusText = '¡Listo para Entregar!';
+    }
+
+    document.getElementById('car-action-box').textContent = boxName;
+    document.getElementById('car-action-status-badge').textContent = statusText;
+
+    modal.style.display = 'flex';
+}
+
+function closeCarActionModal() {
+    const modal = document.getElementById('car-action-modal');
+    if (modal) modal.style.display = 'none';
+    selectedCarForAction = null;
+}
+
+// ⚡ Avanzar a la Siguiente Etapa Ahora
+function handleCarAdvanceAction() {
+    if (!selectedCarForAction || !selectedCarForAction.auto) return;
+    const auto = selectedCarForAction.auto;
+
+    if (estadoEspera.includes(auto)) {
+        // Pasa de Espera a Lavado de inmediato (o a Secado si no requiere lavado)
+        const idx = estadoEspera.indexOf(auto);
+        estadoEspera[idx] = null;
+        if (auto.tipo === 'solo_secado') {
+            estadoSecado[1] = auto;
+            auto.endTime = Date.now() + window.APP_CONFIG.tiempoSecado;
+        } else {
+            estadoLavado = auto;
+            auto.endTime = Date.now() + window.APP_CONFIG.tiempoLavado;
+        }
+        advanceQueue();
+        if (window.showToast) window.showToast(`⚡ ${auto.patente} avanzó al Box de Lavado/Secado`, 'info');
+    } else if (estadoLavado === auto) {
+        // Pasa de Lavado a Secado o Terminado
+        estadoLavado = null;
+        if (auto.tipo === 'completo_auto' || auto.tipo === 'completo_camioneta' || auto.tipo === 'lavado_secado') {
+            estadoSecado[0] = auto;
+            auto.endTime = Date.now() + window.APP_CONFIG.tiempoSecado;
+            if (window.showToast) window.showToast(`⚡ ${auto.patente} avanzó a Secado & Detailing`, 'info');
+        } else {
+            const freeIdx = estadoTerminado.findIndex(slot => slot === null);
+            const targetIdx = freeIdx !== -1 ? freeIdx : 0;
+            estadoTerminado[targetIdx] = auto;
+            auto.endTime = Date.now() + 5000;
+            if (window.showToast) window.showToast(`⚡ ${auto.patente} avanzó a Zona de Terminados`, 'info');
+        }
+    } else if (estadoSecado.includes(auto)) {
+        // Pasa de Secado a Terminado
+        const idx = estadoSecado.indexOf(auto);
+        estadoSecado[idx] = null;
+        const freeIdx = estadoTerminado.findIndex(slot => slot === null);
+        const targetIdx = freeIdx !== -1 ? freeIdx : 0;
+        estadoTerminado[targetIdx] = auto;
+        auto.endTime = Date.now() + 5000;
+        if (window.showToast) window.showToast(`⚡ ${auto.patente} finalizó secado y avanzó a Terminados`, 'info');
+    } else if (estadoTerminado.includes(auto)) {
+        // Liberar y marcar entregado
+        const idx = estadoTerminado.indexOf(auto);
+        recordMetric(auto);
+        estadoTerminado[idx] = null;
+        if (window.showToast) window.showToast(`🏁 ${auto.patente} entregado y retirado`, 'success');
+    }
+
+    closeCarActionModal();
+    updateVisuals();
+    if (typeof syncLiveState === 'function') syncLiveState();
+}
+
+// 🏎️ Dar Prioridad VIP (Mover al Frente de la Fila de Espera)
+function handleCarVipAction() {
+    if (!selectedCarForAction || !selectedCarForAction.auto) return;
+    const auto = selectedCarForAction.auto;
+
+    if (estadoEspera.includes(auto)) {
+        const currentIdx = estadoEspera.indexOf(auto);
+        if (currentIdx > 0) {
+            estadoEspera.splice(currentIdx, 1);
+            estadoEspera.unshift(auto);
+            while (estadoEspera.length < 8) estadoEspera.push(null);
+            if (window.showToast) window.showToast(`🏎️ ${auto.patente} puesto en Prioridad 1 de Espera`, 'warning');
+        } else {
+            if (window.showToast) window.showToast(`🏎️ ${auto.patente} ya está en la cabecera de la fila`, 'info');
+        }
+    } else {
+        if (window.showToast) window.showToast(`El vehículo ya está dentro del circuito en proceso`, 'info');
+    }
+
+    closeCarActionModal();
+    updateVisuals();
+    if (typeof syncLiveState === 'function') syncLiveState();
+}
+
+// 🏁 Marcar como Finalizado y Entregado de Inmediato
+function handleCarFinishAction() {
+    if (!selectedCarForAction || !selectedCarForAction.auto) return;
+    const auto = selectedCarForAction.auto;
+
+    if (estadoEspera.includes(auto)) estadoEspera[estadoEspera.indexOf(auto)] = null;
+    if (estadoLavado === auto) estadoLavado = null;
+    if (estadoSecado.includes(auto)) estadoSecado[estadoSecado.indexOf(auto)] = null;
+    if (estadoTerminado.includes(auto)) estadoTerminado[estadoTerminado.indexOf(auto)] = null;
+
+    recordMetric(auto);
+    if (window.showToast) window.showToast(`🏁 ${auto.patente} marcado como Finalizado y Entregado`, 'success');
+
+    closeCarActionModal();
+    advanceQueue();
+    updateVisuals();
+    if (typeof syncLiveState === 'function') syncLiveState();
+}
+
+// ❌ Cancelar / Quitar de Pista
+function handleCarCancelAction() {
+    if (!selectedCarForAction || !selectedCarForAction.auto) return;
+    const auto = selectedCarForAction.auto;
+
+    if (!confirm(`¿Seguro que querés quitar la patente ${auto.patente} del circuito?`)) return;
+
+    if (estadoEspera.includes(auto)) estadoEspera[estadoEspera.indexOf(auto)] = null;
+    if (estadoLavado === auto) estadoLavado = null;
+    if (estadoSecado.includes(auto)) estadoSecado[estadoSecado.indexOf(auto)] = null;
+    if (estadoTerminado.includes(auto)) estadoTerminado[estadoTerminado.indexOf(auto)] = null;
+
+    if (window.showToast) window.showToast(`❌ Patente ${auto.patente} removida de pista`, 'info');
+
+    closeCarActionModal();
+    advanceQueue();
+    updateVisuals();
+    if (typeof syncLiveState === 'function') syncLiveState();
+}
+
+window.openCarActionModal = openCarActionModal;
+window.closeCarActionModal = closeCarActionModal;
+window.handleCarAdvanceAction = handleCarAdvanceAction;
+window.handleCarVipAction = handleCarVipAction;
+window.handleCarFinishAction = handleCarFinishAction;
+window.handleCarCancelAction = handleCarCancelAction;

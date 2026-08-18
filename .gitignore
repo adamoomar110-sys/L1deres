@@ -1,3 +1,9 @@
 node_modules/
 .agents/
 .firebase/
+.next/
+.vercel/
+**/node_modules/
+**/.next/
+**/.vercel/
+*.log

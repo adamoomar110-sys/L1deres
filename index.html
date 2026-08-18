@@ -86,32 +86,133 @@
     <section id="circuito-vivo" class="track-section" style="padding-top: 50px; padding-bottom: 25px;">
         <div class="section-container">
 
-            <div class="track-mirror-wrapper" style="background: #090d16; border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 10px; max-width: 350px; margin: 0 auto; box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 25px rgba(56, 189, 248, 0.1); overflow: hidden; position: relative;">
+            <div style="display: flex; flex-wrap: wrap; align-items: stretch; justify-content: center; gap: 20px; max-width: 1140px; margin: 0 auto;">
                 
-                <div class="canvas-area" id="landing-canvas-area" style="position: relative; width: 100%; min-height: 310px; background: radial-gradient(circle at center, #111827 0%, #030712 100%); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 8px;">
+                <!-- Columna Izquierda: Visor de Cámara Real de Espera (PC WebCam Feed) -->
+                <div class="camara-real-wrapper" style="flex: 1 1 300px; background: linear-gradient(145deg, #090d16 0%, #030712 100%); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px; padding: 14px; max-width: 350px; width: 100%; box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 20px rgba(56, 189, 248, 0.15); display: flex; flex-direction: column; justify-content: space-between; position: relative;">
                     
-                    <div class="controls-header-mirror" style="display: flex; justify-content: center; align-items: center; margin-bottom: 12px; padding: 6px 14px; background: rgba(15, 23, 42, 0.8); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); width: 100%; max-width: 290px;">
-                        <div id="landing-status-board" class="status-board-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
-                            <div class="status-info" style="display: flex; align-items: center; gap: 8px;">
-                                <div class="status-title" style="font-size: 0.68rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px;">Demora Estimada</div>
-                                <div class="status-time" id="landing-status-time" style="font-size: 1.25rem; font-weight: 900; color: #38bdf8; font-family: 'Racing Sans One', sans-serif;">00:00</div>
-                            </div>
-                            <div class="status-badge badge-libre" id="landing-status-badge" style="padding: 4px 10px; border-radius: 16px; font-weight: 700; font-size: 0.72rem; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">Sin Demora</div>
+                    <!-- Header Cámara -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; display: inline-block;"></span>
+                            <span style="font-size: 0.78rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px;">CÁMARA REAL EN VIVO</span>
+                        </div>
+                        <span id="camara-live-timer" style="font-size: 0.72rem; font-weight: 700; color: #fde047; background: rgba(253,224,71,0.1); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(253,224,71,0.3);">
+                            Actualiza en 03:00
+                        </span>
+                    </div>
+
+                    <!-- Contenedor Visualizador de Imagen de Cámara -->
+                    <div style="position: relative; width: 100%; min-height: 220px; height: 220px; background: #030712; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">
+                        
+                        <img id="camara-real-img" src="" alt="Cámara Pista Real de Espera" style="width: 100%; height: 100%; object-fit: cover; display: none;" />
+                        
+                        <div id="camara-placeholder" style="text-align: center; padding: 18px; color: #94a3b8;">
+                            <i class='bx bx-wrench' style="font-size: 2.6rem; color: #f59e0b; margin-bottom: 6px;"></i>
+                            <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #fde047; letter-spacing: 0.5px;">🚧 EN CONSTRUCCIÓN</h4>
+                            <p style="font-size: 0.8rem; margin: 6px 0 0 0; color: #e2e8f0; line-height: 1.4;">El lavadero de última generación se inaugura muy pronto en Los Lagartos C.C.</p>
+                            <span style="display: inline-block; margin-top: 8px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">🎉 Gran Apertura Próximamente</span>
+                        </div>
+
+                        <!-- Marca de Agua y Hora -->
+                        <div style="position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; justify-content: space-between; align-items: center; background: rgba(3,7,18,0.75); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; color: #e2e8f0;">
+                            <span><i class='bx bx-time'></i> <span id="camara-timestamp">Esperando toma...</span></span>
+                            <span style="color: #38bdf8; font-weight: 700;">L1DERES CAM 01</span>
                         </div>
                     </div>
 
-                    <div class="espera-grid-container" id="landing-canvas-grid" style="position:relative; z-index:1; display: grid; grid-template-columns: repeat(2, 1fr); max-width: 290px; width: 100%; gap: 10px; justify-content: center; align-items: center;">
-                        <!-- Boxes Espera (1 a 8) -->
-                        <div class="grid-box" data-box-number="11">Espera 1</div>
-                        <div class="grid-box" data-box-number="12">Espera 2</div>
-                        <div class="grid-box" data-box-number="17">Espera 3</div>
-                        <div class="grid-box" data-box-number="18">Espera 4</div>
-                        <div class="grid-box" data-box-number="23">Espera 5</div>
-                        <div class="grid-box" data-box-number="24">Espera 6</div>
-                        <div class="grid-box" data-box-number="29">Espera 7</div>
-                        <div class="grid-box" data-box-number="30">Espera 8</div>
+                    <!-- Banner de Privacidad -->
+                    <div style="margin-top: 12px; background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 8px 12px; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-shield-check' style="font-size: 1.3rem; color: #10b981; flex-shrink: 0;"></i>
+                        <p style="margin: 0; font-size: 0.72rem; color: #94a3b8; line-height: 1.3;">
+                            <strong style="color: #cbd5e1;">Privacidad resguardada:</strong> La imagen se captura automáticamente cada 3 minutos para visualizar la cola sin exponer datos personales.
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- Columna Centro: Pista / Circuito en Vivo -->
+                <div class="track-mirror-wrapper" style="flex: 1 1 340px; background: #090d16; border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 10px; max-width: 380px; width: 100%; box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 25px rgba(56, 189, 248, 0.1); overflow: hidden; position: relative;">
+                    
+                    <div class="canvas-area" id="landing-canvas-area" style="position: relative; width: 100%; min-height: 310px; background: radial-gradient(circle at center, #111827 0%, #030712 100%); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 8px;">
+                        
+                        <div class="controls-header-mirror" style="display: flex; justify-content: center; align-items: center; margin-bottom: 12px; padding: 6px 14px; background: rgba(15, 23, 42, 0.8); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); width: 100%; max-width: 290px;">
+                            <div id="landing-status-board" class="status-board-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
+                                <div class="status-info" style="display: flex; align-items: center; gap: 8px;">
+                                    <div class="status-title" style="font-size: 0.68rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px;">Demora Estimada</div>
+                                    <div class="status-time" id="landing-status-time" style="font-size: 1.25rem; font-weight: 900; color: #38bdf8; font-family: 'Racing Sans One', sans-serif;">00:00</div>
+                                </div>
+                                <div class="status-badge badge-libre" id="landing-status-badge" style="padding: 4px 10px; border-radius: 16px; font-weight: 700; font-size: 0.72rem; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">Sin Demora</div>
+                            </div>
+                        </div>
+
+                        <div class="espera-grid-container" id="landing-canvas-grid" style="position:relative; z-index:1; display: grid; grid-template-columns: repeat(2, 1fr); max-width: 290px; width: 100%; gap: 10px; justify-content: center; align-items: center;">
+                            <!-- Boxes Espera (1 a 8) -->
+                            <div class="grid-box" data-box-number="11">Espera 1</div>
+                            <div class="grid-box" data-box-number="12">Espera 2</div>
+                            <div class="grid-box" data-box-number="17">Espera 3</div>
+                            <div class="grid-box" data-box-number="18">Espera 4</div>
+                            <div class="grid-box" data-box-number="23">Espera 5</div>
+                            <div class="grid-box" data-box-number="24">Espera 6</div>
+                            <div class="grid-box" data-box-number="29">Espera 7</div>
+                            <div class="grid-box" data-box-number="30">Espera 8</div>
+                        </div>
+                    </div>
+                    <!-- BOTÓN SACAR TURNO DIRECTO (MODO CLIENTE) -->
+                    <div style="text-align: center; margin-top: 14px;">
+                        <button onclick="openDirectBookingModal()" class="btn btn-primary" style="width: 100%; padding: 14px 20px; font-size: 1.05rem; font-weight: 900; background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%); border: none; border-radius: 14px; color: #ffffff; cursor: pointer; box-shadow: 0 0 25px rgba(14,165,233,0.4); display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; letter-spacing: 0.5px;">
+                            <i class='bx bx-calendar-check' style="font-size: 1.3rem; color: #fde047;"></i> SACAR TURNO DIRECTO <i class='bx bx-right-arrow-alt' style="font-size: 1.2rem;"></i>
+                        </button>
                     </div>
                 </div>
+
+                <!-- Columna Derecha: Visor de Convenios, Empresas & Apps (Estilo Noticias LED) -->
+                <div class="convenios-viewer-wrapper" style="flex: 1 1 340px; background: linear-gradient(145deg, #0b1329 0%, #080d1a 100%); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px; padding: 18px; max-width: 440px; width: 100%; box-shadow: 0 15px 40px rgba(0,0,0,0.6), 0 0 20px rgba(14,165,233,0.15); display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                    
+                    <!-- Barra Superior / Header de Noticias -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; margin-bottom: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="background: #ef4444; color: white; font-size: 0.65rem; font-weight: 900; padding: 3px 8px; border-radius: 4px; letter-spacing: 1px; text-transform: uppercase;">EN VIVO</span>
+                            <span style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px;">CONVENIOS & EMPRESAS</span>
+                        </div>
+                        <div style="display: flex; gap: 4px;" id="ticker-controls">
+                            <button onclick="prevConvenioSlide()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: white; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class='bx bx-chevron-left'></i></button>
+                            <button onclick="toggleConvenioPlay()" id="btn-pause-convenio" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: white; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class='bx bx-pause'></i></button>
+                            <button onclick="nextConvenioSlide()" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: white; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;"><i class='bx bx-chevron-right'></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Progreso de Diapositiva -->
+                    <div style="width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 12px;">
+                        <div id="convenio-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981); transition: width 0.1s linear;"></div>
+                    </div>
+
+                    <!-- Contenido de la Noticia / Anuncio actual -->
+                    <div id="convenio-slide-content" style="min-height: 180px; display: flex; flex-direction: column; justify-content: center; transition: opacity 0.3s ease, transform 0.3s ease;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <div id="convenio-icon-box" style="width: 42px; height: 42px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #38bdf8;">
+                                <i class='bx bxs-taxi'></i>
+                            </div>
+                            <div>
+                                <span id="convenio-cat-badge" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase;">Apps de Viajes</span>
+                                <h3 id="convenio-title" style="margin: 3px 0 0 0; font-size: 1.15rem; font-weight: 800; color: #ffffff;">Uber, Cabify & DiDi Pro</h3>
+                            </div>
+                        </div>
+                        <p id="convenio-desc" style="color: #cbd5e1; font-size: 0.88rem; line-height: 1.5; margin: 8px 0 14px 0; background: rgba(15, 23, 42, 0.5); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                            20% de descuento exclusivo en lavado completo para conductores de aplicaciones de viajes registradas.
+                        </p>
+                    </div>
+
+                    <!-- Footer con Indicadores e Botón WhatsApp/Enlace -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; margin-top: 8px;">
+                        <div id="convenio-dots" style="display: flex; gap: 6px;"></div>
+                        <a id="convenio-action-link" href="#" target="_blank" style="padding: 8px 14px; background: rgba(14,165,233,0.2); color: #38bdf8; border: 1px solid rgba(14,165,233,0.4); border-radius: 8px; font-weight: 700; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                            <i class='bx bxl-whatsapp' style="color: #25D366; font-size: 1.1rem;"></i> Consultar Convenio
+                        </a>
+                    </div>
+
+                </div>
+
             </div>
         </div>
     </section>
@@ -328,8 +429,8 @@
                             <i class='bx bx-map-pin'></i>
                             <div>
                                 <strong>Ubicación:</strong>
-                                <span>Brandsen 805, La Boca, CABA (Estadio Alberto J. Armando - La Bombonera)</span>
-                                <a href="https://www.google.com/maps/dir/?api=1&destination=Brandsen+805+La+Boca+CABA+Argentina" target="_blank" class="btn-como-llegar" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 8px 14px; background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(14,165,233,0.1)); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4); border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; transition: all 0.2s; box-shadow: 0 0 10px rgba(56,189,248,0.15);">
+                                <span>Panamericana Ramal Pilar km 45,5 - Acceso Los Lagartos C.C, La Lonja, Pilar, Prov. de Buenos Aires</span>
+                                <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank" class="btn-como-llegar" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 8px 14px; background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(14,165,233,0.1)); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4); border-radius: 8px; font-weight: 700; font-size: 0.88rem; text-decoration: none; transition: all 0.2s; box-shadow: 0 0 10px rgba(56,189,248,0.15);">
                                     <i class='bx bx-navigation' style="font-size: 1.1rem; color: #fde047;"></i> ¿Cómo llegar? (Abrir Google Maps)
                                 </a>
                             </div>
@@ -402,6 +503,74 @@
         <a href="https://wa.me/5491123456789" id="sticky-btn-wa" target="_blank" class="sticky-btn sticky-btn-wa">
             <i class='bx bxl-whatsapp'></i> WhatsApp Directo
         </a>
+    </div>
+
+    <!-- MODAL DE RESERVA DIRECTA (MODO CLIENTE) -->
+    <div id="direct-booking-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(12px); z-index: 9999; align-items: center; justify-content: center; padding: 15px;">
+        <div style="background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; max-width: 440px; width: 100%; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative; color: white; animation: modal-slide-in 0.3s ease;">
+            
+            <button onclick="closeDirectBookingModal()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.08); border: none; color: #94a3b8; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center;">
+                <i class='bx bx-x'></i>
+            </button>
+
+            <!-- Header Modal -->
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(14,165,233,0.15); border: 1px solid rgba(14,165,233,0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #38bdf8; margin-bottom: 8px;">
+                    <i class='bx bx-mobile-alt'></i> MODO CLIENTE DIRECTO
+                </div>
+                <h3 style="font-family: 'Racing Sans One', sans-serif; font-size: 1.6rem; margin: 0; color: #ffffff; letter-spacing: 0.5px;">RESERVAR MI TURNO</h3>
+                <p style="color: #94a3b8; font-size: 0.82rem; margin: 4px 0 0 0;">Ingresá tu vehículo y recibí aviso cuando esté listo</p>
+            </div>
+
+            <!-- Paso 1: Datos -->
+            <div id="booking-step-1">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 6px;">Patente del Vehículo</label>
+                    <input type="text" id="modal-input-plate" placeholder="Ej: AA123BB o AB123CD" style="width: 100%; padding: 12px 14px; background: rgba(15,23,42,0.9); border: 1px solid rgba(56,189,248,0.4); border-radius: 10px; color: white; font-weight: 700; font-size: 1.1rem; text-transform: uppercase; outline: none; box-sizing: border-box;" />
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 6px;">Tipo de Servicio</label>
+                    <select id="modal-select-service" style="width: 100%; padding: 12px 14px; background: rgba(15,23,42,0.9); border: 1px solid rgba(56,189,248,0.4); border-radius: 10px; color: white; font-weight: 700; font-size: 0.95rem; outline: none; cursor: pointer; box-sizing: border-box;">
+                        <option value="express_auto">🚘 Lavado Express Auto</option>
+                        <option value="express_camioneta">🛻 Lavado Express Camioneta</option>
+                        <option value="completo_auto">⭐ Lavado Completo Auto (VIP)</option>
+                        <option value="completo_camioneta">👑 Lavado Completo Camioneta (VIP)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 6px;">WhatsApp / Teléfono</label>
+                    <input type="tel" id="modal-input-phone" placeholder="Ej: 11 2345-6789" style="width: 100%; padding: 12px 14px; background: rgba(15,23,42,0.9); border: 1px solid rgba(56,189,248,0.4); border-radius: 10px; color: white; font-weight: 700; font-size: 1rem; outline: none; box-sizing: border-box;" />
+                </div>
+
+                <div id="modal-booking-error" style="display: none; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; font-size: 0.82rem; padding: 10px; border-radius: 8px; margin-bottom: 14px; text-align: center;"></div>
+
+                <button onclick="submitDirectBooking()" id="modal-btn-confirm" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; border-radius: 12px; color: white; font-weight: 900; font-size: 1.05rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(16,185,129,0.3);">
+                    <i class='bx bx-check-circle' style="font-size: 1.3rem;"></i> CONFIRMAR MI TURNO
+                </button>
+            </div>
+
+            <!-- Paso 2: Ticket Confirmado -->
+            <div id="booking-step-2" style="display: none; text-align: center; padding: 10px 0;">
+                <div style="width: 60px; height: 60px; background: rgba(16,185,129,0.2); border: 2px solid #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; color: #34d399; font-size: 2rem;">
+                    <i class='bx bx-check'></i>
+                </div>
+                <h4 style="font-size: 1.3rem; margin: 0 0 6px 0; color: #34d399;">¡TURNO CONFIRMADO!</h4>
+                <p style="color: #94a3b8; font-size: 0.85rem; margin: 0 0 16px 0;">Tu vehículo ha sido ingresado a la cola del circuito en vivo.</p>
+
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; margin-bottom: 18px; text-align: left;">
+                    <p style="margin: 4px 0; font-size: 0.88rem; color: #e2e8f0;">🚘 <strong>Patente:</strong> <span id="ticket-patente" style="color: #38bdf8; font-weight: 800;"></span></p>
+                    <p style="margin: 4px 0; font-size: 0.88rem; color: #e2e8f0;">🛠️ <strong>Servicio:</strong> <span id="ticket-servicio"></span></p>
+                    <p style="margin: 4px 0; font-size: 0.88rem; color: #e2e8f0;">📌 <strong>Estado:</strong> <span style="color: #fde047; font-weight: 700;">Ingresado a Espera</span></p>
+                </div>
+
+                <button onclick="closeDirectBookingModal()" style="width: 100%; padding: 12px; background: #0ea5e9; border: none; border-radius: 10px; color: white; font-weight: 700; cursor: pointer;">
+                    ¡LISTO! VOLVER AL CIRCUITO
+                </button>
+            </div>
+
+        </div>
     </div>
 
     <!-- Script Landing -->
