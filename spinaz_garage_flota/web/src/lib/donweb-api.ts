@@ -163,11 +163,45 @@ export function donwebFrom(tableName: string) {
           return selectBuilder;
         },
         in(col: string, vals: any[]) {
-          filters[col] = vals.join(',');
+          filters[col] = Array.isArray(vals) ? vals.join(',') : vals;
           return selectBuilder;
         },
-        order(col?: string, _opts?: any) {
+        or(condition: string) {
+          filters['or'] = condition;
+          return selectBuilder;
+        },
+        gte(col: string, val: any) {
+          filters[`gte_${col}`] = val;
+          return selectBuilder;
+        },
+        lte(col: string, val: any) {
+          filters[`lte_${col}`] = val;
+          return selectBuilder;
+        },
+        gt(col: string, val: any) {
+          filters[`gt_${col}`] = val;
+          return selectBuilder;
+        },
+        lt(col: string, val: any) {
+          filters[`lt_${col}`] = val;
+          return selectBuilder;
+        },
+        is(col: string, val: any) {
+          filters[col] = val;
+          return selectBuilder;
+        },
+        not(col: string, _op: string, val: any) {
+          filters[`not_${col}`] = val;
+          return selectBuilder;
+        },
+        range(from: number, to: number) {
+          filters['offset'] = from;
+          filters['limit'] = to - from + 1;
+          return selectBuilder;
+        },
+        order(col?: string, opts?: any) {
           if (col) filters['order_by'] = col;
+          if (opts?.ascending !== undefined) filters['order_direction'] = opts.ascending ? 'ASC' : 'DESC';
           return selectBuilder;
         },
         limit(count: number) {
@@ -176,10 +210,20 @@ export function donwebFrom(tableName: string) {
         },
         async single() {
           const { data, error } = await helperFetch(filters);
-          return { data: data[0] || null, error };
+          return { data: Array.isArray(data) ? (data[0] || null) : data, error };
+        },
+        async maybeSingle() {
+          const { data, error } = await helperFetch(filters);
+          return { data: Array.isArray(data) ? (data[0] || null) : data, error };
         },
         then(resolve: (res: any) => void, reject?: (err: any) => void) {
           return helperFetch(filters).then(resolve, reject);
+        },
+        catch(reject: (err: any) => void) {
+          return helperFetch(filters).catch(reject);
+        },
+        finally(callback: () => void) {
+          return helperFetch(filters).finally(callback);
         }
       };
 
