@@ -214,39 +214,39 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Premium Sidebar Unificado (Solo Escritorio) */}
-      <aside className="hidden lg:flex w-72 bg-black/40 backdrop-blur-3xl border-r border-white/5 flex-col relative z-20 shrink-0 h-screen sticky top-0">
-        <div className="h-24 flex items-center px-8 border-b border-white/5">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(234,179,8,0.3)]">
+      <aside className="hidden lg:flex w-64 bg-black/40 backdrop-blur-3xl border-r border-white/5 flex-col relative z-20 shrink-0 h-screen sticky top-0">
+        <div className="h-16 flex items-center px-5 border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.25)]">
               {settings?.brand_logo ? (
-                <img src={settings.brand_logo} alt="Logo" className="w-8 h-8 object-contain" />
+                <img src={settings.brand_logo} alt="Logo" className="w-5 h-5 object-contain" />
               ) : (
-                <span className="font-black text-black text-xl tracking-tighter">
+                <span className="font-black text-black text-sm tracking-tighter">
                   {settings?.brand_name?.substring(0, 2).toUpperCase() || 'SG'}
                 </span>
               )}
             </div>
             <div>
-              <h1 className="font-black text-xl tracking-tight leading-none text-white uppercase">
+              <h1 className="font-black text-base tracking-tight leading-none text-white uppercase">
                 {settings?.brand_name || 'SPINAZ'}
               </h1>
-              <span className="text-[10px] text-yellow-500 font-bold uppercase tracking-[0.2em]">Comando</span>
+              <span className="text-[9px] text-yellow-500 font-bold uppercase tracking-[0.2em]">Comando</span>
             </div>
           </div>
         </div>
         
-        <div className="p-6 border-b border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-zinc-500 border border-white/5">
-              <UserIcon size={24} />
+        <div className="p-3.5 border-b border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-white/5 rounded-xl flex items-center justify-center text-zinc-400 border border-white/5 shrink-0">
+              <UserIcon size={18} />
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-black text-white truncate leading-none mb-1">
+              <p className="text-xs font-black text-white truncate leading-none mb-1">
                 {userProfile?.full_name || 'Cargando...'}
               </p>
               <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 bg-lime-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(163,230,53,0.8)]" />
-                <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest truncate">
+                <div className="w-1.5 h-1.5 bg-lime-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(163,230,53,0.8)]" />
+                <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest truncate">
                   {userProfile?.role === 'admin' ? 'Administrador' : 'Gestor'}
                 </span>
               </div>
@@ -254,12 +254,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
 
-        <div className="p-6 flex-1 overflow-y-auto">
-          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-4 px-4">Menu Principal</p>
-          <nav className="flex flex-col gap-2">
+        <div className="p-3 flex-1 overflow-y-auto">
+          <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-2 px-2">Menu Principal</p>
+          <nav className="flex flex-col gap-1">
             {loading ? (
-               <div className="space-y-3 px-4">
-                  {[1,2,3,4,5].map(i => <div key={i} className="h-10 bg-white/5 rounded-xl animate-pulse" />)}
+               <div className="space-y-2 px-2">
+                  {[1,2,3,4,5].map(i => <div key={i} className="h-8 bg-white/5 rounded-lg animate-pulse" />)}
                </div>
             ) : (
               navItems.map((item) => {
@@ -268,17 +268,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Link 
                     key={item.href} 
                     href={item.href}
-                    className={`group flex items-center justify-between p-4 rounded-2xl transition-all duration-300 ${
+                    className={`group flex items-center justify-between py-2 px-3 rounded-xl transition-all duration-200 ${
                       isActive 
-                        ? 'bg-gradient-to-r from-yellow-500/10 to-transparent border border-yellow-500/20 text-yellow-500 shadow-[inset_4px_0_0_0_rgba(163,230,53,1)]' 
+                        ? 'bg-gradient-to-r from-yellow-500/15 to-transparent border border-yellow-500/20 text-yellow-500 font-bold shadow-[inset_3px_0_0_0_rgba(163,230,53,1)]' 
                         : 'text-zinc-400 hover:bg-white/5 hover:text-white'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <item.icon size={20} className={isActive ? 'text-lime-400' : 'group-hover:text-lime-400 transition-colors'} />
-                      <span className={isActive ? 'font-bold' : 'font-medium'}>{item.name}</span>
+                    <div className="flex items-center gap-2.5">
+                      <item.icon size={16} className={isActive ? 'text-lime-400' : 'group-hover:text-lime-400 transition-colors'} />
+                      <span className={`text-xs ${isActive ? 'font-bold' : 'font-medium'}`}>{item.name}</span>
                     </div>
-                    {!isActive && <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all text-lime-400" />}
+                    {!isActive && <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transform -translate-x-1 group-hover:translate-x-0 transition-all text-lime-400" />}
                   </Link>
                 );
               })
@@ -286,17 +286,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
 
-        <div className="p-6 border-t border-white/5 space-y-4">
-          <button onClick={handleSignOut} className="flex items-center gap-3 w-full p-4 rounded-2xl text-zinc-500 hover:bg-red-500/10 hover:text-red-500 transition-all duration-300">
-            <LogOut size={20} />
-            <span className="font-bold text-sm">Cerrar Sesión</span>
+        <div className="p-3.5 border-t border-white/5 space-y-2.5">
+          <button onClick={handleSignOut} className="flex items-center gap-2.5 w-full py-2 px-3 rounded-xl text-zinc-500 hover:bg-red-500/10 hover:text-red-500 transition-all duration-200 text-xs font-semibold">
+            <LogOut size={16} />
+            <span>Cerrar Sesión</span>
           </button>
           
-          <div className="pt-2 text-center border-t border-white/5 space-y-2">
-            <p className="text-[10px] text-zinc-500 font-bold tracking-tight">
-              © 2026 Omar Adamo — Startup Aura. Todos los derechos reservados.
+          <div className="pt-2 text-center border-t border-white/5 space-y-1">
+            <p className="text-[9px] text-zinc-500 font-semibold tracking-tight">
+              © 2026 Omar Adamo — Startup Aura
             </p>
-            <div className="flex justify-center gap-4 text-[9px] text-zinc-500 font-medium">
+            <div className="flex justify-center gap-3 text-[8px] text-zinc-600 font-medium">
               <a href="mailto:adamoomar110@gmail.com" className="hover:text-yellow-500 transition-colors">Email</a>
               <span>•</span>
               <a href="https://wa.me/5491178295317" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-500 transition-colors">WhatsApp</a>

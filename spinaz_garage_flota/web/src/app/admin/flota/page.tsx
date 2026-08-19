@@ -183,52 +183,52 @@ export default function FlotaAdmin() {
   });
 
   return (
-    <div className="flex flex-col h-full bg-[#030303] relative">
-      <header className="h-24 px-10 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-20">
+    <div className="flex flex-col h-full bg-[#030303]">
+      <header className="h-16 px-6 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-20 shrink-0">
         <div>
-          <h2 className="text-3xl font-black text-white tracking-tighter">Gestión de Flota</h2>
-          <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Control de Unidades y Conductores</p>
+          <h2 className="text-xl font-black text-white tracking-tight italic leading-none">Gestión de Flota</h2>
+          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">Control de Unidades y Conductores</p>
         </div>
         
-        <div className="flex gap-4">
-          <div className="flex items-center bg-black/50 border border-white/10 px-5 py-3 rounded-2xl w-80 shadow-inner">
-            <Search className="text-zinc-500" size={18} />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-black/50 border border-white/10 px-3.5 py-2 rounded-xl w-64 shadow-inner">
+            <Search className="text-zinc-500" size={15} />
             <input 
               type="text" 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar chofer o patente..." 
-              className="bg-transparent border-none focus:outline-none text-sm ml-3 w-full text-white placeholder-zinc-600" 
+              className="bg-transparent border-none focus:outline-none text-xs ml-2.5 w-full text-white placeholder-zinc-600 font-medium" 
             />
           </div>
-          <button onClick={() => setShowAddModal(true)} className="bg-yellow-500 text-black font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-yellow-400 transition-all shadow-xl shadow-yellow-500/20">
-            <Plus size={20} /> ALTA UNIDAD
+          <button onClick={() => setShowAddModal(true)} className="bg-yellow-500 text-black font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/20">
+            <Plus size={16} /> ALTA UNIDAD
           </button>
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-10 space-y-12">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
            {[
              { label: 'Total Unidades', val: vehicles.length, icon: Car, color: 'text-white' },
-             { label: 'Choferes Activos', val: drivers.length, icon: User, color: 'text-blue-500' },
-             { label: 'Disponibles', val: vehicles.filter(v => v.status === 'active' && !drivers.find(d => d.vehicle_id === v.id)).length, icon: ShieldCheck, color: 'text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,0.5)]' },
+             { label: 'Choferes Activos', val: drivers.length, icon: User, color: 'text-blue-400' },
+             { label: 'Disponibles', val: vehicles.filter(v => v.status === 'active' && !drivers.find(d => d.vehicle_id === v.id)).length, icon: ShieldCheck, color: 'text-lime-400' },
              { label: 'En Taller', val: vehicles.filter(v => v.status === 'maintenance').length, icon: AlertTriangle, color: 'text-yellow-500' },
              { label: 'En Lubricentro', val: vehicles.filter(v => v.status === 'lubricentro').length, icon: Droplets, color: 'text-blue-400' },
              { label: 'En Lavadero', val: vehicles.filter(v => v.status === 'lavadero').length, icon: Waves, color: 'text-cyan-400' },
            ].map((stat, i) => (
-             <div key={i} className="bg-zinc-900/40 p-8 rounded-[2.5rem] border border-white/5 backdrop-blur-xl">
-                <stat.icon className={`${stat.color} mb-4`} size={24} />
-                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">{stat.label}</p>
-                <p className="text-4xl font-black text-white">{stat.val}</p>
+             <div key={i} className="bg-zinc-900/40 p-3.5 rounded-xl border border-white/5 backdrop-blur-xl">
+                <stat.icon className={`${stat.color} mb-2`} size={18} />
+                <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">{stat.label}</p>
+                <p className="text-xl font-black text-white">{stat.val}</p>
              </div>
            ))}
         </div>
 
         {/* Fleet List */}
-        <div className="space-y-4">
-          <div className="grid grid-cols-6 px-8 py-4 text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em]">
+        <div className="space-y-2">
+          <div className="grid grid-cols-6 px-5 py-2 text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em]">
              <div className="col-span-2">Unidad / Vehículo</div>
              <div>Chofer Asignado</div>
              <div>Estado</div>
@@ -237,57 +237,57 @@ export default function FlotaAdmin() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center p-20">
-               <div className="w-10 h-10 border-4 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
+            <div className="flex justify-center p-16">
+               <div className="w-8 h-8 border-3 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
             </div>
           ) : filteredVehicles.length === 0 ? (
-             <div className="text-center py-16 bg-zinc-900/30 border border-white/5 rounded-3xl">
-                <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">No se encontraron vehículos que coincidan con la búsqueda</p>
+             <div className="text-center py-12 bg-zinc-900/30 border border-white/5 rounded-2xl">
+                <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">No se encontraron vehículos que coincidan con la búsqueda</p>
              </div>
           ) : (
             filteredVehicles.map(v => {
               const assignedDriver = drivers.find(d => d.vehicle_id === v.id);
               return (
-                <div key={v.id} className="grid grid-cols-6 items-center px-8 py-6 bg-zinc-900/20 border border-white/5 rounded-[2rem] hover:bg-zinc-900/40 transition-all group cursor-pointer" onClick={() => setSelectedVehicle(v)}>
-                   <div className="col-span-2 flex items-center gap-5">
-                      <div className="w-14 h-14 bg-black rounded-2xl flex items-center justify-center border border-white/5 shadow-inner">
-                         <Car size={28} className="text-yellow-500" />
+                <div key={v.id} className="grid grid-cols-6 items-center px-5 py-3 bg-zinc-900/30 border border-white/5 rounded-xl hover:bg-zinc-900/50 hover:border-white/10 transition-all group cursor-pointer" onClick={() => setSelectedVehicle(v)}>
+                   <div className="col-span-2 flex items-center gap-3.5">
+                      <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center border border-white/5 shadow-inner shrink-0">
+                         <Car size={20} className="text-yellow-500" />
                       </div>
-                      <div>
-                         <p className="text-xl font-black text-white leading-none mb-1">{v.plate}</p>
-                         <p className="text-xs text-zinc-500 font-bold uppercase">{v.brand} {v.model}</p>
+                      <div className="min-w-0">
+                         <p className="text-sm font-black text-white leading-none mb-0.5 truncate">{v.plate}</p>
+                         <p className="text-[10px] text-zinc-500 font-bold uppercase truncate">{v.brand} {v.model}</p>
                       </div>
                    </div>
 
                    <div>
                       {assignedDriver ? (
-                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-500/10 text-blue-500 rounded-lg flex items-center justify-center font-black text-[10px]">
+                         <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 bg-blue-500/10 text-blue-400 rounded-md flex items-center justify-center font-black text-[9px] shrink-0">
                                {assignedDriver.full_name.charAt(0)}
                             </div>
-                            <span className="text-sm font-bold text-zinc-300">{assignedDriver.full_name}</span>
+                            <span className="text-xs font-bold text-zinc-300 truncate">{assignedDriver.full_name}</span>
                          </div>
                       ) : (
-                         <span className="text-xs text-zinc-600 font-bold italic">Sin asignar</span>
+                         <span className="text-[11px] text-zinc-600 font-bold italic">Sin asignar</span>
                       )}
                    </div>
 
                    <div>
-                      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(v.status)}`}>
+                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border inline-block ${getStatusColor(v.status)}`}>
                          {v.status === 'active' ? 'Operativo' : v.status === 'maintenance' ? 'En Taller' : v.status === 'lubricentro' ? 'En Lubricentro' : v.status === 'lavadero' ? 'En Lavadero' : 'Baja'}
                       </span>
                    </div>
 
-                   <div className="text-xs text-zinc-500 font-medium">
+                   <div className="text-[11px] text-zinc-500 font-medium">
                       Hace 2 horas
                    </div>
 
                    <div className="flex justify-end relative">
                       <button 
                          onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === v.id ? null : v.id); }}
-                         className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-colors focus:outline-none"
+                         className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-zinc-500 hover:text-white transition-colors focus:outline-none"
                       >
-                         <MoreVertical size={18} />
+                         <MoreVertical size={15} />
                       </button>
 
                       {openMenuId === v.id && (

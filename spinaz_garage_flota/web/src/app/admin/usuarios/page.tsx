@@ -149,131 +149,133 @@ export default function UsuariosAdmin() {
 
   return (
     <div className="flex flex-col h-full bg-[#030303]">
-      <header className="h-24 px-10 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-20">
+      <header className="h-16 px-6 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-20 shrink-0">
         <div>
-          <h2 className="text-3xl font-black text-white tracking-tighter italic">Legajos de Personal</h2>
-          <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Gestión Diferenciada: Choferes y Administradores</p>
+          <h2 className="text-xl font-black text-white tracking-tight italic leading-none">Legajos de Personal</h2>
+          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">Gestión Diferenciada: Choferes y Administradores</p>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="flex items-center bg-black/50 border border-white/10 px-5 py-3 rounded-2xl w-80 shadow-inner">
-            <Search className="text-zinc-500" size={18} />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center bg-black/50 border border-white/10 px-3.5 py-2 rounded-xl w-64 shadow-inner">
+            <Search className="text-zinc-500" size={15} />
             <input 
               type="text" 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar por nombre, email o patente..." 
-              className="bg-transparent border-none focus:outline-none text-sm ml-3 w-full text-white placeholder-zinc-600 font-medium" 
+              className="bg-transparent border-none focus:outline-none text-xs ml-2.5 w-full text-white placeholder-zinc-600 font-medium" 
             />
           </div>
-          <button onClick={() => setShowAddModal(true)} className="bg-yellow-500 text-black font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-yellow-400 transition-all shadow-xl shadow-yellow-500/20">
-            <UserPlus size={20} /> NUEVO USUARIO / ADMIN
+          <button onClick={() => setShowAddModal(true)} className="bg-yellow-500 text-black font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/20">
+            <UserPlus size={16} /> NUEVO USUARIO / ADMIN
           </button>
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-10">
+      <div className="flex-1 overflow-y-auto p-6">
         
         {/* BARRA DE FILTROS POR ROL */}
-        <div className="flex items-center gap-3 mb-8 bg-black/40 p-2 rounded-2xl border border-white/5 w-fit">
+        <div className="flex items-center gap-2 mb-5 bg-black/40 p-1.5 rounded-xl border border-white/5 w-fit">
           <button 
             onClick={() => setRoleFilter('all')}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${roleFilter === 'all' ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' : 'text-zinc-400 hover:text-white'}`}
+            className={`px-3.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${roleFilter === 'all' ? 'bg-yellow-500 text-black shadow-md shadow-yellow-500/20' : 'text-zinc-400 hover:text-white'}`}
           >
             Todos ({users.length})
           </button>
           <button 
             onClick={() => setRoleFilter('admin')}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${roleFilter === 'admin' ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' : 'text-zinc-400 hover:text-white'}`}
+            className={`px-3.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${roleFilter === 'admin' ? 'bg-yellow-500 text-black shadow-md shadow-yellow-500/20' : 'text-zinc-400 hover:text-white'}`}
           >
-            🛡️ Administradores ({users.filter(u => u.role === 'admin').length})
+            🛡️ Admin ({users.filter(u => u.role === 'admin').length})
           </button>
           <button 
             onClick={() => setRoleFilter('driver')}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${roleFilter === 'driver' ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' : 'text-zinc-400 hover:text-white'}`}
+            className={`px-3.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${roleFilter === 'driver' ? 'bg-yellow-500 text-black shadow-md shadow-yellow-500/20' : 'text-zinc-400 hover:text-white'}`}
           >
             🚖 Choferes ({users.filter(u => u.role === 'driver' || !u.role).length})
           </button>
           <button 
             onClick={() => setRoleFilter('services')}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${roleFilter === 'services' ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' : 'text-zinc-400 hover:text-white'}`}
+            className={`px-3.5 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all ${roleFilter === 'services' ? 'bg-yellow-500 text-black shadow-md shadow-yellow-500/20' : 'text-zinc-400 hover:text-white'}`}
           >
             🛠️ Servicios ({users.filter(u => u.role === 'mechanic' || u.role === 'lubricentro' || u.role === 'lavadero').length})
           </button>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {loading ? (
-             <div className="col-span-full flex justify-center py-20">
-                <div className="w-10 h-10 border-4 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
+             <div className="col-span-full flex justify-center py-16">
+                <div className="w-8 h-8 border-3 border-yellow-500/20 border-t-yellow-500 rounded-full animate-spin" />
              </div>
           ) : filteredUsers.length === 0 ? (
-             <div className="col-span-full text-center py-16 bg-zinc-900/30 border border-white/5 rounded-3xl">
-                <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">No hay usuarios registrados en esta categoría</p>
+             <div className="col-span-full text-center py-12 bg-zinc-900/30 border border-white/5 rounded-2xl">
+                <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">No hay usuarios registrados en esta categoría</p>
              </div>
           ) : filteredUsers.map(user => {
             const roleInfo = getRoleInfo(user.role);
             return (
-              <div key={user.id} className="bg-zinc-900/30 backdrop-blur-xl border border-white/10 rounded-[3rem] overflow-hidden group hover:bg-zinc-900/50 transition-all cursor-pointer" onClick={() => setSelectedDriver(user)}>
-                 <div className="p-8 flex items-start gap-6">
-                    <div className="w-24 h-24 bg-gradient-to-br from-zinc-800 to-black rounded-3xl flex items-center justify-center border border-white/5 relative">
-                       <Users size={40} className="text-zinc-600 group-hover:text-yellow-500 transition-colors" />
-                       <div className={`absolute -bottom-2 -right-2 px-3 py-1 text-[9px] uppercase shadow-lg rounded-lg border ${roleInfo.bg}`}>
-                          {roleInfo.label}
+              <div key={user.id} className="bg-zinc-900/40 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden group hover:bg-zinc-900/60 hover:border-white/20 transition-all cursor-pointer flex flex-col justify-between" onClick={() => setSelectedDriver(user)}>
+                 <div className="p-4 flex items-start gap-3.5">
+                    <div className="w-12 h-12 bg-gradient-to-br from-zinc-800 to-black rounded-xl flex items-center justify-center border border-white/5 relative shrink-0">
+                       <Users size={22} className="text-zinc-500 group-hover:text-yellow-500 transition-colors" />
+                       <div className={`absolute -bottom-1 -right-1 px-1.5 py-0.5 text-[8px] uppercase shadow-md rounded border ${roleInfo.bg}`}>
+                          {user.role === 'admin' ? 'Admin' : user.role === 'driver' ? 'Chofer' : roleInfo.label.split(' ')[1] || 'Staff'}
                        </div>
                     </div>
 
-                    <div className="flex-1">
-                       <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-2xl font-black text-white tracking-tight">{user.full_name}</h3>
+                    <div className="flex-1 min-w-0">
+                       <div className="flex justify-between items-start mb-0.5">
+                          <h3 className="text-sm font-black text-white tracking-tight truncate">{user.full_name}</h3>
                           {user.role !== 'admin' ? (
                              <button 
                                 onClick={(e) => { e.stopPropagation(); handleDeleteUser(user.id, user.full_name); }}
-                                className="text-zinc-700 hover:text-red-500 transition-colors p-2 hover:bg-red-500/10 rounded-xl"
+                                className="text-zinc-600 hover:text-red-500 transition-colors p-1 hover:bg-red-500/10 rounded-lg shrink-0 ml-1"
                                 title="Eliminar Usuario"
                              >
-                                <Trash2 size={18} />
+                                <Trash2 size={14} />
                              </button>
                           ) : (
-                             <div className="flex items-center gap-1.5 text-[10px] font-black text-yellow-500/70 uppercase tracking-widest bg-yellow-500/10 px-3 py-1.5 rounded-xl border border-yellow-500/20">
-                                <Shield size={12} /> Protegido
+                             <div className="flex items-center gap-1 text-[8px] font-black text-yellow-500/80 uppercase tracking-wider bg-yellow-500/10 px-2 py-0.5 rounded-md border border-yellow-500/20 shrink-0 ml-1">
+                                <Shield size={10} /> Protegido
                              </div>
                           )}
                        </div>
-                       <p className="text-zinc-500 text-sm font-medium mb-4 flex items-center gap-2">
-                          <Mail size={14} /> {user.email}
+                       <p className="text-zinc-500 text-xs font-medium mb-2 flex items-center gap-1.5 truncate">
+                          <Mail size={12} className="shrink-0" /> <span className="truncate">{user.email}</span>
                        </p>
                        
-                       {user.vehicles && (
-                          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5 text-[10px] font-bold text-zinc-400 uppercase">
-                             Unidad: {user.vehicles.plate} - {user.vehicles.brand}
+                       {user.vehicles ? (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/5 rounded-md border border-white/5 text-[9px] font-bold text-zinc-400 uppercase">
+                             🚗 {user.vehicles.plate} • {user.vehicles.brand}
                           </div>
+                       ) : (
+                          <span className="text-[9px] text-zinc-600 font-bold uppercase">Sin vehículo asignado</span>
                        )}
                     </div>
                  </div>
 
                  {/* Stats Bar */}
-                 <div className="grid grid-cols-3 bg-black/40 border-t border-white/5 p-8 gap-4">
-                    <div className="text-center space-y-1">
-                       <div className="flex items-center justify-center gap-2 text-zinc-500 mb-1">
-                          <Gauge size={14} className="text-yellow-500" />
-                          <span className="text-[10px] font-black uppercase tracking-widest">Total KM</span>
+                 <div className="grid grid-cols-3 bg-black/40 border-t border-white/5 py-2.5 px-3 gap-2">
+                    <div className="text-center">
+                       <div className="flex items-center justify-center gap-1 text-zinc-500 mb-0.5">
+                          <Gauge size={11} className="text-yellow-500" />
+                          <span className="text-[8px] font-black uppercase tracking-wider">KM</span>
                        </div>
-                       <p className="text-xl font-black text-white">{user.stats.km.toLocaleString()}</p>
+                       <p className="text-xs font-black text-white">{user.stats.km.toLocaleString()}</p>
                     </div>
-                    <div className="text-center border-x border-white/5 space-y-1">
-                       <div className="flex items-center justify-center gap-2 text-zinc-500 mb-1">
-                          <Clock size={14} className="text-blue-500" />
-                          <span className="text-[10px] font-black uppercase tracking-widest">Horas Uso</span>
+                    <div className="text-center border-x border-white/5">
+                       <div className="flex items-center justify-center gap-1 text-zinc-500 mb-0.5">
+                          <Clock size={11} className="text-blue-400" />
+                          <span className="text-[8px] font-black uppercase tracking-wider">Uso</span>
                        </div>
-                       <p className="text-xl font-black text-white">{user.stats.hours} hs</p>
+                       <p className="text-xs font-black text-white">{user.stats.hours} hs</p>
                     </div>
-                    <div className="text-center space-y-1">
-                       <div className="flex items-center justify-center gap-2 text-zinc-500 mb-1">
-                          <DollarSign size={14} className="text-lime-400 drop-shadow-[0_0_5px_rgba(163,230,53,0.5)]" />
-                          <span className="text-[10px] font-black uppercase tracking-widest">Recaudado</span>
+                    <div className="text-center">
+                       <div className="flex items-center justify-center gap-1 text-zinc-500 mb-0.5">
+                          <DollarSign size={11} className="text-lime-400" />
+                          <span className="text-[8px] font-black uppercase tracking-wider">Recaudado</span>
                        </div>
-                       <p className="text-xl font-black text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,0.3)]">${user.stats.revenue.toLocaleString()}</p>
+                       <p className="text-xs font-black text-lime-400">${user.stats.revenue.toLocaleString()}</p>
                     </div>
                  </div>
               </div>

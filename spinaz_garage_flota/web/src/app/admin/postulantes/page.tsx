@@ -189,14 +189,14 @@ export default function PostulantesAdmin() {
         </div>
       )}
 
-      <header className="h-24 px-10 flex items-center justify-between bg-black/20 backdrop-blur-md border-b border-white/5 z-20">
+      <header className="h-16 px-6 flex items-center justify-between border-b border-white/5 bg-black/20 backdrop-blur-md sticky top-0 z-20 shrink-0">
         <div>
-          <h2 className="text-3xl font-black tracking-tight text-white mb-1">Candidatos</h2>
-          <p className="text-zinc-400 text-sm font-medium">Gestión de reclutamiento &quot;Nivel Empresa&quot;.</p>
+          <h2 className="text-xl font-black tracking-tight text-white italic leading-none">Candidatos</h2>
+          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">Gestión de reclutamiento</p>
         </div>
-        <div className="flex items-center bg-black/50 border border-white/10 px-5 py-3 rounded-2xl w-80 shadow-inner focus-within:border-yellow-500/50 transition-colors">
-          <Search className="text-zinc-500" size={18} />
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nombre o DNI..." className="bg-transparent border-none focus:outline-none text-sm ml-3 w-full text-white placeholder-zinc-600" />
+        <div className="flex items-center bg-black/50 border border-white/10 px-3.5 py-2 rounded-xl w-64 shadow-inner focus-within:border-yellow-500/50 transition-colors">
+          <Search className="text-zinc-500" size={15} />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nombre o DNI..." className="bg-transparent border-none focus:outline-none text-xs ml-2.5 w-full text-white placeholder-zinc-600 font-medium" />
         </div>
       </header>
 
