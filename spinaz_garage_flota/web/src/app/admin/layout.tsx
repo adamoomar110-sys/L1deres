@@ -254,12 +254,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
 
-        <div className="p-3 flex-1 overflow-y-auto">
-          <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-2 px-2">Menu Principal</p>
-          <nav className="flex flex-col gap-1">
+        <div className="p-2 flex-1 overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <p className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest mb-1.5 px-2">Menu Principal</p>
+          <nav className="flex flex-col gap-0.5">
             {loading ? (
-               <div className="space-y-2 px-2">
-                  {[1,2,3,4,5].map(i => <div key={i} className="h-8 bg-white/5 rounded-lg animate-pulse" />)}
+               <div className="space-y-1.5 px-2">
+                  {[1,2,3,4,5].map(i => <div key={i} className="h-7 bg-white/5 rounded-lg animate-pulse" />)}
                </div>
             ) : (
               navItems.map((item) => {
@@ -268,17 +268,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Link 
                     key={item.href} 
                     href={item.href}
-                    className={`group flex items-center justify-between py-2 px-3 rounded-xl transition-all duration-200 ${
+                    className={`group flex items-center justify-between py-1.5 px-2.5 rounded-lg transition-all duration-150 ${
                       isActive 
                         ? 'bg-gradient-to-r from-yellow-500/15 to-transparent border border-yellow-500/20 text-yellow-500 font-bold shadow-[inset_3px_0_0_0_rgba(163,230,53,1)]' 
                         : 'text-zinc-400 hover:bg-white/5 hover:text-white'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <item.icon size={16} className={isActive ? 'text-lime-400' : 'group-hover:text-lime-400 transition-colors'} />
-                      <span className={`text-xs ${isActive ? 'font-bold' : 'font-medium'}`}>{item.name}</span>
+                    <div className="flex items-center gap-2">
+                      <item.icon size={15} className={isActive ? 'text-lime-400' : 'group-hover:text-lime-400 transition-colors'} />
+                      <span className={`text-[11px] ${isActive ? 'font-bold' : 'font-medium'}`}>{item.name}</span>
                     </div>
-                    {!isActive && <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transform -translate-x-1 group-hover:translate-x-0 transition-all text-lime-400" />}
+                    {!isActive && <ChevronRight size={12} className="opacity-0 group-hover:opacity-100 transform -translate-x-1 group-hover:translate-x-0 transition-all text-lime-400" />}
                   </Link>
                 );
               })

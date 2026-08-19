@@ -8,23 +8,50 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     $driverId = $_GET['driver_id'] ?? '';
+    $sql = "
+        SELECT 
+            p.*,
+            pr.full_name as driver_name,
+            pr.email as driver_email,
+            pr.phone as driver_phone
+        FROM `spinaz_payments` p
+        LEFT JOIN `spinaz_profiles` pr ON p.driver_id = pr.id
+    ";
     if (!empty($driverId)) {
-        $stmt = $pdo->prepare("SELECT * FROM `spinaz_payments` WHERE `driver_id` = :did ORDER BY `created_at` DESC");
+        $sql .= " WHERE p.`driver_id` = :did ORDER BY p.`created_at` DESC";
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([':did' => $driverId]);
     } else {
-        $stmt = $pdo->query("SELECT * FROM `spinaz_payments` ORDER BY `created_at` DESC");
+        $stmt = $pdo->query($sql . " ORDER BY p.`created_at` DESC");
     }
     $payments = $stmt->fetchAll();
+
+    foreach ($payments as &$row) {
+        $row['profiles'] = [
+            'full_name' => $row['driver_name'] ?: 'Chofer sin nombre',
+            'email' => $row['driver_email'] ?: 'Sin email'
+        ];
+    }
+
     sendResponse(['success' => true, 'payments' => $payments]);
 }
 
 if ($method === 'POST' || $method === 'PUT') {
     $input = getJsonInput();
     $id = $input['id'] ?? generateUuid();
+    $status = $input['status'] ?? null;
+
+    // Si es solo una actualización de estado
+    if (!empty($id) && $status !== null && (!isset($input['driver_id']) || empty($input['driver_id']))) {
+        $stmt = $pdo->prepare("UPDATE `spinaz_payments` SET `status` = :st WHERE `id` = :id");
+        $stmt->execute([':st' => $status, ':id' => $id]);
+        sendResponse(['success' => true, 'id' => $id, 'status' => $status]);
+    }
+
     $driverId = $input['driver_id'] ?? '';
     $amount = floatval($input['amount'] ?? 0);
     $type = $input['type'] ?? 'payment';
-    $status = $input['status'] ?? 'pending';
+    $status = $status ?: 'pending';
     $dueDate = $input['due_date'] ?? null;
     $receiptUrl = $input['receipt_url'] ?? null;
     $notes = $input['notes'] ?? null;

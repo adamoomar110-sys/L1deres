@@ -30,10 +30,16 @@ export default function CobrosAdmin() {
   };
 
   const calculateStats = (data: any[]) => {
-    const paid = data.filter(p => p.status === 'completed' || p.status === 'approved').reduce((acc, curr) => acc + Number(curr.amount), 0);
-    const debt = data.filter(p => p.type === 'debt' || p.status === 'pending').reduce((acc, curr) => acc + Number(curr.amount), 0);
-    const pending = data.filter(p => p.status === 'pending').length;
-    setStats({ total_paid: paid, total_debt: debt, pending_count: pending });
+    const paid = data
+      .filter(p => p.status === 'completed' || p.status === 'approved')
+      .reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+
+    const pendingDebt = data
+      .filter(p => p.status === 'pending' || p.status === 'rejected')
+      .reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+
+    const pendingCount = data.filter(p => p.status === 'pending').length;
+    setStats({ total_paid: paid, total_debt: pendingDebt, pending_count: pendingCount });
   };
 
   const updateStatus = async (id: string, newStatus: string) => {
@@ -43,7 +49,11 @@ export default function CobrosAdmin() {
       .eq('id', id);
       
     if (!error) {
-      setPayments(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+      setPayments(prev => {
+        const next = prev.map(p => p.id === id ? { ...p, status: newStatus } : p);
+        calculateStats(next);
+        return next;
+      });
     }
   };
 
@@ -99,14 +109,18 @@ export default function CobrosAdmin() {
                     <User size={14} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-white leading-none mb-0.5 truncate">{p.profiles?.full_name}</p>
-                    <p className="text-[9px] text-zinc-500 truncate">{p.profiles?.email}</p>
+                    <p className="text-xs font-bold text-white leading-none mb-0.5 truncate">
+                      {p.profiles?.full_name || p.driver_name || 'Chofer Asignado'}
+                    </p>
+                    <p className="text-[9px] text-zinc-500 truncate">
+                      {p.profiles?.email || p.driver_email || p.driver_id || 'ID: ' + p.id.substring(0, 8)}
+                    </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-medium">
-                  <Calendar size={12} className="text-yellow-500" />
-                  {p.due_date ? new Date(p.due_date).toLocaleDateString() : 'N/A'}
+                  <Calendar size={12} className="text-yellow-500 shrink-0" />
+                  <span>{p.due_date ? new Date(p.due_date).toLocaleDateString() : 'N/A'}</span>
                 </div>
 
                 <div className="text-sm font-black text-white">
@@ -136,15 +150,15 @@ export default function CobrosAdmin() {
                    <select 
                     value={p.status}
                     onChange={(e) => updateStatus(p.id, e.target.value)}
-                    className={`bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-wider focus:outline-none focus:border-yellow-500 transition-all ${
-                      p.status === 'completed' || p.status === 'approved' ? 'text-green-500' : 
-                      p.status === 'rejected' ? 'text-red-500' : 'text-yellow-500'
+                    className={`bg-zinc-900 border border-white/10 rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-wider focus:outline-none focus:border-yellow-500 transition-all cursor-pointer ${
+                      p.status === 'completed' || p.status === 'approved' ? 'text-green-400 border-green-500/30' : 
+                      p.status === 'rejected' ? 'text-red-400 border-red-500/30' : 'text-yellow-400 border-yellow-500/30'
                     }`}
                    >
-                     <option value="pending">Pendiente</option>
-                     <option value="approved">Aprobado</option>
-                     <option value="completed">Completado</option>
-                     <option value="rejected">Rechazado</option>
+                     <option value="pending" className="bg-zinc-950 text-yellow-400 font-bold">PENDIENTE</option>
+                     <option value="approved" className="bg-zinc-950 text-green-400 font-bold">APROBADO</option>
+                     <option value="completed" className="bg-zinc-950 text-green-400 font-bold">COMPLETADO</option>
+                     <option value="rejected" className="bg-zinc-950 text-red-400 font-bold">RECHAZADO</option>
                    </select>
                 </div>
               </div>
