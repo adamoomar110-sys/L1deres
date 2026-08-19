@@ -24,7 +24,7 @@ if ($method === 'GET') {
     $limit = intval($_GET['limit'] ?? 100);
     if ($limit <= 0 || $limit > 500) $limit = 100;
 
-    // Conteo de mensajes no leídos
+    // Conteo de mensajes no leídos por canal o global
     if ($action === 'unread_count') {
         $sender = $_GET['not_sender'] ?? '';
         $sql = "SELECT COUNT(*) as unread FROM `spinaz_chat_messages` WHERE `is_read` = 0";
@@ -41,6 +41,20 @@ if ($method === 'GET') {
         $stmt->execute($params);
         $res = $stmt->fetch();
         sendResponse(['success' => true, 'unread' => intval($res['unread'] ?? 0)]);
+    }
+
+    // Resumen de canales con conteo de no leídos para Admin
+    if ($action === 'channels_summary') {
+        $sender = $_GET['not_sender'] ?? 'ADMIN';
+        $stmt = $pdo->prepare("
+            SELECT `channel`, COUNT(*) as unread_count, MAX(`created_at`) as last_message_at
+            FROM `spinaz_chat_messages`
+            WHERE `is_read` = 0 AND `sender` != :s
+            GROUP BY `channel`
+        ");
+        $stmt->execute([':s' => $sender]);
+        $summary = $stmt->fetchAll();
+        sendResponse(['success' => true, 'summary' => $summary]);
     }
 
     $sql = "SELECT * FROM `spinaz_chat_messages` WHERE 1=1";
