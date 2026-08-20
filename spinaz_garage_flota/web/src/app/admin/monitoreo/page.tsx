@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { MapPin, Navigation, ShieldAlert, ShieldCheck, Search, Activity, History, Map as MapIcon, Settings, X, Plus } from 'lucide-react';
+import { useMap, useMapEvents } from 'react-leaflet';
 import { supabase } from '@/lib/supabase';
 import 'leaflet/dist/leaflet.css';
 
@@ -28,10 +29,6 @@ const ROUTE_COLORS = [
   '#06B6D4', // Turquesa/Cian
   '#EF4444', // Rojo Coral
 ];
-
-// Move hooks to a place where they can be imported correctly
-// Note: We'll use these inside components that are only rendered on the client
-import { useMap, useMapEvents } from 'react-leaflet';
 
 function MapCenterTracker({ onCenterChange }: { onCenterChange: (c: [number, number]) => void }) {
   useMapEvents({
