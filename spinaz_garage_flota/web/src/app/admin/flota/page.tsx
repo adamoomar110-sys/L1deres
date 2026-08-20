@@ -207,9 +207,9 @@ export default function FlotaAdmin() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
            {[
              { label: 'Total Unidades', val: vehicles.length, icon: Car, color: 'text-white' },
              { label: 'Choferes Activos', val: drivers.length, icon: User, color: 'text-blue-400' },
