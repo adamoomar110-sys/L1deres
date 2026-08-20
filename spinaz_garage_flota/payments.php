@@ -27,10 +27,15 @@ if ($method === 'GET') {
     $payments = $stmt->fetchAll();
 
     foreach ($payments as &$row) {
+        $driverName  = !empty($row['driver_name'])  ? $row['driver_name']  : 'Sin nombre';
+        $driverEmail = !empty($row['driver_email']) ? $row['driver_email'] : 'Sin email';
         $row['profiles'] = [
-            'full_name' => $row['driver_name'] ?: 'Chofer sin nombre',
-            'email' => $row['driver_email'] ?: 'Sin email'
+            'full_name' => $driverName,
+            'email'     => $driverEmail
         ];
+        // También en root para compatibilidad con el adapter DonWeb
+        $row['driver_name']  = $driverName;
+        $row['driver_email'] = $driverEmail;
     }
 
     sendResponse(['success' => true, 'payments' => $payments]);

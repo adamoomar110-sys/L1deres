@@ -27,7 +27,14 @@ export default function ConfiguracionAdmin() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return router.push('/login');
       
-      if (session.user.id !== '734a51e1-194a-466c-b2a9-a324f8a52a27') {
+      // Verificar que el usuario tenga rol 'admin' en el perfil (no por UUID fijo)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+      if (!profile || profile.role !== 'admin') {
         return router.push('/admin');
       }
       

@@ -110,10 +110,10 @@ export default function CobrosAdmin() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-white leading-none mb-0.5 truncate">
-                      {p.profiles?.full_name || p.driver_name || 'Chofer Asignado'}
+                      {p.profiles?.full_name || p.driver_name || 'Sin nombre'}
                     </p>
                     <p className="text-[9px] text-zinc-500 truncate">
-                      {p.profiles?.email || p.driver_email || p.driver_id || 'ID: ' + p.id.substring(0, 8)}
+                      {p.profiles?.email || p.driver_email || `ID: ${String(p.id).substring(0, 8)}`}
                     </p>
                   </div>
                 </div>

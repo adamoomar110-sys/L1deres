@@ -152,8 +152,16 @@ export default function MonitoreoAdmin() {
          </div>
 
          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {/* Banner informativo si ningún vehículo tiene GPS real */}
+            {vehicles.length > 0 && !vehicles.some(v => v.last_lat && v.last_lng) && (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3 text-center mb-2">
+                <p className="text-[9px] font-black text-yellow-400 uppercase tracking-wider">Sin señal GPS activa</p>
+                <p className="text-[9px] text-zinc-500 mt-0.5">Los vehículos no han reportado ubicación todavía</p>
+              </div>
+            )}
             {vehicles.map((v, idx) => {
-               const isOut = isOutsideCorralito(v.last_lat || -34.6, v.last_lng || -58.4);
+               const hasGps = !!(v.last_lat && v.last_lng);
+               const isOut = hasGps ? isOutsideCorralito(v.last_lat, v.last_lng) : false;
                const routeColor = ROUTE_COLORS[idx % ROUTE_COLORS.length];
                return (
                  <button 
@@ -163,10 +171,14 @@ export default function MonitoreoAdmin() {
                  >
                     <div className="flex justify-between items-start mb-2">
                        <span className="font-black text-sm text-white flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0 shadow-[0_0_8px_rgba(255,255,255,0.4)]" style={{ backgroundColor: routeColor }} />
+                          <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: routeColor }} />
                           {v.plate}
                        </span>
-                       {isOut ? (
+                       {!hasGps ? (
+                          <span className="flex items-center gap-1 text-[8px] font-black text-zinc-500 uppercase tracking-widest bg-zinc-800 px-2 py-0.5 rounded-full">
+                             Sin GPS
+                          </span>
+                       ) : isOut ? (
                           <span className="flex items-center gap-1 text-[8px] font-black text-red-500 uppercase tracking-widest bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
                              <ShieldAlert size={10} /> Fuera de Rango
                           </span>
@@ -177,8 +189,13 @@ export default function MonitoreoAdmin() {
                        )}
                     </div>
                     <p className="text-xs text-zinc-500 font-bold uppercase">{v.brand} {v.model}</p>
-                    <div className="flex items-center gap-2 mt-3 text-[10px] text-zinc-600 font-medium italic">
-                       <Activity size={10} className="text-green-500 animate-pulse" /> Activo ahora
+                    <p className="text-[9px] text-zinc-600 mt-0.5 font-medium">{v.profiles?.full_name || 'Sin chofer asignado'}</p>
+                    <div className="flex items-center gap-2 mt-2 text-[9px]">
+                       {hasGps ? (
+                         <span className="flex items-center gap-1 text-green-400"><Activity size={9} className="animate-pulse" /> GPS activo</span>
+                       ) : (
+                         <span className="text-zinc-600 italic">Esperando señal...</span>
+                       )}
                     </div>
                  </button>
                );
@@ -339,13 +356,14 @@ export default function MonitoreoAdmin() {
                );
             })}
 
-            {vehicles.map((v, idx) => {
+            {/* Solo mostrar marcadores de vehículos con GPS real */}
+            {vehicles.filter(v => v.last_lat && v.last_lng).map((v, idx) => {
                const routeColor = ROUTE_COLORS[idx % ROUTE_COLORS.length];
-               const isOut = isOutsideCorralito(v.last_lat || -34.6, v.last_lng || -58.4);
+               const isOut = isOutsideCorralito(v.last_lat, v.last_lng);
                return (
                   <Marker 
                     key={v.id} 
-                    position={[v.last_lat || -34.6, v.last_lng || -58.4]}
+                    position={[v.last_lat, v.last_lng]}
                     icon={L.divIcon({
                        className: 'custom-icon',
                        html: `
@@ -407,19 +425,29 @@ export default function MonitoreoAdmin() {
                      <button onClick={() => setSelectedVehicle(null)} className="text-zinc-600 hover:text-white transition-colors">Cerrar</button>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                     <div className="bg-black/50 p-4 rounded-2xl border border-white/5">
-                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Km Actual</p>
-                        <p className="text-xl font-black text-white">42.500</p>
+                  <div className="grid grid-cols-2 gap-3 mb-6">
+                     <div className="bg-black/50 p-3 rounded-xl border border-white/5">
+                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">KM Odómetro</p>
+                        <p className="text-base font-black text-white">{selectedVehicle.current_km?.toLocaleString() || selectedVehicle.km?.toLocaleString() || '—'}</p>
                      </div>
-                     <div className="bg-black/50 p-4 rounded-2xl border border-white/5">
-                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Velocidad</p>
-                        <p className="text-xl font-black text-green-500">0 km/h</p>
+                     <div className="bg-black/50 p-3 rounded-xl border border-white/5">
+                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">GPS</p>
+                        <p className={`text-base font-black ${selectedVehicle.last_lat ? 'text-green-400' : 'text-zinc-600'}`}>
+                          {selectedVehicle.last_lat ? `${Number(selectedVehicle.last_lat).toFixed(4)}, ${Number(selectedVehicle.last_lng).toFixed(4)}` : 'Sin señal'}
+                        </p>
+                     </div>
+                     <div className="bg-black/50 p-3 rounded-xl border border-white/5">
+                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Chofer</p>
+                        <p className="text-xs font-black text-white truncate">{selectedVehicle.profiles?.full_name || 'Sin asignar'}</p>
+                     </div>
+                     <div className="bg-black/50 p-3 rounded-xl border border-white/5">
+                        <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1">Estado</p>
+                        <p className="text-xs font-black text-lime-400 uppercase">{selectedVehicle.status || 'activo'}</p>
                      </div>
                   </div>
 
-                  <button className="w-full bg-yellow-500 text-black font-black py-4 rounded-2xl shadow-xl shadow-yellow-500/20 hover:bg-yellow-400 transition-all flex items-center justify-center gap-2">
-                     VER RECORRIDO HISTÓRICO <History size={18} />
+                  <button className="w-full bg-yellow-500 text-black font-black py-3 rounded-xl shadow-lg shadow-yellow-500/20 hover:bg-yellow-400 transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
+                     Ver Recorrido Histórico <History size={15} />
                   </button>
                </div>
             </div>
