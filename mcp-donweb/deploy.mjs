@@ -29,6 +29,7 @@ const LANDING_FILES = [
   "script.js",
   ".htaccess",
   "logo.jpg",
+  "render_fachada.jpg",
   "background_neon.png",
   "f1_car_side.png",
   "f1_car_top_down.png",

@@ -192,14 +192,302 @@ body {
     color: #ffffff;
 }
 
-/* HERO SECTION */
-.hero-section {
+/* HERO SECTION CON RENDER 3D DE FACHADA */
+.hero-render-wrapper {
     position: relative;
-    padding: 160px 20px 100px;
-    min-height: 90vh;
+    padding: 30px 16px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.hero-render-card {
+    position: relative;
+    background: linear-gradient(145deg, #090d16 0%, #030712 100%);
+    border: 1px solid rgba(225, 6, 0, 0.35);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(225, 6, 0, 0.18);
+    transition: all 0.3s ease;
+}
+
+.hero-render-card:hover {
+    border-color: rgba(225, 6, 0, 0.6);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 45px rgba(225, 6, 0, 0.3);
+}
+
+.hero-render-img-box {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    overflow: hidden;
     display: flex;
     align-items: center;
-    background: radial-gradient(circle at 70% 30%, rgba(225, 6, 0, 0.12) 0%, transparent 60%);
+    justify-content: center;
+}
+
+.hero-render-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 38%;
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.hero-render-card:hover .hero-render-img {
+    transform: scale(1.03);
+}
+
+.hero-render-gradient {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(3, 7, 18, 0.3) 0%,
+        rgba(3, 7, 18, 0.1) 40%,
+        rgba(3, 7, 18, 0.85) 85%,
+        #030712 100%
+    );
+    pointer-events: none;
+}
+
+.hero-render-top-badge {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(3, 7, 18, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(225, 6, 0, 0.5);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #fca5a5;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.hero-render-top-badge .badge-pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+    animation: pulse 1.8s infinite;
+}
+
+.hero-render-location-badge {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(3, 7, 18, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #38bdf8;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.hero-render-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px 28px 24px;
+    z-index: 2;
+}
+
+.hero-render-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 2.3rem;
+    line-height: 1.15;
+    color: #ffffff;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.8);
+}
+
+.hero-render-title span.red-glow {
+    color: #ef4444;
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
+}
+
+.hero-render-title span.blue-glow {
+    color: #38bdf8;
+    text-shadow: 0 0 20px rgba(56, 189, 248, 0.7);
+}
+
+.hero-render-desc {
+    font-size: 0.98rem;
+    color: #cbd5e1;
+    max-width: 800px;
+    margin-bottom: 16px;
+    line-height: 1.45;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.hero-render-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.hero-feature-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #e2e8f0;
+}
+
+.hero-feature-pill i {
+    font-size: 0.95rem;
+}
+
+.hero-render-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-render-primary {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 0.98rem;
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+    text-decoration: none;
+    transition: all 0.25s ease;
+    letter-spacing: 0.5px;
+}
+
+.btn-render-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 35px rgba(239, 68, 68, 0.8);
+    color: #ffffff;
+}
+
+.btn-render-secondary {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    color: #38bdf8;
+    font-weight: 800;
+    font-size: 0.92rem;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.btn-render-secondary:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+.btn-render-ghost {
+    background: transparent;
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 0.88rem;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.btn-render-ghost:hover {
+    color: #fde047;
+    border-color: rgba(253, 224, 71, 0.4);
+    background: rgba(253, 224, 71, 0.08);
+}
+
+@media (max-width: 768px) {
+    .hero-render-wrapper {
+        padding: 16px 10px 10px;
+    }
+    .hero-render-img-box {
+        height: 380px;
+    }
+    .hero-render-top-badge,
+    .hero-render-location-badge {
+        position: static;
+        margin-bottom: 6px;
+        display: inline-flex;
+    }
+    .hero-render-badges-mobile {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+        z-index: 3;
+    }
+    .hero-render-content {
+        padding: 16px;
+    }
+    .hero-render-title {
+        font-size: 1.45rem;
+    }
+    .hero-render-desc {
+        font-size: 0.82rem;
+        margin-bottom: 12px;
+    }
+    .hero-feature-pill {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+    }
+    .hero-render-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    .btn-render-primary,
+    .btn-render-secondary,
+    .btn-render-ghost {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 .hero-bg-glow {

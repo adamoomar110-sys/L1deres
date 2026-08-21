@@ -46,6 +46,7 @@
         <div class="sidebar-body">
             <div class="sidebar-group">
                 <span class="sidebar-group-title">NAVEGACIÓN PRINCIPAL</span>
+                <a href="#inicio" onclick="closeSidebar()"><i class='bx bx-home-alt'></i> Inicio / Sede</a>
                 <a href="#circuito-vivo" onclick="closeSidebar()"><i class='bx bx-video-rec'></i> Circuito en Vivo</a>
                 <a href="#servicios" onclick="closeSidebar()"><i class='bx bx-car'></i> Servicios & Tarifas</a>
                 <a href="#funciona" onclick="closeSidebar()"><i class='bx bx-cog'></i> Cómo Funciona</a>
@@ -82,8 +83,76 @@
         </div>
     </aside>
 
+    <!-- SECCIÓN HERO PRINCIPAL - RENDER FACHADA DE ALTA TECNOLOGÍA -->
+    <section id="inicio" class="hero-render-wrapper">
+        <div class="hero-render-card">
+            
+            <div class="hero-render-img-box">
+                <img src="render_fachada.jpg" alt="L1deres AutoWash - Fachada Inteligente y Detailing" class="hero-render-img" />
+                <div class="hero-render-gradient"></div>
+
+                <!-- Badges Superiores -->
+                <div class="hero-render-top-badge">
+                    <span class="badge-pulse"></span>
+                    <span>Nueva Sede · Alta Tecnología</span>
+                </div>
+
+                <div class="hero-render-location-badge">
+                    <i class='bx bx-map-pin'></i>
+                    <span>Ramal Pilar km 45,5 · Acceso Los Lagartos C.C.</span>
+                </div>
+
+                <!-- Contenido Overlay Inferior -->
+                <div class="hero-render-content">
+                    <h1 class="hero-render-title">
+                        <span class="red-glow">L1DERES</span> <span class="blue-glow">AUTOWASH</span> & DETAILING
+                    </h1>
+                    <p class="hero-render-desc">
+                        El primer centro de lavado automático inteligente de Pilar. Circuito digitalizado, túnel de lavado express en 3 minutos, tratamientos cerámicos de vanguardia y seguimiento en tiempo real desde tu celular.
+                    </p>
+
+                    <div class="hero-render-features">
+                        <div class="hero-feature-pill">
+                            <i class='bx bx-tachometer' style="color: #ef4444;"></i>
+                            <span>Lavado Express 3 a 5 min</span>
+                        </div>
+                        <div class="hero-feature-pill">
+                            <i class='bx bx-radar' style="color: #38bdf8;"></i>
+                            <span>Circuito Digital en Vivo</span>
+                        </div>
+                        <div class="hero-feature-pill">
+                            <i class='bx bx-shield-quarter' style="color: #10b981;"></i>
+                            <span>Detailing & Cerámico</span>
+                        </div>
+                        <div class="hero-feature-pill">
+                            <i class='bx bx-crown' style="color: #fbbf24;"></i>
+                            <span>Club 100 Socios Fundadores</span>
+                        </div>
+                    </div>
+
+                    <div class="hero-render-actions">
+                        <button onclick="openDirectBookingModal()" class="btn-render-primary">
+                            <i class='bx bx-calendar-check'></i> SACAR TURNO ONLINE
+                        </button>
+                        <a href="#circuito-vivo" class="btn-render-secondary">
+                            <i class='bx bx-video-rec'></i> VER CIRCUITO EN VIVO
+                        </a>
+                        <a href="#servicios" class="btn-render-ghost">
+                            <i class='bx bx-car'></i> SERVICIOS & TARIFAS
+                        </a>
+                        <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank" class="btn-render-ghost">
+                            <i class='bx bx-navigation'></i> ¿CÓMO LLEGAR?
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
     <!-- SECCIÓN CIRCUITO ESPEJO EN TIEMPO REAL -->
-    <section id="circuito-vivo" class="track-section" style="padding-top: 50px; padding-bottom: 25px;">
+    <section id="circuito-vivo" class="track-section" style="padding-top: 25px; padding-bottom: 25px;">
         <div class="section-container">
 
             <div style="display: flex; flex-wrap: wrap; align-items: stretch; justify-content: center; gap: 20px; max-width: 1140px; margin: 0 auto;">
