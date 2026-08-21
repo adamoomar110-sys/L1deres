@@ -2060,14 +2060,51 @@ body {
     transform: translateX(4px);
 }
 
-.sidebar-group a.sidebar-link-black:hover {
-    background: rgba(251, 191, 36, 0.12);
-    color: #fbbf24;
+.sidebar-group-vip {
+    background: linear-gradient(145deg, rgba(251, 191, 36, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    border-radius: 12px;
+    padding: 12px 14px 10px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 0 12px rgba(251, 191, 36, 0.04);
 }
 
-.sidebar-group a.sidebar-link-gold:hover {
-    background: rgba(245, 158, 11, 0.15);
+.sidebar-group-vip a.sidebar-link-black,
+.sidebar-group-vip a.sidebar-link-gold {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 6px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.sidebar-group-vip a.sidebar-link-black {
+    border-color: rgba(251, 191, 36, 0.25);
+    color: #fef08a;
+}
+
+.sidebar-group-vip a.sidebar-link-gold {
+    border-color: rgba(245, 158, 11, 0.25);
+    color: #fed7aa;
+}
+
+.sidebar-group a.sidebar-link-black:hover,
+.sidebar-group-vip a.sidebar-link-black:hover {
+    background: rgba(251, 191, 36, 0.18);
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.5);
+    transform: translateX(4px);
+    box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+}
+
+.sidebar-group a.sidebar-link-gold:hover,
+.sidebar-group-vip a.sidebar-link-gold:hover {
+    background: rgba(245, 158, 11, 0.18);
     color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.5);
+    transform: translateX(4px);
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
 }
 
 .sidebar-btn {
