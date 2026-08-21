@@ -7,3 +7,5 @@ node_modules/
 **/.next/
 **/.vercel/
 *.log
+# Spinaz Garage - repo independiente
+spinaz_garage_flota/
