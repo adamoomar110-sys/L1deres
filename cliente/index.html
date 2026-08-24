@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>App de Turnos PWA - L1deres AutoWash</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0ea5e9">
@@ -92,10 +92,10 @@
 
             <!-- Info extra: web + WhatsApp llenando el espacio negro -->
             <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 20px 6px; width: 100%;">
-                <a href="https://l1deres.site" target="_blank" style="color: #38bdf8; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-decoration: none; display: flex; align-items: center; gap: 5px; opacity: 0.9;">
+                <a href="https://l1deres.site" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-decoration: none; display: flex; align-items: center; gap: 5px; opacity: 0.9;">
                     <i class='bx bx-globe' style="font-size: 1rem;"></i> l1deres.site
                 </a>
-                <a href="https://wa.me/5491140990047?text=Hola%20L1deres%2C%20quiero%20info!" target="_blank"
+                <a href="https://wa.me/5491140990047?text=Hola%20L1deres%2C%20quiero%20info!" target="_blank" rel="noopener noreferrer"
                    style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: #25d366; color: #000; font-weight: 900; font-size: 0.88rem; text-transform: uppercase; text-decoration: none; padding: 13px 16px; border-radius: 12px; letter-spacing: 0.5px; box-shadow: 0 4px 16px rgba(37,211,102,0.4);">
                     <i class='bx bxl-whatsapp' style="font-size: 1.4rem;"></i> Contactanos por WhatsApp
                 </a>
@@ -105,7 +105,7 @@
         <!-- Pantalla 2A: Beneficios Socio Black -->
         <div id="screen-socio-black" class="screen">
             <div class="card slide-in" style="background: rgba(9, 13, 22, 0.95); border: 1px solid rgba(251, 191, 36, 0.4);">
-                <button class="back-btn" onclick="prevScreen('screen-welcome')"><i class='bx bx-arrow-back'></i></button>
+                <button class="back-btn" onclick="prevScreen('screen-welcome')" title="Volver a la pantalla anterior" aria-label="Volver a la pantalla anterior"><i class='bx bx-arrow-back'></i></button>
                 <div style="text-align: center; margin-top: 5px; margin-bottom: 12px;">
                     <i class='bx bx-crown' style="font-size: 2.4rem; color: #fbbf24; filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.5));"></i>
                     <h2 class="racing-font" style="color: #fbbf24; margin-top: 4px; font-size: 1.4rem;">SOCIO FUNDADOR BLACK</h2>
@@ -157,7 +157,7 @@
         <!-- Pantalla 2B: Beneficios Socio Gold -->
         <div id="screen-socio-gold" class="screen">
             <div class="card slide-in" style="background: rgba(9, 13, 22, 0.95); border: 1px solid rgba(245, 158, 11, 0.4);">
-                <button class="back-btn" onclick="prevScreen('screen-welcome')"><i class='bx bx-arrow-back'></i></button>
+                <button class="back-btn" onclick="prevScreen('screen-welcome')" title="Volver a la pantalla anterior" aria-label="Volver a la pantalla anterior"><i class='bx bx-arrow-back'></i></button>
                 <div style="text-align: center; margin-top: 5px; margin-bottom: 12px;">
                     <i class='bx bxs-award' style="font-size: 2.4rem; color: #f59e0b; filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.5));"></i>
                     <h2 class="racing-font" style="color: #f59e0b; margin-top: 4px; font-size: 1.4rem;">SOCIO FUNDADOR GOLD</h2>
@@ -209,7 +209,7 @@
         <!-- Pantalla 3: Formulario de Inscripción y Pago de Socio -->
         <div id="screen-socio-checkout" class="screen">
             <div class="card slide-in">
-                <button class="back-btn" onclick="prevScreen('screen-welcome')"><i class='bx bx-arrow-back'></i></button>
+                <button class="back-btn" onclick="prevScreen('screen-welcome')" title="Volver a la pantalla anterior" aria-label="Volver a la pantalla anterior"><i class='bx bx-arrow-back'></i></button>
                 <h2 class="racing-font" id="socio-checkout-title" style="font-size: 1.3rem;">REGISTRO DE SOCIO</h2>
                 <p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 14px;">
                     Completá tus datos para asignarte tu número del 1 al 200:
@@ -301,7 +301,7 @@
         <!-- Pantalla 3: Patente -->
         <div id="screen-plate" class="screen">
             <div class="card slide-in">
-                <button class="back-btn" onclick="prevScreen('screen-welcome')"><i class='bx bx-arrow-back'></i></button>
+                <button class="back-btn" onclick="prevScreen('screen-welcome')" title="Volver a la pantalla anterior" aria-label="Volver a la pantalla anterior"><i class='bx bx-arrow-back'></i></button>
                 <h2 class="racing-font">TU VEHÍCULO</h2>
                 <p>Ingresa la patente para comenzar:</p>
                 <input type="text" id="input-plate" placeholder="Ej: AB123CD o AA123BB" style="text-transform: uppercase;">
@@ -315,7 +315,7 @@
         <!-- Pantalla 4: Tipo de Lavado -->
         <div id="screen-type" class="screen">
             <div class="card slide-in">
-                <button class="back-btn" onclick="prevScreen('screen-plate')"><i class='bx bx-arrow-back'></i></button>
+                <button class="back-btn" onclick="prevScreen('screen-plate')" title="Volver a la pantalla anterior" aria-label="Volver a la pantalla anterior"><i class='bx bx-arrow-back'></i></button>
                 <h2 class="racing-font">SELECCIONA EL SERVICIO</h2>
                 
                 <div id="promo-banner" style="display: none; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
@@ -350,7 +350,7 @@
         <!-- Pantalla 5: Teléfono -->
         <div id="screen-phone" class="screen">
             <div class="card slide-in">
-                <button class="back-btn" onclick="prevScreen('screen-type')"><i class='bx bx-arrow-back'></i></button>
+                <button class="back-btn" onclick="prevScreen('screen-type')" title="Volver a la pantalla anterior" aria-label="Volver a la pantalla anterior"><i class='bx bx-arrow-back'></i></button>
                 <h2 class="racing-font">CONTACTO</h2>
                 <p>Te enviaremos el ticket y avisos por WhatsApp:</p>
                 <div class="input-group">
@@ -367,7 +367,7 @@
         <!-- Pantalla 6: Pago con Mercado Pago -->
         <div id="screen-payment" class="screen">
             <div class="card slide-in">
-                <button class="back-btn" onclick="prevScreen('screen-phone')"><i class='bx bx-arrow-back'></i></button>
+                <button class="back-btn" onclick="prevScreen('screen-phone')" title="Volver a la pantalla anterior" aria-label="Volver a la pantalla anterior"><i class='bx bx-arrow-back'></i></button>
                 <h2 class="racing-font">CHECKOUT</h2>
                 <div class="order-summary">
                     <h3>Resumen del Servicio</h3>
@@ -503,7 +503,7 @@
                     <div class="mp-logo-box">
                         <span id="socio-modal-title" style="font-weight: 900; font-family: 'Racing Sans One', sans-serif; font-size: 1.1rem; letter-spacing: 1px;">SOCIO FUNDADOR</span>
                     </div>
-                    <button class="mp-close-btn" onclick="closeSocioModal()"><i class='bx bx-x'></i></button>
+                    <button class="mp-close-btn" onclick="closeSocioModal()" title="Cerrar ventana" aria-label="Cerrar ventana"><i class='bx bx-x'></i></button>
                 </div>
                 <div class="mp-body" style="padding: 20px 16px;">
                     <div style="text-align: center; margin-bottom: 15px;">
@@ -514,7 +514,7 @@
                         <!-- Beneficios dinámicos -->
                     </div>
 
-                    <a id="socio-modal-wa" href="https://wa.me/5491123456789" target="_blank" class="btn" style="background: #25D366; color: white; width: 100%; font-weight: 900; font-size: 0.95rem; text-decoration: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <a id="socio-modal-wa" href="https://wa.me/5491123456789" target="_blank" rel="noopener noreferrer" class="btn" style="background: #25D366; color: white; width: 100%; font-weight: 900; font-size: 0.95rem; text-decoration: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <i class='bx bxl-whatsapp' style="font-size: 1.4rem;"></i> SOLICITAR MEMBRESÍA POR WHATSAPP
                     </a>
                 </div>
@@ -525,7 +525,7 @@
         <footer class="app-footer">
             <p>
                 <i class='bx bx-map-pin' style="color: #fde047;"></i> Ramal Pilar km 45,5 · Los Lagartos C.C. · 
-                <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank">
+                <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank" rel="noopener noreferrer">
                     <i class='bx bx-navigation'></i> ¿Cómo llegar?
                 </a>
             </p>
