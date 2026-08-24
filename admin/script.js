@@ -1405,16 +1405,75 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Asignar Auto Directo a Box Libre
-    window.assignFreeBoxPrompt = function(zone, index) {
-        const plate = prompt(`Ingresá la patente para asignar a ${zone.toUpperCase()} ${index + 1}:`);
-        if (!plate) return;
-        const cleanPlate = plate.toUpperCase().trim().replace(/[^A-Z0-9]/g, '');
-        if (!cleanPlate) return;
+    
+    // Modal de Asignación Rápida de Auto a Box
+    window.openQuickAssignModal = function(zone, index) {
+        const modal = document.getElementById('modal-quick-assign-auto');
+        const zoneInput = document.getElementById('quick-assign-zone');
+        const indexInput = document.getElementById('quick-assign-index');
+        const boxNameDiv = document.getElementById('quick-assign-box-name');
+        const plateInput = document.getElementById('quick-assign-plate');
+        const serviceSelect = document.getElementById('quick-assign-service');
+
+        if (!modal) return;
+
+        if (zoneInput) zoneInput.value = zone;
+        if (indexInput) indexInput.value = index;
+
+        let zoneTitle = 'Box';
+        if (zone === 'lavado') zoneTitle = 'Túnel de Lavado 1';
+        else if (zone === 'interior') zoneTitle = 'Box Interior / Secado 1';
+        else if (zone === 'terminado') zoneTitle = `Box Terminado ${index + 1}`;
+        else if (zone === 'espera') zoneTitle = `Box Espera ${index + 1}`;
+
+        if (boxNameDiv) boxNameDiv.textContent = zoneTitle;
+        if (plateInput) {
+            generateRandomPlateForModal();
+        }
+        if (serviceSelect) {
+            if (zone === 'interior') serviceSelect.value = 'solo_secado';
+            else serviceSelect.value = 'express_auto';
+        }
+
+        modal.style.display = 'flex';
+    };
+
+    window.closeQuickAssignModal = function() {
+        const modal = document.getElementById('modal-quick-assign-auto');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.generateRandomPlateForModal = function() {
+        const input = document.getElementById('quick-assign-plate');
+        if (!input) return;
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const l1 = letters[Math.floor(Math.random() * 26)];
+        const l2 = letters[Math.floor(Math.random() * 26)];
+        const l3 = letters[Math.floor(Math.random() * 26)];
+        const num = Math.floor(100 + Math.random() * 900);
+        input.value = `A${l1}${l2}${num}${l3}`;
+    };
+
+    window.confirmQuickAssignModal = function() {
+        const zone = document.getElementById('quick-assign-zone') ? document.getElementById('quick-assign-zone').value : 'espera';
+        const index = document.getElementById('quick-assign-index') ? parseInt(document.getElementById('quick-assign-index').value) || 0 : 0;
+        let plateInput = document.getElementById('quick-assign-plate');
+        let plate = plateInput ? plateInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
+        const serviceSelect = document.getElementById('quick-assign-service');
+        const service = serviceSelect ? serviceSelect.value : 'express_auto';
+
+        if (!plate) {
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const l1 = letters[Math.floor(Math.random() * 26)];
+            const l2 = letters[Math.floor(Math.random() * 26)];
+            const num = Math.floor(100 + Math.random() * 900);
+            plate = `AE${num}${l1}${l2}`;
+        }
 
         const newCar = {
             id: autoIdCounter++,
-            patente: cleanPlate,
-            tipo: 'express_auto',
+            patente: plate,
+            tipo: service,
             startTime: Date.now()
         };
 
@@ -1430,13 +1489,31 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (zone === 'espera') {
             estadoEspera[index] = newCar;
             advanceQueue();
+        } else {
+            ingresarAuto(service, plate);
         }
 
         updateVisuals();
         checkMovement();
         renderBoxesManagementList();
-        showToast(`Auto ${cleanPlate} asignado a ${zone.toUpperCase()} ${index + 1}`, 'success');
+        closeQuickAssignModal();
+        showToast(`¡Auto ${plate} ingresó a la pista exitosamente!`, 'success');
     };
+
+    window.assignFreeBoxPrompt = function(zone, index) {
+        openQuickAssignModal(zone, index);
+    };
+
+    window.handleQuickAlertAssign = function() {
+        if (lastDetectedLpr) {
+            assignLprCarToTrack(lastDetectedLpr, 'express_auto');
+        } else {
+            ingresarAuto('express_auto');
+        }
+    };
+
+    window.ingresarAuto = ingresarAuto;
+
 
     // ============================================================
     // SISTEMA LPR INTELIGENTE (CÁMARA + SOCIOS FUNDADORES + RESERVAS)
