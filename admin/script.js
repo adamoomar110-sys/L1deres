@@ -2044,7 +2044,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let sponsorIsPlaying = true;
 
     // === GESTIÓN SOCIO FUNDADOR BLACK Y GOLD ===
-    function getSocioBlackData() {
     // === GESTIÓN INTEGRAL DE SOCIOS FUNDADORES (#001 - #200) ===
     const MAX_SOCIOS_FUNDADORES = 200;
     let currentVipViewingSocio = null;
