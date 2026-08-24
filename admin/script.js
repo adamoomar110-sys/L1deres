@@ -237,8 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuthSession();
 
     window.APP_CONFIG = {
-        tiempoLavado: parseInt(localStorage.getItem('tiempoLavado')) || 5000,
-        tiempoSecado: parseInt(localStorage.getItem('tiempoSecado')) || 5000,
+        tiempoLavado: (parseInt(localStorage.getItem('tiempoLavado')) >= 10000 ? parseInt(localStorage.getItem('tiempoLavado')) : 120000),
+        tiempoSecado: (parseInt(localStorage.getItem('tiempoSecado')) >= 10000 ? parseInt(localStorage.getItem('tiempoSecado')) : 180000),
         precio_express_auto: parseInt(localStorage.getItem('precio_express_auto')) || 0,
         precio_express_camioneta: parseInt(localStorage.getItem('precio_express_camioneta')) || 0,
         precio_completo_auto: parseInt(localStorage.getItem('precio_completo_auto')) || 0,
