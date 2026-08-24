@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Deploy FTP a DonWeb/Ferozo (4 Niveles: Landing, Admin, Cliente, API)
- * Aura v1.6 - L1deres AutoWash
- * MySQL: a0170001_lava2 @ localhost
+ * Aura v1.8 - L1deres AutoWash
+ * MySQL: a0170001_l1deres @ localhost
  * FTP:   a0170001 @ a0170001.ferozo.com
  */
 import * as ftp from "basic-ftp";
@@ -29,6 +29,8 @@ const LANDING_FILES = [
   "script.js",
   ".htaccess",
   "logo.jpg",
+  "logo_horizontal.jpg",
+  "logo_icon.jpg",
   "render_fachada.jpg",
   "background_neon.png",
   "f1_car_side.png",
@@ -44,6 +46,8 @@ const ADMIN_FILES = [
   "script.js",
   ".htaccess",
   "logo.jpg",
+  "logo_horizontal.jpg",
+  "logo_icon.jpg",
   "background_neon.png",
   "f1_car_side.png",
   "f1_car_top_down.png",
@@ -57,6 +61,9 @@ const CLIENT_FILES = [
   "manifest.json",
   "sw.js",
   ".htaccess",
+  "logo.jpg",
+  "logo_horizontal.jpg",
+  "logo_icon.jpg",
   "f1_car_top_down.png",
   "google9df6cc515d5bd125.html",
   "OneSignalSDKWorker.js",
@@ -72,6 +79,8 @@ const API_FILES = [
   "resenas.php",
   "setup_db.php",
   "push.php",
+  "socios_fundadores.php",
+  "sponsors.php",
 ];
 
 async function connectFTP() {

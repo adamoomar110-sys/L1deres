@@ -2,7 +2,7 @@
 /**
  * ============================================================
  * MCP Server: DonWeb / Ferozo Hosting Manager
- * Proyecto: Aura v1.6 - L1deres AutoWash
+ * Proyecto: Aura v1.8 - L1deres AutoWash
  * © 2026 Aura. Todos los derechos reservados.
  * ============================================================
  *
@@ -51,8 +51,8 @@ const CONFIG = {
   // MySQL
   db: {
     host: "localhost",
-    name: "a0170001_lava2",
-    user: "a0170001_lava2",
+    name: "a0170001_l1deres",
+    user: "a0170001_l1deres",
     password: "@Peloymago110Peloymago110",
   },
 };
@@ -112,14 +112,14 @@ const TOOLS = [
   {
     name: "deploy_file",
     description:
-      "Sube un archivo local al servidor Ferozo via FTPS. Ideal para actualizar index.html, script.js, style.css u otros archivos de la app Aura v1.6.",
+      "Sube un archivo local al servidor Ferozo via FTPS. Ideal para actualizar index.html, script.js, style.css u otros archivos de la app Aura v1.8.",
     inputSchema: {
       type: "object",
       properties: {
         localPath: {
           type: "string",
           description:
-            "Ruta absoluta al archivo local. Ej: C:\\Users\\trabajo ia\\OneDrive\\Escritorio\\lava2\\script.js",
+            "Ruta absoluta al archivo local. Ej: C:\\Users\\trabajo ia\\OneDrive\\Escritorio\\l1deres\\script.js",
         },
         remotePath: {
           type: "string",
@@ -140,7 +140,7 @@ const TOOLS = [
         localFolder: {
           type: "string",
           description:
-            "Ruta absoluta a la carpeta local. Ej: C:\\Users\\trabajo ia\\OneDrive\\Escritorio\\lava2",
+            "Ruta absoluta a la carpeta local. Ej: C:\\Users\\trabajo ia\\OneDrive\\Escritorio\\l1deres",
         },
         remoteFolder: {
           type: "string",
@@ -431,7 +431,7 @@ async function handleTool(name, args) {
           user: CONFIG.db.user,
           password: "****** (oculta)",
         },
-        version: "Aura v1.6 - L1deres AutoWash",
+        version: "Aura v1.8 - L1deres AutoWash",
       };
     }
 

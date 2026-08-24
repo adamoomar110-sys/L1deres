@@ -1,6 +1,6 @@
 <?php
 // ============================================================
-// ENDPOINT NOTIFICACIONES PUSH ONESIGNAL (Aura v1.6 - DonWeb)
+// ENDPOINT NOTIFICACIONES PUSH ONESIGNAL (Aura v1.8 - DonWeb)
 // ============================================================
 require_once __DIR__ . '/config.php';
 

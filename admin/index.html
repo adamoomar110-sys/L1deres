@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Administrativo - Aura v1.6</title>
-    <link rel="stylesheet" href="style.css?v=1.6">
+    <title>Panel Administrativo - Aura v1.8</title>
+    <link rel="stylesheet" href="style.css?v=1.7">
     <!-- Google Fonts: Inter and Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <!-- Boxicons for icons -->
@@ -17,7 +17,7 @@
         <div class="login-bg-glow"></div>
         <div class="login-card">
             <div class="login-logo-wrap">
-                <img src="../logo.jpg" alt="L1deres" class="login-logo" onerror="this.src='logo.jpg'; this.onerror=null;">
+                <img src="logo_horizontal.jpg" alt="L1deres" class="login-logo" onerror="this.src='../logo_horizontal.jpg'; this.onerror=null;">
             </div>
             <div class="login-header">
                 <h1 class="login-title">Panel Administrativo</h1>
@@ -62,7 +62,7 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo-container">
-                    <img src="../logo.jpg" alt="Logo L1deres" class="sidebar-logo" onerror="this.src='logo.jpg'; this.onerror=null;">
+                    <img src="logo_horizontal.jpg" alt="Logo L1deres" class="sidebar-logo" onerror="this.src='../logo_horizontal.jpg'; this.onerror=null;">
                     <div class="logo-fallback" style="display: none;">
                         <i class='bx bx-image-alt'></i>
                         <span>Logo</span>
@@ -99,13 +99,9 @@
                     <i class='bx bx-gift'></i>
                     <span>Promociones</span>
                 </button>
-                <button class="nav-btn" data-role="admin" id="btn-nav-socio-black">
+                <button class="nav-btn" data-role="admin" id="btn-nav-socios-fundadores">
                     <i class='bx bx-crown' style="color: #fbbf24;"></i>
-                    <span>Socio Fundador Black</span>
-                </button>
-                <button class="nav-btn" data-role="admin" id="btn-nav-socio-gold">
-                    <i class='bx bxs-award' style="color: #f59e0b;"></i>
-                    <span>Socio Fundador Gold</span>
+                    <span>Socios Fundadores</span>
                 </button>
                 <button class="nav-btn" data-role="admin">
                     <i class='bx bx-tv'></i>
@@ -133,7 +129,7 @@
                 <div id="user-role-badge" style="margin-bottom: 8px; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3);">
                     <i class='bx bx-shield-alt-2'></i> <span id="user-role-text">Rol: Administrador</span>
                 </div>
-                <p>&copy; 2026 Aura. Todos los derechos reservados. | v1.6</p>
+                <p>&copy; 2026 Aura. Todos los derechos reservados. | v1.8</p>
             </div>
         </aside>
 
@@ -646,184 +642,369 @@
             </div>
         </main>
 
-        <!-- Vista de Gestión Socio Fundador Black -->
-        <main class="main-content" id="socio-black-view" style="display: none; padding: 2rem; overflow-y: auto;">
-            <div class="metrics-header" style="margin-bottom: 2rem;">
+        <!-- Vista de Gestión de Socios Fundadores (Black & Gold #001 al #200) -->
+        <main class="main-content" id="socios-fundadores-view" style="display: none; padding: 2rem; overflow-y: auto;">
+            <div class="metrics-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
                 <div>
-                    <h2><i class='bx bx-crown' style="color: #fbbf24;"></i> Gestión Socio Fundador Black</h2>
-                    <p style="color: var(--text-secondary); margin-top: 5px;">Registrá las patentes pertenecientes a Socios Black y configurá sus beneficios y condiciones de premios.</p>
+                    <h2 style="display: flex; align-items: center; gap: 10px; font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #fbbf24, #f59e0b, #e2e8f0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        <i class='bx bx-crown' style="-webkit-text-fill-color: #fbbf24;"></i> Socios Fundadores Oficiales
+                    </h2>
+                    <p style="color: var(--text-secondary); margin-top: 5px;">Membresías exclusivas limitadas a 200 cupos (#001 - #200) · Control de accesos, credenciales VIP y beneficios.</p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="window.toggleSocioConfigModal()" style="display: flex; align-items: center; gap: 8px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer;">
+                        <i class='bx bx-slider-alt'></i> Configurar Beneficios
+                    </button>
+                    <button class="btn btn-primary" onclick="window.openNewSocioModal()" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #d97706, #fbbf24); color: #0f172a; font-weight: 800; padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(251,191,36,0.3);">
+                        <i class='bx bx-user-plus'></i> + Nuevo Socio Fundador
+                    </button>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 2rem;">
-                <!-- Cargar Patente Socio Black -->
-                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
-                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: #fbbf24; display: flex; align-items: center; gap: 8px;">
-                        <i class='bx bx-plus-circle'></i> Registrar Nueva Patente Socio Black
-                    </h3>
-                    <form onsubmit="handleAddSocioBlack(event)">
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Dominio / Patente:</label>
-                            <input type="text" id="black-patente-input" placeholder="Ej: AA123BC" class="price-input" style="width: 100%; text-transform: uppercase;" required>
+            <!-- Resumen de Métricas & Cupos -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 2rem;">
+                <!-- Cupos Ocupados -->
+                <div class="card" style="padding: 1.5rem; background: linear-gradient(145deg, #0f172a, #1e293b); border: 1px solid rgba(251,191,36,0.3); border-radius: 16px; position: relative; overflow: hidden;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Cupos Ocupados</span>
+                            <h3 id="socio-kpi-total" style="font-size: 2rem; font-weight: 900; color: #fbbf24; margin: 6px 0 0 0;">0 <span style="font-size: 1.1rem; color: #94a3b8; font-weight: 500;">/ 200</span></h3>
                         </div>
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Nombre del Titular / Socio:</label>
-                            <input type="text" id="black-titular-input" placeholder="Ej: Omar" class="price-input" style="width: 100%;" required>
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(251,191,36,0.15); display: flex; align-items: center; justify-content: center; color: #fbbf24; font-size: 1.5rem;">
+                            <i class='bx bx-group'></i>
                         </div>
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Teléfono / WhatsApp:</label>
-                            <input type="tel" id="black-telefono-input" placeholder="Ej: 1112345678" class="price-input" style="width: 100%;">
-                        </div>
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Observaciones / Notas:</label>
-                            <input type="text" id="black-obs-input" placeholder="Ej: Socio Fundador Vip" class="price-input" style="width: 100%;">
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; background: linear-gradient(135deg, #0f172a, #1e293b); color: #fbbf24; border: 1px solid #fbbf24; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <i class='bx bx-check-shield'></i> Registrar Patente Socio Black
-                        </button>
-                    </form>
+                    </div>
+                    <!-- Barra de progreso de cupos -->
+                    <div style="margin-top: 14px; background: rgba(255,255,255,0.08); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div id="socio-kpi-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 4px; transition: width 0.5s ease;"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-top: 6px;">
+                        <span>Disponibles: <strong id="socio-kpi-disponibles" style="color: #38bdf8;">200</strong></span>
+                        <span id="socio-kpi-pct">0% Ocupado</span>
+                    </div>
                 </div>
 
-                <!-- Configurar Condiciones y Premios Socio Black -->
-                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
-                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
-                        <i class='bx bx-slider-alt'></i> Condiciones & Beneficios Socio Black
-                    </h3>
-                    <form onsubmit="handleSaveSocioBlackConfig(event)">
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Descuento Permanente (% OFF):</label>
-                            <input type="number" id="black-discount-input" min="0" max="100" value="20" class="price-input" style="width: 100%;">
+                <!-- Socios Black -->
+                <div class="card" style="padding: 1.5rem; background: linear-gradient(145deg, #090d16, #111827); border: 1px solid rgba(255,255,255,0.15); border-radius: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <span style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px;">
+                                <i class='bx bx-crown' style="color: #fbbf24;"></i> Socios Black
+                            </span>
+                            <h3 id="socio-kpi-black" style="font-size: 2rem; font-weight: 900; color: #ffffff; margin: 6px 0 0 0;">0</h3>
                         </div>
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Prioridad en Pit Lane:</label>
-                            <select id="black-priority-input" class="price-input" style="width: 100%; background: #0f172a; color: white; padding: 10px; border-radius: 8px;">
-                                <option value="1">Prioridad Absoluta (Sin Esperas)</option>
-                                <option value="0">Prioridad Normal</option>
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; color: #f8fafc; font-size: 1.5rem; border: 1px solid rgba(255,255,255,0.2);">
+                            <i class='bx bx-shield-quarter'></i>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: #94a3b8; margin: 12px 0 0 0;">Acceso prioritario absoluto · 20% OFF permanente</p>
+                </div>
+
+                <!-- Socios Gold -->
+                <div class="card" style="padding: 1.5rem; background: linear-gradient(145deg, #1f1404, #2d1c03); border: 1px solid rgba(245,158,11,0.4); border-radius: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <span style="font-size: 0.85rem; color: #fde68a; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px;">
+                                <i class='bx bxs-award' style="color: #f59e0b;"></i> Socios Gold
+                            </span>
+                            <h3 id="socio-kpi-gold" style="font-size: 2rem; font-weight: 900; color: #fbbf24; margin: 6px 0 0 0;">0</h3>
+                        </div>
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245,158,11,0.2); display: flex; align-items: center; justify-content: center; color: #fbbf24; font-size: 1.5rem; border: 1px solid rgba(245,158,11,0.4);">
+                            <i class='bx bx-trophy'></i>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: #fde68a; margin: 12px 0 0 0;">1 Lavado Gratis/mes · 35% OFF Integral</p>
+                </div>
+
+                <!-- Recaudación / Membresías -->
+                <div class="card" style="padding: 1.5rem; background: linear-gradient(145deg, #052e16, #064e3b); border: 1px solid rgba(34,197,94,0.3); border-radius: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <span style="font-size: 0.85rem; color: #86efac; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Recaudación Activa</span>
+                            <h3 id="socio-kpi-revenue" style="font-size: 2rem; font-weight: 900; color: #4ade80; margin: 6px 0 0 0;">$0</h3>
+                        </div>
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(34,197,94,0.2); display: flex; align-items: center; justify-content: center; color: #4ade80; font-size: 1.5rem;">
+                            <i class='bx bx-wallet'></i>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: #bbf7d0; margin: 12px 0 0 0;"><span id="socio-kpi-paid-count">0</span> membresías cobradas</p>
+                </div>
+            </div>
+
+            <!-- Filtros y Búsqueda -->
+            <div class="card" style="padding: 1.2rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 1.5rem;">
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; gap: 12px; flex: 1; min-width: 280px; align-items: center;">
+                        <div style="position: relative; flex: 1;">
+                            <i class='bx bx-search' style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1.2rem;"></i>
+                            <input type="text" id="socio-search-input" oninput="window.filterSociosTable()" placeholder="Buscar por Patente, Titular, N° de Socio o Teléfono..." style="width: 100%; padding: 10px 14px 10px 42px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: white; font-size: 0.95rem;">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <select id="socio-filter-tipo" onchange="window.filterSociosTable()" style="background: #0f172a; border: 1px solid #334155; color: white; padding: 10px 14px; border-radius: 10px; font-size: 0.9rem; cursor: pointer;">
+                            <option value="ALL">Todos los Tipos (Black & Gold)</option>
+                            <option value="BLACK">Solo Black</option>
+                            <option value="GOLD">Solo Gold</option>
+                        </select>
+                        <select id="socio-filter-estado" onchange="window.filterSociosTable()" style="background: #0f172a; border: 1px solid #334155; color: white; padding: 10px 14px; border-radius: 10px; font-size: 0.9rem; cursor: pointer;">
+                            <option value="ALL">Todos los Estados</option>
+                            <option value="PAGADO">Pagado / Activo</option>
+                            <option value="PENDIENTE">Pendiente</option>
+                        </select>
+                        <button onclick="window.exportSociosCSV()" class="btn btn-secondary" style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 10px 14px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="Exportar listado a Excel / CSV">
+                            <i class='bx bx-download'></i> Exportar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Socios Fundadores -->
+            <div class="card" style="padding: 1.5rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+                    <h3 style="color: #f8fafc; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-list-check' style="color: #fbbf24;"></i> Registro Oficial de Socios Fundadores (<span id="socios-list-count">0</span>)
+                    </h3>
+                </div>
+
+                <div class="metrics-table-container" style="overflow-x: auto;">
+                    <table class="metrics-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #334155; text-align: left;">
+                                <th style="padding: 12px 14px;">Nº Socio</th>
+                                <th style="padding: 12px 14px;">Membresía</th>
+                                <th style="padding: 12px 14px;">Patente</th>
+                                <th style="padding: 12px 14px;">Titular</th>
+                                <th style="padding: 12px 14px;">Contacto / WhatsApp</th>
+                                <th style="padding: 12px 14px;">Vehículo / Notas</th>
+                                <th style="padding: 12px 14px;">Estado</th>
+                                <th style="padding: 12px 14px; text-align: center;">Acciones & Credencial</th>
+                            </tr>
+                        </thead>
+                        <tbody id="socios-table-body">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: #94a3b8; padding: 30px;">
+                                    <i class='bx bx-loader-alt bx-spin' style="font-size: 1.8rem; display: block; margin-bottom: 8px;"></i>
+                                    Cargando listado de socios fundadores...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal: Registrar / Editar Socio Fundador -->
+        <div id="modal-socio-form" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+            <div style="background: #0f172a; border: 1px solid rgba(251,191,36,0.3); border-radius: 20px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.8); animation: modalIn 0.3s ease;">
+                <div style="padding: 1.5rem 1.8rem; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 id="modal-socio-title" style="margin: 0; color: #fbbf24; display: flex; align-items: center; gap: 8px; font-size: 1.3rem;">
+                        <i class='bx bx-crown'></i> Registrar Nuevo Socio Fundador
+                    </h3>
+                    <button onclick="window.closeSocioModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                </div>
+
+                <form onsubmit="window.handleSaveSocio(event)" style="padding: 1.8rem;">
+                    <input type="hidden" id="form-socio-id">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Nº Socio (Cupo #001 - #200):</label>
+                            <input type="text" id="form-socio-numero" placeholder="Ej: #001" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: #fbbf24; font-weight: 800;" required>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Tipo de Membresía:</label>
+                            <select id="form-socio-tipo" onchange="window.updateFormSocioTipoStyle()" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; font-weight: 700;">
+                                <option value="BLACK">👑 Socio Fundador Black</option>
+                                <option value="GOLD">🏆 Socio Fundador Gold</option>
                             </select>
                         </div>
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Beneficio Adicional Incluido:</label>
-                            <input type="text" id="black-extra-input" value="Encerado rápido con polímeros sin cargo" class="price-input" style="width: 100%;">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Patente / Dominio:</label>
+                            <input type="text" id="form-socio-patente" placeholder="Ej: AA123BC" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white; text-transform: uppercase; font-weight: 800; letter-spacing: 1px;" required>
                         </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <i class='bx bx-save'></i> Guardar Condiciones Black
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Modelo del Vehículo:</label>
+                            <input type="text" id="form-socio-modelo" placeholder="Ej: Toyota Hilux" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white;">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Nombre y Apellido del Titular:</label>
+                        <input type="text" id="form-socio-titular" placeholder="Ej: Omar" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white;" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">WhatsApp / Teléfono:</label>
+                            <input type="tel" id="form-socio-telefono" placeholder="Ej: 1112345678" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Email del Socio:</label>
+                            <input type="email" id="form-socio-email" placeholder="Ej: socio@email.com" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white;">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Estado de Membresía:</label>
+                            <select id="form-socio-estado" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: #4ade80; font-weight: 700;">
+                                <option value="PAGADO">✅ Pagado / Activo</option>
+                                <option value="PENDIENTE">⏳ Pendiente de Pago</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Monto Abonado ($):</label>
+                            <input type="number" id="form-socio-monto" placeholder="Ej: 35000" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white;">
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Notas / Observaciones:</label>
+                        <input type="text" id="form-socio-notas" placeholder="Ej: Socio Fundador Inauguración" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white;">
+                    </div>
+
+                    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                        <button type="button" onclick="window.closeSocioModal()" style="padding: 10px 18px; background: #334155; color: #cbd5e1; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
+                        <button type="submit" style="padding: 10px 22px; background: linear-gradient(135deg, #d97706, #fbbf24); color: #0f172a; border: none; border-radius: 8px; cursor: pointer; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                            <i class='bx bx-save'></i> Guardar Socio
                         </button>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
+        </div>
 
-            <!-- Tabla de Patentes Black Registradas -->
-            <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px;">
-                <h3 style="color: #fbbf24; font-size: 1.2rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                    <i class='bx bx-list-check'></i> Listado de Patentes Socios Fundadores Black (<span id="black-count-text">0</span>)
-                </h3>
-                <div class="metrics-table-container">
-                    <table class="metrics-table">
-                        <thead>
-                            <tr>
-                                <th>Patente</th>
-                                <th>Titular</th>
-                                <th>Teléfono</th>
-                                <th>Observaciones</th>
-                                <th>Fecha Registro</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="black-table-body">
-                            <tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 20px;">No hay patentes registradas en Socio Black.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-
-        <!-- Vista de Gestión Socio Fundador Gold -->
-        <main class="main-content" id="socio-gold-view" style="display: none; padding: 2rem; overflow-y: auto;">
-            <div class="metrics-header" style="margin-bottom: 2rem;">
-                <div>
-                    <h2><i class='bx bxs-award' style="color: #f59e0b;"></i> Gestión Socio Fundador Gold</h2>
-                    <p style="color: var(--text-secondary); margin-top: 5px;">Registrá las patentes pertenecientes a Socios Gold y configurá sus beneficios y condiciones de premios.</p>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 2rem;">
-                <!-- Cargar Patente Socio Gold -->
-                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid #f59e0b; border-radius: 16px; box-shadow: var(--shadow-sm);">
-                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid rgba(245, 158, 11, 0.3); padding-bottom: 12px; color: #f59e0b; display: flex; align-items: center; gap: 8px;">
-                        <i class='bx bx-plus-circle'></i> Registrar Nueva Patente Socio Gold
+        <!-- Modal: Configuración de Beneficios de Socios -->
+        <div id="modal-socio-config" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+            <div style="background: #0f172a; border: 1px solid #334155; border-radius: 20px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+                <div style="padding: 1.5rem 1.8rem; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; color: #38bdf8; display: flex; align-items: center; gap: 8px; font-size: 1.3rem;">
+                        <i class='bx bx-slider-alt'></i> Configurar Condiciones & Beneficios
                     </h3>
-                    <form onsubmit="handleAddSocioGold(event)">
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Dominio / Patente:</label>
-                            <input type="text" id="gold-patente-input" placeholder="Ej: AB987CD" class="price-input" style="width: 100%; text-transform: uppercase;" required>
-                        </div>
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Nombre del Titular / Socio:</label>
-                            <input type="text" id="gold-titular-input" placeholder="Ej: Omar" class="price-input" style="width: 100%;" required>
-                        </div>
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Teléfono / WhatsApp:</label>
-                            <input type="tel" id="gold-telefono-input" placeholder="Ej: 1198765432" class="price-input" style="width: 100%;">
-                        </div>
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Observaciones / Notas:</label>
-                            <input type="text" id="gold-obs-input" placeholder="Ej: Socio Gold Pase Definitivo" class="price-input" style="width: 100%;">
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; background: linear-gradient(135deg, #d97706, #f59e0b); color: #ffffff; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <i class='bx bxs-award'></i> Registrar Patente Socio Gold
-                        </button>
-                    </form>
+                    <button onclick="window.toggleSocioConfigModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
                 </div>
 
-                <!-- Configurar Condiciones y Premios Socio Gold -->
-                <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: var(--shadow-sm);">
-                    <h3 class="section-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; color: #f59e0b; display: flex; align-items: center; gap: 8px;">
-                        <i class='bx bx-slider-alt'></i> Condiciones & Beneficios Socio Gold
-                    </h3>
-                    <form onsubmit="handleSaveSocioGoldConfig(event)">
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Lavados Gratis por Mes:</label>
-                            <input type="number" id="gold-free-washes-input" min="0" max="10" value="1" class="price-input" style="width: 100%;">
+                <div style="padding: 1.8rem;">
+                    <!-- Config Black -->
+                    <div style="background: #1e293b; padding: 1.2rem; border-radius: 12px; border-left: 4px solid #fbbf24; margin-bottom: 20px;">
+                        <h4 style="color: #fbbf24; margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;">
+                            <i class='bx bx-crown'></i> Condiciones Socio Black
+                        </h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Descuento Permanente (%):</label>
+                                <input type="number" id="cfg-black-discount" value="20" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Prioridad Pit Lane:</label>
+                                <select id="cfg-black-priority" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white;">
+                                    <option value="1">Prioridad Absoluta</option>
+                                    <option value="0">Normal</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group" style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Descuento en Completo + Motor (% OFF):</label>
-                            <input type="number" id="gold-discount-input" min="0" max="100" value="35" class="price-input" style="width: 100%;">
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Beneficio Adicional:</label>
+                            <input type="text" id="cfg-black-extra" value="Encerado rápido con polímeros sin cargo" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white;">
                         </div>
-                        <div class="form-group" style="margin-bottom: 20px;">
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #e2e8f0;">Beneficio Adicional Incluido:</label>
-                            <input type="text" id="gold-extra-input" value="Notificaciones Push prioritarias de Box en tiempo real" class="price-input" style="width: 100%;">
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <i class='bx bx-save'></i> Guardar Condiciones Gold
-                        </button>
-                    </form>
-                </div>
-            </div>
+                    </div>
 
-            <!-- Tabla de Patentes Gold Registradas -->
-            <div class="card" style="padding: 1.8rem; background: var(--bg-sidebar); border: 1px solid var(--border-color); border-radius: 16px;">
-                <h3 style="color: #f59e0b; font-size: 1.2rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-                    <i class='bx bx-list-check'></i> Listado de Patentes Socios Fundadores Gold (<span id="gold-count-text">0</span>)
-                </h3>
-                <div class="metrics-table-container">
-                    <table class="metrics-table">
-                        <thead>
-                            <tr>
-                                <th>Patente</th>
-                                <th>Titular</th>
-                                <th>Teléfono</th>
-                                <th>Observaciones</th>
-                                <th>Fecha Registro</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gold-table-body">
-                            <tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 20px;">No hay patentes registradas en Socio Gold.</td></tr>
-                        </tbody>
-                    </table>
+                    <!-- Config Gold -->
+                    <div style="background: #1e293b; padding: 1.2rem; border-radius: 12px; border-left: 4px solid #f59e0b; margin-bottom: 20px;">
+                        <h4 style="color: #f59e0b; margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;">
+                            <i class='bx bxs-award'></i> Condiciones Socio Gold
+                        </h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Lavados Gratis por Mes:</label>
+                                <input type="number" id="cfg-gold-free" value="1" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Descuento Completo + Motor (%):</label>
+                                <input type="number" id="cfg-gold-discount" value="35" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white;">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">Beneficio Adicional:</label>
+                            <input type="text" id="cfg-gold-extra" value="Notificaciones Push prioritarias de Box en tiempo real" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: white;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" onclick="window.toggleSocioConfigModal()" style="padding: 10px 16px; background: #334155; color: #cbd5e1; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cerrar</button>
+                        <button type="button" onclick="window.saveSocioAllConfig()" style="padding: 10px 20px; background: #0284c7; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                            <i class='bx bx-save'></i> Guardar Parámetros
+                        </button>
+                    </div>
                 </div>
             </div>
-        </main>
+        </div>
+
+        <!-- Modal: Visualizador de Credencial Digital VIP Interactiva -->
+        <div id="modal-vip-credential" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+            <div style="background: #0b1120; border: 1px solid rgba(251,191,36,0.4); border-radius: 24px; width: 100%; max-width: 480px; box-shadow: 0 25px 60px rgba(0,0,0,0.9); overflow: hidden; animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div style="padding: 1.2rem 1.5rem; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: #fbbf24; font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 6px;">
+                        <i class='bx bx-id-card'></i> Credencial Oficial Fundador
+                    </span>
+                    <button onclick="window.closeVipCredentialModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 1.6rem; cursor: pointer;">&times;</button>
+                </div>
+
+                <div style="padding: 2rem 1.5rem; display: flex; flex-direction: column; align-items: center;">
+                    <!-- Tarjeta VIP Renderizada -->
+                    <div id="vip-card-render" style="width: 100%; max-width: 380px; height: 230px; border-radius: 18px; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.15);">
+                        <!-- Efecto de brillo -->
+                        <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%); transform: rotate(25deg); pointer-events: none;"></div>
+                        
+                        <!-- Header de la tarjeta -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; z-index: 2;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(251,191,36,0.5);">
+                                    <i class='bx bx-crown' style="color: #fbbf24; font-size: 1.4rem;"></i>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0; font-size: 1rem; font-weight: 900; letter-spacing: 1px; color: #ffffff;">L1DERES</h4>
+                                    <span id="vip-card-badge-type" style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #fbbf24;">SOCIO FUNDADOR BLACK</span>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span id="vip-card-number" style="font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: 900; color: #fbbf24; text-shadow: 0 2px 8px rgba(0,0,0,0.8); background: rgba(0,0,0,0.5); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(251,191,36,0.3);">#001</span>
+                            </div>
+                        </div>
+
+                        <!-- Chip y Holograma -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; z-index: 2; margin: 10px 0;">
+                            <div style="width: 44px; height: 32px; background: linear-gradient(135deg, #d4af37, #fef08a, #aa771c); border-radius: 6px; border: 1px solid rgba(0,0,0,0.3); box-shadow: inset 0 1px 2px rgba(255,255,255,0.6);"></div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">AURA VIP PASS</div>
+                        </div>
+
+                        <!-- Footer de la tarjeta con datos del titular y patente -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; z-index: 2;">
+                            <div>
+                                <span style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; display: block;">Titular Oficial</span>
+                                <h5 id="vip-card-titular" style="margin: 2px 0 0 0; font-size: 1.05rem; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.5px;">OMAR</h5>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; display: block;">Patente Registrada</span>
+                                <div id="vip-card-patente" style="background: #ffffff; color: #000000; font-weight: 900; font-size: 1rem; padding: 2px 10px; border-radius: 4px; letter-spacing: 1.5px; border: 2px solid #000000; font-family: monospace; display: inline-block;">AA123BC</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción de la Credencial -->
+                    <div style="display: flex; gap: 12px; width: 100%; max-width: 380px; margin-top: 24px;">
+                        <button onclick="window.sendCredentialWhatsApp()" style="flex: 1; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(34,197,94,0.3);">
+                            <i class='bx bxl-whatsapp' style="font-size: 1.2rem;"></i> Enviar WhatsApp
+                        </button>
+                        <button onclick="window.printCredentialCard()" style="padding: 12px 16px; background: #1e293b; color: #cbd5e1; border: 1px solid #334155; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i class='bx bx-printer'></i> Imprimir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Vista de Cambiar Contraseña / Gestión de Usuarios -->
         <main class="main-content" id="change-password-view" style="display: none; padding: 2rem; overflow-y: auto;">
@@ -912,7 +1093,7 @@
                             </div>
                             <div style="text-align: right;">
                                 <span style="background: rgba(16,185,129,0.2); color: #34d399; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">Administrador</span>
-                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 123456</div>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 25177943</div>
                             </div>
                         </div>
 
@@ -927,7 +1108,7 @@
                             </div>
                             <div style="text-align: right;">
                                 <span style="background: rgba(16,185,129,0.2); color: #34d399; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">Administrador</span>
-                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 123456</div>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 25177943</div>
                             </div>
                         </div>
 
@@ -942,7 +1123,7 @@
                             </div>
                             <div style="text-align: right;">
                                 <span style="background: rgba(56,189,248,0.2); color: #38bdf8; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">Admin General</span>
-                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 123456</div>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 25177943</div>
                             </div>
                         </div>
 
@@ -957,7 +1138,7 @@
                             </div>
                             <div style="text-align: right;">
                                 <span style="background: rgba(234,179,8,0.2); color: #facc15; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">Empleado</span>
-                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 123456</div>
+                                <div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Clave inicial: 25177943</div>
                             </div>
                         </div>
                     </div>
@@ -1213,6 +1394,6 @@
     </div>
 
     <!-- Script Dashboard Admin -->
-    <script src="script.js?v=1.6"></script>
+    <script src="script.js?v=1.7"></script>
 </body>
 </html>

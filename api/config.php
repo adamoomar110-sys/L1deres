@@ -14,13 +14,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $db_host = 'localhost';
-$db_name = 'a0170001_lava2';
+$db_name = 'a0170001_l1deres';
 
 $credentials = [
-    ['user' => 'a0170001_lava2', 'pass' => '@Peloymago110Peloymago110'],
-    ['user' => 'a0170001',       'pass' => '@Peloymago110Peloymago110'],
-    ['user' => 'a0170001',       'pass' => 'AuraFTP2025@aura'],
-    ['user' => 'a0170001_lava2', 'pass' => 'AuraFTP2025@aura']
+    ['user' => 'a0170001_l1deres', 'pass' => '@Peloymago110Peloymago110'],
+    ['user' => 'a0170001_l1deres', 'pass' => 'AuraFTP2025@aura'],
+    ['user' => 'a0170001_lava2',   'pass' => '@Peloymago110Peloymago110'],
+    ['user' => 'a0170001',         'pass' => '@Peloymago110Peloymago110'],
+    ['user' => 'a0170001',         'pass' => 'AuraFTP2025@aura'],
+    ['user' => 'a0170001_lava2',   'pass' => 'AuraFTP2025@aura']
 ];
 
 $pdo = null;

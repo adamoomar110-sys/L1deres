@@ -202,54 +202,209 @@ async function validateAndNext(step, nextScreenId) {
     }
 }
 
+// Mapeo de precios por servicio
+const WASH_PRICES = {
+    'Lavado Express Auto': 4500,
+    'Lavado Express Camioneta': 6000,
+    'Lavado Completo Auto': 8500,
+    'Lavado Completo Camioneta': 11000
+};
+
 // Selección de tipo de lavado
 function selectWash(type) {
     appState.washType = type;
-    document.getElementById('summary-type').innerText = type;
+    appState.price = WASH_PRICES[type] || 4500;
+    
+    const summaryTypeElem = document.getElementById('summary-type');
+    if (summaryTypeElem) {
+        summaryTypeElem.innerText = `${type} ($${appState.price.toLocaleString('es-AR')})`;
+    }
     nextScreen('screen-phone');
 }
 
-// Mock de Pago de Mercado Pago y guardado en DonWeb MySQL
-async function processPayment() {
-    const btn = document.querySelector('.btn-mp');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Procesando pago...";
-    btn.disabled = true;
+// Abrir Modal Checkout Mercado Pago
+function processPayment() {
+    const modal = document.getElementById('mp-checkout-modal');
+    if (!modal) return;
+
+    const priceFormatted = (appState.price || 4500).toLocaleString('es-AR');
+    
+    const descElem = document.getElementById('mp-item-desc');
+    const priceElem = document.getElementById('mp-item-price');
+    const btnPriceElem = document.getElementById('mp-btn-price');
+    
+    if (descElem) descElem.innerText = appState.washType || 'Servicio de Lavado';
+    if (priceElem) priceElem.innerText = `$ ${priceFormatted}`;
+    if (btnPriceElem) btnPriceElem.innerText = priceFormatted;
+
+    document.getElementById('mp-step-methods').style.display = 'block';
+    document.getElementById('mp-step-processing').style.display = 'none';
+    document.getElementById('mp-step-success').style.display = 'none';
+
+    modal.style.display = 'flex';
+}
+
+function closeMPModal() {
+    const modal = document.getElementById('mp-checkout-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function selectMPMethod(labelElem) {
+    document.querySelectorAll('.mp-method-option').forEach(el => el.classList.remove('active'));
+    if (labelElem) labelElem.classList.add('active');
+}
+
+// --- LÓGICA DE REGISTRO Y PAGO DE SOCIOS FUNDADORES (1 A 200) ---
+function startSocioCheckout(tipo) {
+    appState.isSocioCheckout = true;
+    appState.socioTipo = tipo === 'gold' ? 'gold' : 'black';
+    appState.price = appState.socioTipo === 'black' ? 65000 : 45000;
+    appState.washType = appState.socioTipo === 'black' ? 'Membresía Socio Fundador Black' : 'Membresía Socio Fundador Gold';
+
+    const titleElem = document.getElementById('socio-checkout-title');
+    const tipoSummary = document.getElementById('summary-socio-tipo');
+    const montoSummary = document.getElementById('summary-socio-monto');
+
+    if (titleElem) {
+        titleElem.innerText = appState.socioTipo === 'black' ? 'REGISTRO SOCIO BLACK' : 'REGISTRO SOCIO GOLD';
+    }
+    if (tipoSummary) {
+        tipoSummary.innerText = appState.socioTipo === 'black' ? 'Socio Fundador Black VIP' : 'Socio Fundador Gold VIP';
+        tipoSummary.style.color = appState.socioTipo === 'black' ? '#fbbf24' : '#f59e0b';
+    }
+    if (montoSummary) {
+        montoSummary.innerText = `$ ${appState.price.toLocaleString('es-AR')} / Año`;
+    }
+
+    const inputPatente = document.getElementById('input-socio-patente');
+    if (inputPatente && appState.plate) {
+        inputPatente.value = appState.plate;
+    }
+
+    nextScreen('screen-socio-checkout');
+}
+
+function processSocioPayment() {
+    const nombre = document.getElementById('input-socio-nombre').value.trim();
+    const patente = document.getElementById('input-socio-patente').value.trim().toUpperCase();
+    const phone = document.getElementById('input-socio-phone').value.trim();
+    const errorElem = document.getElementById('error-socio-form');
+
+    if (!nombre || patente.length < 6 || phone.length < 6) {
+        if (errorElem) errorElem.style.display = 'block';
+        return;
+    }
+    if (errorElem) errorElem.style.display = 'none';
+
+    appState.socioNombre = nombre;
+    appState.plate = patente;
+    appState.phone = '+54 ' + phone;
+
+    processPayment();
+}
+
+// Confirmar Pago en Mercado Pago
+async function confirmMPPayment() {
+    document.getElementById('mp-step-methods').style.display = 'none';
+    document.getElementById('mp-step-processing').style.display = 'block';
 
     try {
-        // Simulamos el tiempo de MP
-        await new Promise(r => setTimeout(r, 2000));
-        
-        // Transformar el tipo de lavado al formato que espera el backend
-        let tipoParaDB = 'express_auto';
-        if (appState.washType === 'Lavado Express Camioneta') tipoParaDB = 'express_camioneta';
-        else if (appState.washType === 'Lavado Completo Auto') tipoParaDB = 'completo_auto';
-        else if (appState.washType === 'Lavado Completo Camioneta') tipoParaDB = 'completo_camioneta';
+        // Simulamos tiempo de respuesta del servidor de Mercado Pago
+        await new Promise(r => setTimeout(r, 1800));
 
-        // Guardar la reserva en DonWeb MySQL
-        const res = await fetch(`${API_URL}reservas.php`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                patente: appState.plate,
-                tipo_servicio: tipoParaDB,
-                cliente_telefono: appState.phone,
-                estado: 'pendiente'
-            })
-        });
-        const data = await res.json();
-        if (data && data.id) {
-            appState.reservaId = data.id;
+        if (appState.isSocioCheckout) {
+            // REGISTRO DE SOCIO FUNDADOR EN BACKEND DONWEB MYSQL (1 A 200)
+            let numeroAsignado = Math.floor(Math.random() * 190) + 1; // Fallback aleatorio 1-200
+            
+            try {
+                const res = await fetch(`${API_URL}socios_fundadores.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombre: appState.socioNombre,
+                        patente: appState.plate,
+                        telefono: appState.phone,
+                        tipo_membresia: appState.socioTipo,
+                        monto_pagado: appState.price,
+                        metodo_pago: 'mercadopago'
+                    })
+                });
+                const data = await res.json();
+                if (data && data.success && data.numero_socio) {
+                    numeroAsignado = data.numero_socio;
+                }
+            } catch (e) {
+                console.warn('Registro local de socio por API offline:', e);
+            }
+
+            appState.assignedSocioNumber = numeroAsignado;
+            const numFormatted = '#' + String(numeroAsignado).padStart(3, '0');
+
+            // Actualizar UI del carnet de socio
+            const numElem = document.getElementById('socio-assigned-number');
+            const cardName = document.getElementById('socio-card-name');
+            const cardPlate = document.getElementById('socio-card-plate');
+            const cardNumBig = document.getElementById('socio-card-num-big');
+            const cardBadge = document.getElementById('socio-card-badge-type');
+
+            if (numElem) numElem.innerText = numFormatted;
+            if (cardName) cardName.innerText = appState.socioNombre.toUpperCase();
+            if (cardPlate) cardPlate.innerText = appState.plate;
+            if (cardNumBig) cardNumBig.innerText = numFormatted;
+            if (cardBadge) {
+                cardBadge.innerText = appState.socioTipo === 'black' ? 'SOCIO BLACK VIP' : 'SOCIO GOLD VIP';
+                cardBadge.style.color = appState.socioTipo === 'black' ? '#fbbf24' : '#f59e0b';
+            }
+        } else {
+            // Reserva de Lavado regular
+            let tipoParaDB = 'express_auto';
+            if (appState.washType === 'Lavado Express Camioneta') tipoParaDB = 'express_camioneta';
+            else if (appState.washType === 'Lavado Completo Auto') tipoParaDB = 'completo_auto';
+            else if (appState.washType === 'Lavado Completo Camioneta') tipoParaDB = 'completo_camioneta';
+
+            try {
+                const res = await fetch(`${API_URL}reservas.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        patente: appState.plate,
+                        tipo_servicio: tipoParaDB,
+                        cliente_telefono: appState.phone,
+                        estado: 'pendiente'
+                    })
+                });
+                const data = await res.json();
+                if (data && data.id) {
+                    appState.reservaId = data.id;
+                }
+            } catch (e) {
+                console.warn('Simulación de reserva local por API offline:', e);
+            }
         }
 
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        nextScreen('screen-review');
+        // Generar ID de transacción simulación MP
+        const randomTx = Math.floor(100000 + Math.random() * 900000);
+        const txElem = document.getElementById('mp-tx-id');
+        if (txElem) txElem.innerText = randomTx;
+
+        document.getElementById('mp-step-processing').style.display = 'none';
+        document.getElementById('mp-step-success').style.display = 'block';
     } catch (e) {
         console.error(e);
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        alert("Hubo un error procesando el pago.");
+        document.getElementById('mp-step-processing').style.display = 'none';
+        document.getElementById('mp-step-methods').style.display = 'block';
+        alert('Hubo un inconveniente con el medio de pago. Intentá nuevamente.');
+    }
+}
+
+// Finalizar flujo y redirigir a la pantalla correspondiente
+function finishMPFlow() {
+    closeMPModal();
+    if (appState.isSocioCheckout) {
+        nextScreen('screen-socio-welcome');
+        appState.isSocioCheckout = false;
+    } else {
+        nextScreen('screen-review');
     }
 }
 
@@ -397,7 +552,7 @@ _clientCarImg.onload = () => {
 
 const ESPERA_ZONES = [11, 12, 17, 18, 23, 24, 29, 30];
 const LAVADO_ZONE = 4;
-const SECADO_ZONES = [3, 9];
+const SECADO_ZONES = [3];
 
 async function fetchClientLiveState() {
     try {
@@ -513,7 +668,7 @@ function renderClientCars(state) {
     const activeCarIds = new Set();
     const ESPERA_ZONES = [11, 12, 17, 18, 23, 24, 29, 30];
     const LAVADO_ZONE = 4;
-    const SECADO_ZONES = [3, 9];
+    const SECADO_ZONES = [3];
 
     // Limpiar celdas ocupadas antes
     canvas.querySelectorAll('.grid-box').forEach(box => {
@@ -857,4 +1012,69 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(updateClientTracks, 200);
     });
 });
+
+// Modal de Socios Fundadores VIP (Black & Gold)
+function openSocioModal(tipo) {
+    const modal = document.getElementById('socio-modal');
+    if (!modal) return;
+
+    const titleElem = document.getElementById('socio-modal-title');
+    const badgeElem = document.getElementById('socio-modal-badge');
+    const descElem = document.getElementById('socio-modal-desc');
+    const btnWaElem = document.getElementById('socio-modal-wa');
+
+    const numWa = appState.whatsappNumber || '5491123456789';
+
+    if (tipo === 'Black') {
+        if (titleElem) titleElem.innerHTML = `<i class='bx bx-crown' style='color:#fbbf24;'></i> SOCIO FUNDADOR BLACK`;
+        if (badgeElem) {
+            badgeElem.innerText = 'MEMBRESÍA VIP EXCLUSIVA';
+            badgeElem.style.background = 'rgba(251, 191, 36, 0.2)';
+            badgeElem.style.color = '#fbbf24';
+            badgeElem.style.border = '1px solid rgba(251, 191, 36, 0.4)';
+        }
+        if (descElem) {
+            descElem.innerHTML = `
+                <ul style="text-align: left; font-size: 0.88rem; line-height: 1.6; padding-left: 18px; color: #cbd5e1; list-style-type: disc;">
+                    <li style="margin-bottom: 6px;"><strong>Acceso prioritario VIP #1</strong> en Pit Lane sin fila de espera.</li>
+                    <li style="margin-bottom: 6px;"><strong>30% OFF permanente</strong> en todos los lavados y detallados.</li>
+                    <li style="margin-bottom: 6px;">Encerado cerámico de alta velocidad <strong>sin cargo en cada visita</strong>.</li>
+                    <li style="margin-bottom: 6px;">Atención de Concierge personal y sorteos VIP.</li>
+                </ul>
+            `;
+        }
+        if (btnWaElem) {
+            btnWaElem.href = `https://wa.me/${numWa}?text=Hola!%20Quiero%20asociarme%20como%20Socio%20Fundador%20Black%20en%20L1deres%20AutoWash.`;
+        }
+    } else {
+        if (titleElem) titleElem.innerHTML = `<i class='bx bxs-award' style='color:#f59e0b;'></i> SOCIO FUNDADOR GOLD`;
+        if (badgeElem) {
+            badgeElem.innerText = 'MEMBRESÍA PREFERENCIAL GOLD';
+            badgeElem.style.background = 'rgba(245, 158, 11, 0.2)';
+            badgeElem.style.color = '#f59e0b';
+            badgeElem.style.border = '1px solid rgba(245, 158, 11, 0.4)';
+        }
+        if (descElem) {
+            descElem.innerHTML = `
+                <ul style="text-align: left; font-size: 0.88rem; line-height: 1.6; padding-left: 18px; color: #cbd5e1; list-style-type: disc;">
+                    <li style="margin-bottom: 6px;"><strong>Atención preferencial</strong> en boxes de preparación.</li>
+                    <li style="margin-bottom: 6px;"><strong>20% OFF permanente</strong> en todos los servicios de lavado.</li>
+                    <li style="margin-bottom: 6px;">Obsequio especial de <strong>perfumería F1 en cada visita</strong>.</li>
+                    <li style="margin-bottom: 6px;">Avisos inmediatos por WhatsApp de turnos expresos.</li>
+                </ul>
+            `;
+        }
+        if (btnWaElem) {
+            btnWaElem.href = `https://wa.me/${numWa}?text=Hola!%20Quiero%20asociarme%20como%20Socio%20Fundador%20Gold%20en%20L1deres%20AutoWash.`;
+        }
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeSocioModal() {
+    const modal = document.getElementById('socio-modal');
+    if (modal) modal.style.display = 'none';
+}
+
 

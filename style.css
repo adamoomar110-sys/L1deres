@@ -195,7 +195,7 @@ body {
 /* HERO SECTION CON RENDER 3D DE FACHADA */
 .hero-render-wrapper {
     position: relative;
-    padding: 30px 16px 20px;
+    padding: 24px 16px 20px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -208,6 +208,8 @@ body {
     overflow: hidden;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(225, 6, 0, 0.18);
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .hero-render-card:hover {
@@ -215,10 +217,90 @@ body {
     box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 45px rgba(225, 6, 0, 0.3);
 }
 
+.hero-render-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    background: rgba(15, 23, 42, 0.85);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.hero-render-location-badge {
+    position: static;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(3, 7, 18, 0.7);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #38bdf8;
+}
+
+.hero-render-top-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hero-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #fbbf24;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+}
+
+.hero-status-pill .badge-pulse-gold,
+.hero-status-pill .badge-pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #f59e0b;
+    box-shadow: 0 0 10px #fbbf24;
+    animation: pulse 1.5s infinite;
+}
+
+.hero-wa-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #25d366;
+    color: #000000;
+    font-weight: 900;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.4);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.hero-wa-badge:hover {
+    background: #22bf5b;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(37, 211, 102, 0.6);
+}
+
 .hero-render-img-box {
     position: relative;
     width: 100%;
-    height: 480px;
+    background: #020408;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -227,97 +309,33 @@ body {
 
 .hero-render-img {
     width: 100%;
-    height: 100%;
+    height: auto;
+    max-height: 490px;
+    display: block;
     object-fit: cover;
-    object-position: center 38%;
-    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    object-position: center center;
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .hero-render-card:hover .hero-render-img {
-    transform: scale(1.03);
-}
-
-.hero-render-gradient {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-        to bottom,
-        rgba(3, 7, 18, 0.3) 0%,
-        rgba(3, 7, 18, 0.1) 40%,
-        rgba(3, 7, 18, 0.85) 85%,
-        #030712 100%
-    );
-    pointer-events: none;
-}
-
-.hero-render-top-badge {
-    position: absolute;
-    top: 18px;
-    left: 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(3, 7, 18, 0.85);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(225, 6, 0, 0.5);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: #fca5a5;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
-
-.hero-render-top-badge .badge-pulse {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #ef4444;
-    box-shadow: 0 0 8px #ef4444;
-    animation: pulse 1.8s infinite;
-}
-
-.hero-render-location-badge {
-    position: absolute;
-    top: 18px;
-    right: 18px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(3, 7, 18, 0.85);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(56, 189, 248, 0.4);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.76rem;
-    font-weight: 700;
-    color: #38bdf8;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    transform: scale(1.015);
 }
 
 .hero-render-content {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 24px 28px 24px;
-    z-index: 2;
+    position: static;
+    padding: 28px 28px 32px;
+    background: linear-gradient(180deg, #090d16 0%, #030712 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .hero-render-title {
     font-family: 'Montserrat', sans-serif;
     font-weight: 900;
-    font-size: 2.3rem;
-    line-height: 1.15;
+    font-size: 2.2rem;
+    line-height: 1.2;
     color: #ffffff;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     letter-spacing: -0.5px;
-    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.8);
 }
 
 .hero-render-title span.red-glow {
@@ -331,37 +349,35 @@ body {
 }
 
 .hero-render-desc {
-    font-size: 0.98rem;
+    font-size: 1rem;
     color: #cbd5e1;
-    max-width: 800px;
-    margin-bottom: 16px;
-    line-height: 1.45;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+    max-width: 900px;
+    margin-bottom: 18px;
+    line-height: 1.55;
 }
 
 .hero-render-features {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 10px;
+    margin-bottom: 22px;
 }
 
 .hero-feature-pill {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    background: rgba(15, 23, 42, 0.75);
-    backdrop-filter: blur(6px);
+    gap: 8px;
+    padding: 7px 14px;
+    background: rgba(15, 23, 42, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 12px;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: #e2e8f0;
 }
 
 .hero-feature-pill i {
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
 .hero-render-actions {
@@ -442,41 +458,39 @@ body {
 
 @media (max-width: 768px) {
     .hero-render-wrapper {
-        padding: 16px 10px 10px;
+        padding: 14px 10px 10px;
     }
-    .hero-render-img-box {
-        height: 380px;
-    }
-    .hero-render-top-badge,
-    .hero-render-location-badge {
-        position: static;
-        margin-bottom: 6px;
-        display: inline-flex;
-    }
-    .hero-render-badges-mobile {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        right: 12px;
-        display: flex;
+    .hero-render-top-bar {
+        padding: 10px 14px;
         flex-direction: column;
-        gap: 6px;
-        align-items: flex-start;
-        z-index: 3;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .hero-render-location-badge {
+        justify-content: center;
+        width: 100%;
+        text-align: center;
+    }
+    .hero-render-top-right {
+        justify-content: space-between;
+        width: 100%;
+    }
+    .hero-render-img {
+        max-height: 270px;
     }
     .hero-render-content {
-        padding: 16px;
+        padding: 18px 16px 20px;
     }
     .hero-render-title {
-        font-size: 1.45rem;
+        font-size: 1.55rem;
     }
     .hero-render-desc {
-        font-size: 0.82rem;
-        margin-bottom: 12px;
+        font-size: 0.88rem;
+        margin-bottom: 14px;
     }
     .hero-feature-pill {
-        font-size: 0.7rem;
-        padding: 4px 8px;
+        font-size: 0.74rem;
+        padding: 5px 10px;
     }
     .hero-render-actions {
         flex-direction: column;
@@ -1961,16 +1975,18 @@ body {
 
 .sidebar-brand {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
 }
 
 .sidebar-logo-img {
-    width: 38px;
-    height: 38px;
-    border-radius: 8px;
-    object-fit: cover;
-    border: 1px solid #fbbf24;
+    height: 34px;
+    width: auto;
+    max-width: 180px;
+    object-fit: contain;
+    border-radius: 4px;
+    border: none;
 }
 
 .sidebar-title {

@@ -179,7 +179,7 @@ function initLandingTrackGrid() {
             11: '1', 12: '2', 17: '3', 18: '4',
             23: '5', 24: '6', 29: '7', 30: '8',
             4: '1',
-            3: '1', 9: '2'
+            3: '1'
         };
 
         if (textReplacements.hasOwnProperty(boxNumber)) {
@@ -218,10 +218,9 @@ function drawLandingSVGTracks() {
     }
 
     // Pista Solo Interior (Circuito Interno)
-    // Espera Izq: 29 (bot) -> 11 (top). Secado 2: 9. Terminado Único: 7 (top) -> 25 (bot).
+    // Espera Izq: 29 (bot) -> 11 (top). Terminado Único: 7 (top) -> 25 (bot).
     const eIzqBot = getBoxCenter(29);
     const eIzqTop = getBoxCenter(11);
-    const secado2 = getBoxCenter(9);
     
     // Pista Lavado (Circuito Externo)
     // Espera Der: 30 (bot) -> 12 (top). Lavado: 4. Terminado Único: 7 (top) -> 25 (bot).
@@ -240,10 +239,10 @@ function drawLandingSVGTracks() {
     // Path Interno (Interior) - Dobla en la Fila 3
     let pathIzq = `
         M ${eIzqBot.x} ${eIzqBot.y + 300} 
-        L ${eIzqTop.x} ${secado2.y + R} 
-        Q ${eIzqTop.x} ${secado2.y} ${eIzqTop.x - R} ${secado2.y}
-        L ${tTop.x + R} ${secado2.y}
-        Q ${tTop.x} ${secado2.y} ${tTop.x} ${secado2.y + R}
+        L ${eIzqTop.x} ${eIzqTop.y + R} 
+        Q ${eIzqTop.x} ${eIzqTop.y} ${eIzqTop.x - R} ${eIzqTop.y}
+        L ${tTop.x + R} ${eIzqTop.y}
+        Q ${tTop.x} ${eIzqTop.y} ${tTop.x} ${eIzqTop.y + R}
         L ${tBot.x} ${tBot.y + 300}
     `.replace(/\s+/g, ' ').trim();
 
@@ -404,7 +403,7 @@ function renderLandingCars(state) {
     const activeCarIds = new Set();
     const ESPERA_ZONES = [11, 12, 17, 18, 23, 24, 29, 30];
     const LAVADO_ZONE = 4;
-    const SECADO_ZONES = [3, 9];
+    const SECADO_ZONES = [3];
     const TERMINADO_ZONES = [25, 19, 13, 7];
 
     // Limpiar clases visuales de boxes ocupados

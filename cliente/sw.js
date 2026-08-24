@@ -1,11 +1,14 @@
-const CACHE_NAME = 'l1deres-pwa-v2.5';
+const CACHE_NAME = 'l1deres-pwa-v2.8';
 const urlsToCache = [
   './',
   './index.html',
-  './style.css?v=1.6',
-  './app.js?v=1.6',
+  './style.css?v=1.8',
+  './app.js?v=1.8',
   './manifest.json',
   './f1_car_top_down.png',
+  './logo.jpg',
+  './logo_horizontal.jpg',
+  './logo_icon.jpg',
   '../logo.jpg'
 ];
 

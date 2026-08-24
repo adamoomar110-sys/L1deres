@@ -75,11 +75,35 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Usuarios iniciales (Password por defecto: 123456)
+-- Usuarios iniciales (Password por defecto: 25177943)
 INSERT INTO `usuarios` (`email`, `password_hash`, `role`)
 VALUES 
-  ('admin@aura.com', '$2y$10$e7xW0cZq70g6c69z322R.e0W5O9f6/7e32zJ62l/K63z5003W302.', 'admin'),
-  ('empleado@aura.com', '$2y$10$e7xW0cZq70g6c69z322R.e0W5O9f6/7e32zJ62l/K63z5003W302.', 'empleado'),
-  ('claudia@l1deres.com', '$2y$10$e7xW0cZq70g6c69z322R.e0W5O9f6/7e32zJ62l/K63z5003W302.', 'admin'),
-  ('javier@l1deres.com', '$2y$10$e7xW0cZq70g6c69z322R.e0W5O9f6/7e32zJ62l/K63z5003W302.', 'admin')
+  ('admin@aura.com', '$2b$10$3JSBn5fFIFDmDY3/jzcN4ucL5EUlSHDFjDW8OajRc2hMAiGs0JD1G', 'admin'),
+  ('empleado@aura.com', '$2b$10$3JSBn5fFIFDmDY3/jzcN4ucL5EUlSHDFjDW8OajRc2hMAiGs0JD1G', 'empleado'),
+  ('claudia@l1deres.com', '$2b$10$3JSBn5fFIFDmDY3/jzcN4ucL5EUlSHDFjDW8OajRc2hMAiGs0JD1G', 'admin'),
+  ('javier@l1deres.com', '$2b$10$3JSBn5fFIFDmDY3/jzcN4ucL5EUlSHDFjDW8OajRc2hMAiGs0JD1G', 'admin')
 ON DUPLICATE KEY UPDATE `email` = `email`;
+
+-- ============================================================
+-- TABLA CLUB 200 SOCIOS FUNDADORES (BLACK & GOLD VIP)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `socios_fundadores` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `numero_socio` INT NOT NULL UNIQUE,
+  `tipo_membresia` VARCHAR(20) NOT NULL DEFAULT 'black',
+  `nombre` VARCHAR(150) NOT NULL,
+  `telefono` VARCHAR(50) NOT NULL,
+  `email` VARCHAR(150) NULL,
+  `patente` VARCHAR(20) NOT NULL,
+  `modelo_auto` VARCHAR(100) NULL,
+  `monto_pagado` DECIMAL(10,2) DEFAULT 0.00,
+  `metodo_pago` VARCHAR(50) DEFAULT 'mercadopago',
+  `estado_pago` VARCHAR(30) DEFAULT 'pagado',
+  `observaciones` TEXT NULL,
+  `fecha_inscripcion` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX `idx_numero_socio` (`numero_socio`),
+  INDEX `idx_patente` (`patente`),
+  INDEX `idx_tipo` (`tipo_membresia`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

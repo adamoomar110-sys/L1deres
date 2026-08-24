@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * ONESIGNAL CENTRALIZED INTEGRATION WRAPPER (Aura v1.6)
+ * ONESIGNAL CENTRALIZED INTEGRATION WRAPPER (Aura v1.8)
  * SDK Track: Stable (v16 - 160609)
  * App ID: 263bf04a-ad7a-4d11-842d-210cea51387c
  * ============================================================

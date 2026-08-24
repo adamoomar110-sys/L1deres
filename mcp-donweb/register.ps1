@@ -2,7 +2,7 @@ $configPath = "C:\Users\trabajo ia\.gemini\config\mcp_config.json"
 $raw = Get-Content $configPath -Raw
 $json = $raw | ConvertFrom-Json
 
-$serverPath = "c:\Users\trabajo ia\OneDrive\Escritorio\lava2\mcp-donweb\server.js"
+$serverPath = "c:\Users\trabajo ia\OneDrive\Escritorio\l1deres\mcp-donweb\server.js"
 
 $newServer = [PSCustomObject]@{
     command = "node"

@@ -10,67 +10,290 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="L1deres Turnos">
-    <link rel="apple-touch-icon" href="../logo.jpg">
-    <link rel="icon" type="image/jpeg" href="../logo.jpg">
+    <link rel="apple-touch-icon" href="logo_icon.jpg">
+    <link rel="icon" type="image/jpeg" href="logo_icon.jpg">
     
     <!-- OneSignal Web Push SDK & Centralized Wrapper -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script src="onesignal_service.js?v=1.6" defer></script>
+    <script src="onesignal_service.js?v=1.7" defer></script>
     
     <!-- Google Fonts para estilo Racing (F1) -->
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="style.css?v=1.6">
+    <link rel="stylesheet" href="style.css?v=1.7">
+    <style>
+        #app-container {
+            margin: auto !important;
+            position: relative !important;
+            left: auto !important;
+            right: auto !important;
+            top: auto !important;
+            transform: none !important;
+            align-self: center !important;
+        }
+    </style>
 </head>
 <body>
     
     <!-- Contenedor dinámico de pantallas -->
     <div id="app-container">
 
-        <!-- Pantalla 1: Splash Screen (Animación Logo) -->
+        <!-- Barra de estado simulada Smartphone (Desktop) -->
+        <div class="phone-status-bar">
+            <span class="phone-time">L1DERES PWA</span>
+            <div class="phone-notch"></div>
+            <div class="phone-icons">
+                <i class='bx bx-wifi'></i>
+                <i class='bx bx-battery-charging'></i>
+            </div>
+        </div>
+
+        <!-- Pantalla 1: Splash Screen -->
         <div id="screen-splash" class="screen active">
-            <div class="splash-content">
-                <img src="../logo.jpg" alt="L1deres Logo" class="splash-logo">
-                <div class="loader-bar"></div>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 20px;">
+                <span class="racing-font" style="font-size: 2rem; letter-spacing: 4px; color: #e10600; text-shadow: 0 0 20px rgba(225,6,0,0.6);">L1DERES</span>
+                <span style="color: #94a3b8; font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase;">AutoWash &amp; Detailing</span>
+                <div class="loader-bar" style="margin-top: 10px;"></div>
             </div>
         </div>
 
         <!-- Pantalla 2: Bienvenida -->
         <div id="screen-welcome" class="screen">
             <div class="card fade-in">
-                <h1 class="racing-font">BIENVENIDO</h1>
-                <div class="track-mirror-wrapper" style="background: #090d16; border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); overflow: hidden; position: relative; margin-top: 6px;">
-                    
-                    <div class="canvas-area client-canvas-area" id="client-canvas-area" style="position: relative; width: 100%; min-height: 310px; background: radial-gradient(circle at center, #111827 0%, #030712 100%); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 8px;">
-                        
-                        <div class="controls-header-mirror" style="display: flex; justify-content: center; align-items: center; margin-bottom: 12px; padding: 6px 14px; background: rgba(15, 23, 42, 0.8); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); width: 100%; max-width: 290px;">
-                            <div id="client-status-board" class="status-board-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
-                                <div class="status-info" style="display: flex; align-items: center; gap: 8px;">
-                                    <div class="status-title" style="font-size: 0.68rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px;">Demora Estimada</div>
-                                    <div class="status-time" id="client-status-time" style="font-size: 1.25rem; font-weight: 900; color: #38bdf8; font-family: 'Racing Sans One', sans-serif;">00:00</div>
-                                </div>
-                                <div class="status-badge badge-libre" id="client-status-badge" style="padding: 4px 10px; border-radius: 16px; font-weight: 700; font-size: 0.72rem; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">Sin Demora</div>
-                            </div>
-                        </div>
+                <h1 class="racing-font" style="margin-bottom: 4px; font-size: 1.6rem;">BIENVENIDO</h1>
+                <p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 12px;">
+                    Centro de Lavado Automático Inteligente
+                </p>
 
-                        <div class="espera-grid-container" id="client-canvas-grid" style="position:relative; z-index:1; display: grid; grid-template-columns: repeat(2, 1fr); max-width: 290px; width: 100%; gap: 10px; justify-content: center; align-items: center;">
-                            <!-- Boxes Espera (1 a 8) -->
-                            <div class="grid-box" data-box-number="11">Espera 1</div>
-                            <div class="grid-box" data-box-number="12">Espera 2</div>
-                            <div class="grid-box" data-box-number="17">Espera 3</div>
-                            <div class="grid-box" data-box-number="18">Espera 4</div>
-                            <div class="grid-box" data-box-number="23">Espera 5</div>
-                            <div class="grid-box" data-box-number="24">Espera 6</div>
-                            <div class="grid-box" data-box-number="29">Espera 7</div>
-                            <div class="grid-box" data-box-number="30">Espera 8</div>
+
+
+                <!-- Render de Fachada 100% Limpio (Sin badges ni capas encimadas) -->
+                <div class="welcome-render-card" style="width: 100%; border-radius: 14px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.4); box-shadow: 0 8px 25px rgba(0,0,0,0.8); margin-bottom: 12px;">
+                    <img src="render_fachada.jpg" alt="L1deres AutoWash & Detailing" style="width: 100%; height: 160px; object-fit: cover; display: block;" onerror="this.src='../render_fachada.jpg'; this.onerror=null;">
+                </div>
+
+                <!-- Botones Club 200 Socios Fundadores VIP (Black & Gold) -->
+                <div class="socios-welcome-grid" style="display: flex; gap: 8px; width: 100%; margin-bottom: 10px;">
+                    <button class="btn btn-socio-black" onclick="nextScreen('screen-socio-black')" style="flex: 1; padding: 10px 4px; font-size: 0.72rem; font-weight: 800; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 4px; text-transform: uppercase;">
+                        <i class='bx bx-crown' style="color: #fbbf24; font-size: 1rem;"></i> HACETE SOCIO BLACK
+                    </button>
+                    <button class="btn btn-socio-gold" onclick="nextScreen('screen-socio-gold')" style="flex: 1; padding: 10px 4px; font-size: 0.72rem; font-weight: 900; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 4px; text-transform: uppercase;">
+                        <i class='bx bxs-award' style="color: #78350f; font-size: 1rem;"></i> HACETE SOCIO GOLD
+                    </button>
+                </div>
+
+                <button class="btn btn-primary" onclick="handleReservaClick()" style="width: 100%; margin-top: 2px; margin-bottom: 8px; font-size: 1.1rem; font-weight: 900; letter-spacing: 1px;">
+                    <i class='bx bx-calendar-check'></i> RESERVAR TURNO <i class='bx bx-right-arrow-alt'></i>
+                </button>
+                <button id="btn-install" class="btn" style="width: 100%; background: #0ea5e9; color: white; display: none; margin-bottom: 10px;">
+                    <i class='bx bx-download'></i> INSTALAR APP
+                </button>
+            </div>
+
+            <!-- Info extra: web + WhatsApp llenando el espacio negro -->
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 20px 6px; width: 100%;">
+                <a href="https://l1deres.site" target="_blank" style="color: #38bdf8; font-size: 0.78rem; font-weight: 700; letter-spacing: 1px; text-decoration: none; display: flex; align-items: center; gap: 5px; opacity: 0.9;">
+                    <i class='bx bx-globe' style="font-size: 1rem;"></i> l1deres.site
+                </a>
+                <a href="https://wa.me/5491140990047?text=Hola%20L1deres%2C%20quiero%20info!" target="_blank"
+                   style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: #25d366; color: #000; font-weight: 900; font-size: 0.88rem; text-transform: uppercase; text-decoration: none; padding: 13px 16px; border-radius: 12px; letter-spacing: 0.5px; box-shadow: 0 4px 16px rgba(37,211,102,0.4);">
+                    <i class='bx bxl-whatsapp' style="font-size: 1.4rem;"></i> Contactanos por WhatsApp
+                </a>
+            </div>
+        </div>
+
+        <!-- Pantalla 2A: Beneficios Socio Black -->
+        <div id="screen-socio-black" class="screen">
+            <div class="card slide-in" style="background: rgba(9, 13, 22, 0.95); border: 1px solid rgba(251, 191, 36, 0.4);">
+                <button class="back-btn" onclick="prevScreen('screen-welcome')"><i class='bx bx-arrow-back'></i></button>
+                <div style="text-align: center; margin-top: 5px; margin-bottom: 12px;">
+                    <i class='bx bx-crown' style="font-size: 2.4rem; color: #fbbf24; filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.5));"></i>
+                    <h2 class="racing-font" style="color: #fbbf24; margin-top: 4px; font-size: 1.4rem;">SOCIO FUNDADOR BLACK</h2>
+                    <span style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; font-size: 0.72rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(251, 191, 36, 0.4);">CLUB 200 - MEMBRESÍA VIP #1</span>
+                </div>
+
+                <div class="benefits-list" style="text-align: left; background: rgba(15, 23, 42, 0.8); padding: 14px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 16px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+                        <i class='bx bx-check-shield' style="font-size: 1.4rem; color: #fbbf24; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #ffffff; font-size: 0.9rem;">Acceso Prioritario VIP #1 en Pit Lane</strong>
+                            <p style="color: #94a3b8; font-size: 0.78rem; margin: 2px 0 0;">Ingresás directo al túnel de lavado sin fila de espera.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+                        <i class='bx bx-purchase-tag-alt' style="font-size: 1.4rem; color: #fbbf24; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #ffffff; font-size: 0.9rem;">30% OFF Permanente</strong>
+                            <p style="color: #94a3b8; font-size: 0.78rem; margin: 2px 0 0;">Descuento automático en todos tus lavados y detailing.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+                        <i class='bx bx-sparkles' style="font-size: 1.4rem; color: #fbbf24; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #ffffff; font-size: 0.9rem;">Encerado Cerámico Sin Cargo</strong>
+                            <p style="color: #94a3b8; font-size: 0.78rem; margin: 2px 0 0;">Protección de carrocería en cada visita.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                        <i class='bx bx-star' style="font-size: 1.4rem; color: #fbbf24; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #ffffff; font-size: 0.9rem;">Credencial Digital Oficial (N° 1 a 200)</strong>
+                            <p style="color: #94a3b8; font-size: 0.78rem; margin: 2px 0 0;">Número único e inmodificable grabado en padrón.</p>
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="handleReservaClick()" style="width: 100%; margin-top: 14px; margin-bottom: 10px; font-size: 1.15rem; font-weight: 900; letter-spacing: 1px;">
-                    <i class='bx bx-calendar-check'></i> RESERVAR <i class='bx bx-right-arrow-alt'></i>
+
+                <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 10px; margin-bottom: 16px;">
+                    <span style="color: #94a3b8; font-size: 0.78rem;">Valor Membresía Anual:</span>
+                    <div style="color: #fbbf24; font-size: 1.4rem; font-weight: 900; font-family: 'Racing Sans One', sans-serif;">$ 65.000 / Año</div>
+                </div>
+
+                <button class="btn btn-socio-black" onclick="startSocioCheckout('black')" style="width: 100%; padding: 14px; font-size: 0.95rem; font-weight: 900; justify-content: center; text-transform: uppercase;">
+                    <i class='bx bx-crown'></i> SUSCRIBIRME Y OBTENER NÚMERO <i class='bx bx-right-arrow-alt'></i>
                 </button>
-                <button id="btn-install" class="btn" style="width: 100%; background: #0ea5e9; color: white; display: none; margin-bottom: 15px;">
-                    <i class='bx bx-download'></i> INSTALAR APP
+            </div>
+        </div>
+
+        <!-- Pantalla 2B: Beneficios Socio Gold -->
+        <div id="screen-socio-gold" class="screen">
+            <div class="card slide-in" style="background: rgba(9, 13, 22, 0.95); border: 1px solid rgba(245, 158, 11, 0.4);">
+                <button class="back-btn" onclick="prevScreen('screen-welcome')"><i class='bx bx-arrow-back'></i></button>
+                <div style="text-align: center; margin-top: 5px; margin-bottom: 12px;">
+                    <i class='bx bxs-award' style="font-size: 2.4rem; color: #f59e0b; filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.5));"></i>
+                    <h2 class="racing-font" style="color: #f59e0b; margin-top: 4px; font-size: 1.4rem;">SOCIO FUNDADOR GOLD</h2>
+                    <span style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; font-size: 0.72rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(245, 158, 11, 0.4);">CLUB 200 - MEMBRESÍA PREFERENCIAL</span>
+                </div>
+
+                <div class="benefits-list" style="text-align: left; background: rgba(15, 23, 42, 0.8); padding: 14px 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 16px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+                        <i class='bx bx-time' style="font-size: 1.4rem; color: #f59e0b; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #ffffff; font-size: 0.9rem;">Atención Preferencial en Boxes</strong>
+                            <p style="color: #94a3b8; font-size: 0.78rem; margin: 2px 0 0;">Ingreso acelerado en la línea de preparación y secado.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+                        <i class='bx bx-badge-check' style="font-size: 1.4rem; color: #f59e0b; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #ffffff; font-size: 0.9rem;">20% OFF Permanente</strong>
+                            <p style="color: #94a3b8; font-size: 0.78rem; margin: 2px 0 0;">Descuento en todas tus visitas al túnel de lavado.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
+                        <i class='bx bx-gift' style="font-size: 1.4rem; color: #f59e0b; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #ffffff; font-size: 0.9rem;">Obsequio Perfumería F1</strong>
+                            <p style="color: #94a3b8; font-size: 0.78rem; margin: 2px 0 0;">Fragancia especial de regalo en cada servicio.</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                        <i class='bx bx-id-card' style="font-size: 1.4rem; color: #f59e0b; margin-top: 2px;"></i>
+                        <div>
+                            <strong style="color: #ffffff; font-size: 0.9rem;">Número de Socio Fundador (N° 1 a 200)</strong>
+                            <p style="color: #94a3b8; font-size: 0.78rem; margin: 2px 0 0;">Asignación oficial en el padrón de socios.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 10px; margin-bottom: 16px;">
+                    <span style="color: #94a3b8; font-size: 0.78rem;">Valor Membresía Anual:</span>
+                    <div style="color: #f59e0b; font-size: 1.4rem; font-weight: 900; font-family: 'Racing Sans One', sans-serif;">$ 45.000 / Año</div>
+                </div>
+
+                <button class="btn btn-socio-gold" onclick="startSocioCheckout('gold')" style="width: 100%; padding: 14px; font-size: 0.95rem; font-weight: 900; justify-content: center; text-transform: uppercase;">
+                    <i class='bx bxs-award'></i> SUSCRIBIRME Y OBTENER NÚMERO <i class='bx bx-right-arrow-alt'></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla 3: Formulario de Inscripción y Pago de Socio -->
+        <div id="screen-socio-checkout" class="screen">
+            <div class="card slide-in">
+                <button class="back-btn" onclick="prevScreen('screen-welcome')"><i class='bx bx-arrow-back'></i></button>
+                <h2 class="racing-font" id="socio-checkout-title" style="font-size: 1.3rem;">REGISTRO DE SOCIO</h2>
+                <p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 14px;">
+                    Completá tus datos para asignarte tu número del 1 al 200:
+                </p>
+
+                <div style="text-align: left; margin-bottom: 10px;">
+                    <label style="color: #94a3b8; font-size: 0.75rem; font-weight: 700; display: block; margin-bottom: 4px;">NOMBRE Y APELLIDO *</label>
+                    <input type="text" id="input-socio-nombre" placeholder="Ej: Juan Perez" style="font-size: 0.95rem; text-align: left; padding: 10px 12px; margin-bottom: 0;">
+                </div>
+
+                <div style="text-align: left; margin-bottom: 10px;">
+                    <label style="color: #94a3b8; font-size: 0.75rem; font-weight: 700; display: block; margin-bottom: 4px;">PATENTE DEL VEHÍCULO *</label>
+                    <input type="text" id="input-socio-patente" placeholder="Ej: AB123CD" style="font-size: 0.95rem; text-align: left; padding: 10px 12px; text-transform: uppercase; margin-bottom: 0;">
+                </div>
+
+                <div style="text-align: left; margin-bottom: 12px;">
+                    <label style="color: #94a3b8; font-size: 0.75rem; font-weight: 700; display: block; margin-bottom: 4px;">WHATSAPP / TELÉFONO *</label>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <span class="prefix">+54</span>
+                        <input type="tel" id="input-socio-phone" placeholder="11 1234-5678" style="font-size: 0.95rem; padding: 10px 12px;">
+                    </div>
+                </div>
+
+                <p id="error-socio-form" class="error-msg" style="margin-bottom: 8px;">Por favor completá todos los campos obligatorios.</p>
+
+                <div class="order-summary" style="margin-bottom: 14px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 10px 12px; text-align: left;">
+                    <h3 style="font-size: 0.8rem; color: #38bdf8; text-transform: uppercase; margin-bottom: 4px;">Resumen del Registro</h3>
+                    <p style="margin: 2px 0; font-size: 0.82rem;">Membresía: <strong id="summary-socio-tipo" style="color: #fbbf24;">Socio Black VIP</strong></p>
+                    <p style="margin: 2px 0; font-size: 0.82rem;">Cupo Asignado: <strong style="color: #34d399;">Padrón Oficial (1 a 200)</strong></p>
+                    <p style="margin: 2px 0; font-size: 0.82rem;">Total a pagar: <strong id="summary-socio-monto" style="color: #009ee3;">$ 65.000</strong></p>
+                </div>
+
+                <button class="btn btn-mp" onclick="processSocioPayment()" style="width: 100%; padding: 13px; font-weight: 900; font-size: 0.95rem;">
+                    <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="Mercado Pago" style="height: 18px;">
+                    Pagar con Mercado Pago
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla 4: Bienvenida al Club 200 y Credencial VIP -->
+        <div id="screen-socio-welcome" class="screen">
+            <div class="card fade-in" style="background: rgba(9, 13, 22, 0.95); border: 1px solid rgba(56, 189, 248, 0.4); text-align: center;">
+                <div style="margin-top: 4px; margin-bottom: 8px;">
+                    <i class='bx bx-crown' id="socio-card-icon" style="font-size: 2.8rem; color: #fbbf24; filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.7));"></i>
+                    <h2 class="racing-font" style="color: #10b981; font-size: 1.25rem; margin-top: 4px;">¡BIENVENIDO A L1DERES!</h2>
+                    <p style="color: #f8fafc; font-size: 0.9rem; font-weight: 800; margin: 4px 0 10px;">
+                        Sos el Socio Fundador Número <span id="socio-assigned-number" style="color: #fbbf24; font-family: 'Racing Sans One', sans-serif; font-size: 1.4rem;">#042</span> (de 200)
+                    </p>
+                </div>
+
+                <!-- Credencial Digital de Socio -->
+                <div id="digital-socio-card" class="digital-socio-card" style="background: linear-gradient(135deg, #090d16 0%, #1e293b 100%); border: 2px solid #fbbf24; border-radius: 16px; padding: 14px 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.8), 0 0 20px rgba(251, 191, 36, 0.25); position: relative; overflow: hidden; margin-bottom: 14px; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 10px;">
+                        <div>
+                            <span style="color: #fbbf24; font-family: 'Racing Sans One', cursive; font-size: 1.05rem; letter-spacing: 1px; display: block;">L1DERES AUTOWASH</span>
+                            <span style="color: #94a3b8; font-size: 0.65rem; text-transform: uppercase; font-weight: 700;">Club 200 Socios Fundadores</span>
+                        </div>
+                        <span id="socio-card-badge-type" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; font-size: 0.68rem; font-weight: 900; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.4);">SOCIO BLACK</span>
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <span style="color: #64748b; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; display: block;">TITULAR DE LA MEMBRESÍA</span>
+                        <strong id="socio-card-name" style="color: #ffffff; font-size: 1rem; text-transform: uppercase;">JUAN PEREZ</strong>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <span style="color: #64748b; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; display: block;">VEHÍCULO / PATENTE</span>
+                            <span id="socio-card-plate" style="color: #38bdf8; font-weight: 800; font-size: 1rem;">AB123CD</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="color: #64748b; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; display: block;">N° DE SOCIO</span>
+                            <span id="socio-card-num-big" style="color: #fbbf24; font-family: 'Racing Sans One', sans-serif; font-size: 1.25rem;">#042</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 10px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; font-size: 0.65rem; color: #94a3b8;">
+                        <span>Acceso Pit Lane VIP #1</span>
+                        <span>Aura Startup © 2026</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="nextScreen('screen-welcome')" style="width: 100%; margin-bottom: 8px; font-weight: 900; font-size: 1rem;">
+                    INGRESAR A LA APP DE TURNOS <i class='bx bx-right-arrow-alt'></i>
                 </button>
             </div>
         </div>
@@ -191,18 +414,125 @@
             </div>
         </div>
 
-    </div>
+        <!-- Modal Simulación Mercado Pago Checkout -->
+        <div id="mp-checkout-modal" class="mp-modal-overlay" style="display: none;">
+            <div class="mp-modal-container">
+                <!-- Header Mercado Pago -->
+                <div class="mp-header">
+                    <div class="mp-logo-box">
+                        <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="Mercado Pago" style="height: 22px;">
+                        <span class="mp-badge-sec"><i class='bx bx-shield-quarter'></i> Pago Seguro</span>
+                    </div>
+                    <button class="mp-close-btn" onclick="closeMPModal()" title="Cerrar"><i class='bx bx-x'></i></button>
+                </div>
 
-    <!-- Footer Fijo -->
-    <footer class="app-footer" style="padding: 12px; text-align: center;">
-        <p style="font-size: 0.8rem; margin-bottom: 4px;">
-            <i class='bx bx-map-pin' style="color: #fde047;"></i> Panamericana Ramal Pilar km 45,5 - Acceso Los Lagartos C.C, La Lonja, Pilar · 
-            <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank" style="color: #38bdf8; text-decoration: underline; font-weight: 700;">
-                <i class='bx bx-navigation'></i> ¿Cómo llegar?
-            </a>
-        </p>
-        <p>&copy; 2026 Aura. Todos los derechos reservados. | v1.6</p>
-    </footer>
+                <!-- Detalle del Pago -->
+                <div class="mp-body">
+                    <div class="mp-merchant-info">
+                        <div class="mp-store-icon"><i class='bx bx-car'></i></div>
+                        <div>
+                            <div class="mp-store-title">L1deres AutoWash</div>
+                            <div class="mp-store-sub" id="mp-item-desc">Lavado Express Auto</div>
+                        </div>
+                    </div>
+
+                    <div class="mp-amount-box">
+                        <span class="mp-amount-label">Total a abonar:</span>
+                        <span class="mp-amount-val" id="mp-item-price">$ 4.500</span>
+                    </div>
+
+                    <!-- Paso 1: Métodos de Pago Simulados -->
+                    <div id="mp-step-methods" class="mp-step">
+                        <div class="mp-section-title">Elegí el medio de pago</div>
+                        <div class="mp-payment-methods">
+                            <label class="mp-method-option active" onclick="selectMPMethod(this)">
+                                <i class='bx bx-wallet' style="color: #009ee3; font-size: 1.4rem;"></i>
+                                <div class="mp-method-info">
+                                    <span class="mp-method-title">Dinero en cuenta Mercado Pago</span>
+                                    <span class="mp-method-sub">Saldo disponible: $ 28.500</span>
+                                </div>
+                            </label>
+
+                            <label class="mp-method-option" onclick="selectMPMethod(this)">
+                                <i class='bx bx-credit-card' style="color: #10b981; font-size: 1.4rem;"></i>
+                                <div class="mp-method-info">
+                                    <span class="mp-method-title">Tarjeta de Débito / Crédito</span>
+                                    <span class="mp-method-sub">**** 4821 - Visa Débito</span>
+                                </div>
+                            </label>
+
+                            <label class="mp-method-option" onclick="selectMPMethod(this)">
+                                <i class='bx bx-qr-scan' style="color: #f59e0b; font-size: 1.4rem;"></i>
+                                <div class="mp-method-info">
+                                    <span class="mp-method-title">Mercado Pago QR / Interoperable</span>
+                                    <span class="mp-method-sub">Transferencia o Débito inmediato</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <button class="mp-btn-confirm" onclick="confirmMPPayment()">
+                            PAGAR $ <span id="mp-btn-price">4.500</span>
+                        </button>
+                    </div>
+
+                    <!-- Paso 2: Procesando -->
+                    <div id="mp-step-processing" class="mp-step" style="display: none; text-align: center; padding: 25px 10px;">
+                        <div class="mp-spinner"></div>
+                        <h4 style="color: #009ee3; margin: 15px 0 5px; font-weight: 800; font-size: 1.05rem;">Procesando pago en Mercado Pago...</h4>
+                        <p style="color: #64748b; font-size: 0.82rem;">Verificando transacción de forma segura</p>
+                    </div>
+
+                    <!-- Paso 3: Éxito -->
+                    <div id="mp-step-success" class="mp-step" style="display: none; text-align: center; padding: 15px 10px;">
+                        <div class="mp-success-icon"><i class='bx bx-check'></i></div>
+                        <h3 style="color: #10b981; font-weight: 900; margin: 10px 0 4px; font-size: 1.2rem;">¡Listo! Pago Acreditado</h3>
+                        <p style="color: #64748b; font-size: 0.82rem; margin-bottom: 16px;">Comprobante <strong style="color: #1e293b;">#MP-<span id="mp-tx-id">984271</span></strong></p>
+
+                        <button class="mp-btn-confirm" style="background: #10b981;" onclick="finishMPFlow()">
+                            VOLVER A L1DERES AUTOWASH
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Informativo / Suscripción Socios Fundadores VIP -->
+        <div id="socio-modal" class="mp-modal-overlay" style="display: none;">
+            <div class="mp-modal-container" style="max-width: 400px; background: #0f172a; color: white; border: 1px solid rgba(251, 191, 36, 0.4);">
+                <div class="mp-header" style="background: linear-gradient(135deg, #090d16, #1e293b); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div class="mp-logo-box">
+                        <span id="socio-modal-title" style="font-weight: 900; font-family: 'Racing Sans One', sans-serif; font-size: 1.1rem; letter-spacing: 1px;">SOCIO FUNDADOR</span>
+                    </div>
+                    <button class="mp-close-btn" onclick="closeSocioModal()"><i class='bx bx-x'></i></button>
+                </div>
+                <div class="mp-body" style="padding: 20px 16px;">
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <span id="socio-modal-badge" style="font-size: 0.72rem; font-weight: 800; padding: 4px 12px; border-radius: 20px;">MEMBRESÍA VIP</span>
+                    </div>
+                    
+                    <div id="socio-modal-desc" style="margin-bottom: 20px;">
+                        <!-- Beneficios dinámicos -->
+                    </div>
+
+                    <a id="socio-modal-wa" href="https://wa.me/5491123456789" target="_blank" class="btn" style="background: #25D366; color: white; width: 100%; font-weight: 900; font-size: 0.95rem; text-decoration: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <i class='bx bxl-whatsapp' style="font-size: 1.4rem;"></i> SOLICITAR MEMBRESÍA POR WHATSAPP
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Fijo de la App -->
+        <footer class="app-footer">
+            <p>
+                <i class='bx bx-map-pin' style="color: #fde047;"></i> Ramal Pilar km 45,5 · Los Lagartos C.C. · 
+                <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank">
+                    <i class='bx bx-navigation'></i> ¿Cómo llegar?
+                </a>
+            </p>
+            <p>&copy; 2026 Aura. Todos los derechos reservados. | v1.8</p>
+        </footer>
+
+    </div>
 
     <!-- App Script -->
     <script src="app.js?v=1.6"></script>
