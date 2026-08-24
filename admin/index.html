@@ -223,6 +223,54 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ============================================================ -->
+            <!-- LISTADO Y GESTIÓN EN TIEMPO REAL DE BOXES (Panel de Control) -->
+            <!-- ============================================================ -->
+            <div id="boxes-management-panel" class="boxes-management-panel">
+                <div class="boxes-panel-header">
+                    <div class="boxes-panel-title">
+                        <i class='bx bx-station' style="color: #38bdf8; font-size: 1.5rem;"></i>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.15rem; color: #f8fafc; font-weight: 800;">Panel de Control y Gestión de Boxes</h3>
+                            <p style="margin: 2px 0 0 0; color: #94a3b8; font-size: 0.8rem;">Modificación de patentes, cambio de tipo de lavado y anulación en tiempo real</p>
+                        </div>
+                        <span class="badge-live-pulse"><i class='bx bxs-circle'></i> Pista Sincronizada</span>
+                    </div>
+                    <div class="boxes-panel-actions">
+                        <button class="btn-box-filter active" onclick="filterBoxesList('all', this)">Todos (<span id="count-box-all">0</span>)</button>
+                        <button class="btn-box-filter" onclick="filterBoxesList('ocupados', this)">Ocupados (<span id="count-box-ocupados">0</span>)</button>
+                        <button class="btn-box-filter" onclick="filterBoxesList('lavado', this)">Lavado</button>
+                        <button class="btn-box-filter" onclick="filterBoxesList('interior', this)">Interior</button>
+                        <button class="btn-box-filter" onclick="filterBoxesList('terminado', this)">Terminado</button>
+                        <button class="btn-box-filter" onclick="filterBoxesList('espera', this)">Espera</button>
+                    </div>
+                </div>
+
+                <!-- Grilla de Cards de Boxes -->
+                <div class="boxes-grid-list" id="boxes-grid-list">
+                    <!-- Generado dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Banner Flotante de Detección de Cámara en Dashboard -->
+            <div id="dashboard-lpr-alert" class="dashboard-lpr-alert" style="display: none;">
+                <div class="lpr-alert-icon"><i class='bx bx-scan'></i></div>
+                <div class="lpr-alert-content">
+                    <span class="lpr-alert-tag">¡CÁMARA DE INGRESO DETECTÓ VEHÍCULO!</span>
+                    <strong class="lpr-alert-plate" id="alert-plate-text">AB123CD</strong>
+                    <div class="lpr-alert-info" id="alert-plate-info">Verificando padrón...</div>
+                </div>
+                <div class="lpr-alert-actions">
+                    <button class="btn-lpr-quick-assign" id="btn-alert-quick-assign" onclick="handleQuickAlertAssign()">
+                        <i class='bx bx-play-circle'></i> Asignar a Pista
+                    </button>
+                    <button class="btn-lpr-dismiss" onclick="document.getElementById('dashboard-lpr-alert').style.display='none'">
+                        <i class='bx bx-x'></i>
+                    </button>
+                </div>
+            </div>
+
         </main>
         
         <!-- Vista de Métricas -->
@@ -343,6 +391,57 @@
                     <p style="color: #94a3b8; font-size: 0.9rem; max-width: 420px; margin: 0 0 20px 0;">Hacé clic en 'Encender Cámara PC' para iniciar la transmisión periódica a la portada de la web.</p>
                 </div>
             </div>
+
+            <!-- Panel LPR Inteligente: Detección, Socios Fundadores y Reservas -->
+            <div class="lpr-detection-hub" style="margin-top: 20px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px;">
+                    <div>
+                        <h3 style="margin: 0; color: #38bdf8; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
+                            <i class='bx bx-scan' style="font-size: 1.5rem;"></i> Sistema LPR de Reconocimiento y Asignación Automática
+                        </h3>
+                        <p style="margin: 3px 0 0; color: #94a3b8; font-size: 0.85rem;">
+                            Detecta automáticamente socios del Club 200 (Black/Gold) o reservas del día al ingresar al predio.
+                        </p>
+                    </div>
+                    
+                    <!-- Toggle de Auto-Ingreso a Pista -->
+                    <label class="lpr-toggle-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(3, 7, 18, 0.7); padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.4);">
+                        <input type="checkbox" id="lpr-auto-assign-toggle" checked style="width: 18px; height: 18px; accent-color: #10b981; cursor: pointer;">
+                        <span style="color: #4ade80; font-size: 0.85rem; font-weight: 700;">
+                            <i class='bx bx-bolt-circle'></i> Auto-Crear en Pista si es Socio o Reserva
+                        </span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <!-- Input de Escaneo / Tipeo de Patente -->
+                    <div style="flex: 1; min-width: 280px;">
+                        <label style="display: block; color: #94a3b8; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px;">PATENTE DETECTADA / ESCANEADA EN CÁMARA</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="lpr-scan-input" placeholder="Ej: AB123CD o AE456GH" maxlength="10" style="flex: 1; text-transform: uppercase; font-family: 'Racing Sans One', sans-serif; font-size: 1.3rem; letter-spacing: 2px; padding: 10px 14px; background: #030712; border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 10px; color: #38bdf8; text-align: center;">
+                            <button class="btn btn-primary" onclick="triggerLprScanManual()" style="padding: 10px 18px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                                <i class='bx bx-search-alt'></i> Consultar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Detección de Prueba Rápida -->
+                    <div style="min-width: 260px; display: flex; flex-direction: column; justify-content: flex-end;">
+                        <span style="color: #64748b; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px;">SIMULACIÓN DE DETECCIÓN:</span>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button class="btn-lpr-demo" onclick="simulateLprDetection('AE123CD')">🚗 Test AE123CD</button>
+                            <button class="btn-lpr-demo gold" onclick="simulateLprDetection('GOLD999')">🏆 Test Socio Gold</button>
+                            <button class="btn-lpr-demo black" onclick="simulateLprDetection('BLACK001')">👑 Test Socio Black</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resultado de Detección LPR -->
+                <div id="lpr-detection-result" style="display: none; margin-top: 18px; padding: 16px; border-radius: 12px; background: rgba(3, 7, 18, 0.85); border: 1px solid rgba(255,255,255,0.1);">
+                    <!-- Contenido dinámico del diagnóstico -->
+                </div>
+            </div>
+
         </main>
 
         <!-- Vista de Reseñas de Clientes -->

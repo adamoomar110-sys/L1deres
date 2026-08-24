@@ -1054,6 +1054,588 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.syncLiveState = syncLiveState;
 
+    // ============================================================
+    // GESTIÓN INTEGRAL DE BOXES EN VIVO (Panel de Control y Edición)
+    // ============================================================
+    let currentBoxFilter = 'all';
+
+    window.filterBoxesList = function(filterType, btn) {
+        currentBoxFilter = filterType;
+        document.querySelectorAll('.btn-box-filter').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        renderBoxesManagementList();
+    };
+
+    function getServiceReadableName(tipo) {
+        if (tipo === 'express_auto') return 'Express Auto';
+        if (tipo === 'express_camioneta') return 'Express Camioneta';
+        if (tipo === 'completo_auto') return 'Completo Auto';
+        if (tipo === 'completo_camioneta') return 'Completo Camioneta';
+        if (tipo === 'solo_lavado') return 'Solo Lavado';
+        if (tipo === 'solo_secado') return 'Solo Interior';
+        if (tipo === 'lavado_secado') return 'Lavado + Interior';
+        return 'Express Auto';
+    }
+
+    function formatTimeMmSs(segundos) {
+        if (segundos <= 0) return "00:00";
+        const mins = Math.floor(segundos / 60);
+        const secs = segundos % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function renderBoxesManagementList() {
+        const container = document.getElementById('boxes-grid-list');
+        if (!container) return;
+
+        const now = Date.now();
+        const boxes = [];
+
+        // 1. Box Lavado 1
+        boxes.push({
+            id: 'lavado_0',
+            zone: 'lavado',
+            index: 0,
+            name: 'Túnel de Lavado 1',
+            icon: 'bx-water',
+            occupiedClass: 'occupied-lavado',
+            auto: estadoLavado,
+            remainingSecs: estadoLavado && estadoLavado.endTime ? Math.max(0, Math.ceil((estadoLavado.endTime - now) / 1000)) : 0
+        });
+
+        // 2. Box Interior 1 (Secado)
+        boxes.push({
+            id: 'interior_0',
+            zone: 'interior',
+            index: 0,
+            name: 'Box Interior / Secado 1',
+            icon: 'bx-wind',
+            occupiedClass: 'occupied-interior',
+            auto: estadoSecado[0],
+            remainingSecs: estadoSecado[0] && estadoSecado[0].endTime ? Math.max(0, Math.ceil((estadoSecado[0].endTime - now) / 1000)) : 0
+        });
+
+        // 3. Boxes Terminado 1 al 4
+        for (let i = 0; i < 4; i++) {
+            boxes.push({
+                id: `terminado_${i}`,
+                zone: 'terminado',
+                index: i,
+                name: `Box Terminado ${i + 1}`,
+                icon: 'bx-check-double',
+                occupiedClass: 'occupied-terminado',
+                auto: estadoTerminado[i],
+                remainingSecs: 0
+            });
+        }
+
+        // 4. Boxes Espera 1 al 8
+        for (let i = 0; i < 8; i++) {
+            const auto = estadoEspera[i];
+            let rem = 0;
+            if (auto && auto.etaSalidaEspera) {
+                rem = Math.max(0, Math.ceil((auto.etaSalidaEspera - now) / 1000));
+            }
+            boxes.push({
+                id: `espera_${i}`,
+                zone: 'espera',
+                index: i,
+                name: `Box Espera ${i + 1}`,
+                icon: 'bx-time',
+                occupiedClass: 'occupied-espera',
+                auto: auto,
+                remainingSecs: rem
+            });
+        }
+
+        // Contadores
+        const totalCount = boxes.length;
+        const occupiedCount = boxes.filter(b => b.auto !== null).length;
+        const countAllEl = document.getElementById('count-box-all');
+        const countOcupadosEl = document.getElementById('count-box-ocupados');
+        if (countAllEl) countAllEl.textContent = totalCount;
+        if (countOcupadosEl) countOcupadosEl.textContent = occupiedCount;
+
+        // Filtrado
+        const filteredBoxes = boxes.filter(b => {
+            if (currentBoxFilter === 'all') return true;
+            if (currentBoxFilter === 'ocupados') return b.auto !== null;
+            if (currentBoxFilter === 'lavado') return b.zone === 'lavado';
+            if (currentBoxFilter === 'interior') return b.zone === 'interior';
+            if (currentBoxFilter === 'terminado') return b.zone === 'terminado';
+            if (currentBoxFilter === 'espera') return b.zone === 'espera';
+            return true;
+        });
+
+        // Render HTML
+        let html = '';
+        filteredBoxes.forEach(b => {
+            if (b.auto) {
+                const auto = b.auto;
+                const plateVal = auto.patente || `AUTO-${auto.id}`;
+                const srv = auto.tipo || 'express_auto';
+                const timeDisplay = (b.zone === 'terminado') ? '¡Listo para Salir!' : formatTimeMmSs(b.remainingSecs);
+
+                html += `
+                <div class="box-card ${b.occupiedClass}" id="box-card-${b.id}">
+                    <div class="box-card-top">
+                        <span class="box-card-name">
+                            <i class='bx ${b.icon}'></i> ${b.name}
+                        </span>
+                        <span class="box-badge-status busy">● Ocupado</span>
+                    </div>
+
+                    <!-- Edición de Patente -->
+                    <div class="box-plate-edit-wrap">
+                        <input type="text" id="plate-input-${b.zone}-${b.index}" class="box-plate-input" value="${plateVal}" maxlength="10" placeholder="PATENTE">
+                        <button class="btn-box-action btn-box-save" onclick="saveBoxPlate('${b.zone}', ${b.index})" title="Guardar Patente">
+                            <i class='bx bx-save'></i>
+                        </button>
+                    </div>
+
+                    <!-- Selector de Servicio / Tipo de Lavado -->
+                    <div>
+                        <select class="box-service-select" onchange="changeBoxService('${b.zone}', ${b.index}, this.value)">
+                            <option value="express_auto" ${srv === 'express_auto' ? 'selected' : ''}>Express Auto ($10.000)</option>
+                            <option value="express_camioneta" ${srv === 'express_camioneta' ? 'selected' : ''}>Express Camioneta ($12.000)</option>
+                            <option value="completo_auto" ${srv === 'completo_auto' ? 'selected' : ''}>Completo Auto ($15.000)</option>
+                            <option value="completo_camioneta" ${srv === 'completo_camioneta' ? 'selected' : ''}>Completo Camioneta ($18.000)</option>
+                            <option value="solo_lavado" ${srv === 'solo_lavado' ? 'selected' : ''}>Solo Lavado (Heredado)</option>
+                            <option value="solo_secado" ${srv === 'solo_secado' ? 'selected' : ''}>Solo Interior (Heredado)</option>
+                        </select>
+                    </div>
+
+                    <!-- Timer Row -->
+                    <div class="box-card-timer-row">
+                        <span>Tiempo:</span>
+                        <span class="box-timer-val">${timeDisplay}</span>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="box-card-actions">
+                        <button class="btn-box-action btn-box-advance" onclick="advanceBoxCar('${b.zone}', ${b.index})" title="Avanzar auto al próximo box">
+                            <i class='bx bx-fast-forward'></i> Avanzar
+                        </button>
+                        <button class="btn-box-action btn-box-cancel" onclick="cancelBoxWash('${b.zone}', ${b.index})" title="Anular este lavado">
+                            <i class='bx bx-x-circle'></i> Anular
+                        </button>
+                    </div>
+                </div>
+                `;
+            } else {
+                html += `
+                <div class="box-card box-free" id="box-card-${b.id}">
+                    <div class="box-card-top">
+                        <span class="box-card-name" style="color: #94a3b8;">
+                            <i class='bx ${b.icon}'></i> ${b.name}
+                        </span>
+                        <span class="box-badge-status free">Libre</span>
+                    </div>
+                    <div style="padding: 10px 0; text-align: center;">
+                        <button class="btn-box-assign-free" onclick="assignFreeBoxPrompt('${b.zone}', ${b.index})">
+                            <i class='bx bx-plus-circle'></i> Asignar Auto Directo
+                        </button>
+                    </div>
+                </div>
+                `;
+            }
+        });
+
+        container.innerHTML = html;
+    }
+
+    // Intervalo de refresco visual del panel de boxes
+    setInterval(() => {
+        const panel = document.getElementById('boxes-management-panel');
+        if (panel && panel.offsetParent !== null) {
+            renderBoxesManagementList();
+        }
+    }, 1000);
+
+    // Modificar Patente en Box
+    window.saveBoxPlate = function(zone, index) {
+        const input = document.getElementById(`plate-input-${zone}-${index}`);
+        if (!input) return;
+        const newPlate = input.value.trim().toUpperCase();
+        if (!newPlate) {
+            showToast('La patente no puede estar vacía', 'error');
+            return;
+        }
+
+        let auto = null;
+        if (zone === 'lavado') auto = estadoLavado;
+        else if (zone === 'interior') auto = estadoSecado[index];
+        else if (zone === 'terminado') auto = estadoTerminado[index];
+        else if (zone === 'espera') auto = estadoEspera[index];
+
+        if (auto) {
+            auto.patente = newPlate;
+            updateVisuals();
+            renderBoxesManagementList();
+            showToast(`Patente actualizada a ${newPlate}`, 'success');
+        }
+    };
+
+    // Cambiar Tipo de Lavado en Box
+    window.changeBoxService = function(zone, index, newType) {
+        let auto = null;
+        if (zone === 'lavado') auto = estadoLavado;
+        else if (zone === 'interior') auto = estadoSecado[index];
+        else if (zone === 'terminado') auto = estadoTerminado[index];
+        else if (zone === 'espera') auto = estadoEspera[index];
+
+        if (auto) {
+            auto.tipo = newType;
+            if (zone === 'lavado') {
+                auto.endTime = Date.now() + (window.APP_CONFIG.tiempoLavado || 120000);
+            } else if (zone === 'interior') {
+                auto.endTime = Date.now() + (window.APP_CONFIG.tiempoSecado || 180000);
+            }
+            updateVisuals();
+            renderBoxesManagementList();
+            showToast(`Servicio cambiado a ${getServiceReadableName(newType)}`, 'info');
+        }
+    };
+
+    // Anular Lavado en Box
+    window.cancelBoxWash = function(zone, index) {
+        let auto = null;
+        if (zone === 'lavado') auto = estadoLavado;
+        else if (zone === 'interior') auto = estadoSecado[index];
+        else if (zone === 'terminado') auto = estadoTerminado[index];
+        else if (zone === 'espera') auto = estadoEspera[index];
+
+        if (!auto) return;
+        const plate = auto.patente || `#${auto.id}`;
+
+        if (confirm(`¿Confirmás anular el lavado del vehículo ${plate} y liberar el box?`)) {
+            if (zone === 'lavado') estadoLavado = null;
+            else if (zone === 'interior') estadoSecado[index] = null;
+            else if (zone === 'terminado') {
+                estadoTerminado[index] = null;
+                advanceQueueTerminado();
+            } else if (zone === 'espera') {
+                estadoEspera[index] = null;
+                advanceQueue();
+            }
+
+            updateVisuals();
+            checkMovement();
+            renderBoxesManagementList();
+            showToast(`Lavado de ${plate} anulado. Box liberado.`, 'error');
+        }
+    };
+
+    // Forzar Avance de Box
+    window.advanceBoxCar = function(zone, index) {
+        let auto = null;
+        if (zone === 'lavado') {
+            auto = estadoLavado;
+            if (auto) {
+                if (auto.tipo === 'completo_auto' || auto.tipo === 'completo_camioneta' || auto.tipo === 'lavado_secado') {
+                    if (estadoSecado[0] === null) {
+                        auto.endTime = Date.now() + window.APP_CONFIG.tiempoSecado;
+                        estadoSecado[0] = auto;
+                        estadoLavado = null;
+                        showToast(`Auto ${auto.patente} pasó a Interior`, 'success');
+                    } else {
+                        showToast('El Box de Interior está ocupado', 'error');
+                        return;
+                    }
+                } else {
+                    let termIdx = estadoTerminado.indexOf(null);
+                    if (termIdx !== -1) {
+                        estadoTerminado[termIdx] = auto;
+                        estadoLavado = null;
+                        advanceQueueTerminado();
+                        showToast(`Auto ${auto.patente} pasó a Terminado`, 'success');
+                    } else {
+                        showToast('La zona de Terminado está llena', 'error');
+                        return;
+                    }
+                }
+            }
+        } else if (zone === 'interior') {
+            auto = estadoSecado[index];
+            if (auto) {
+                let termIdx = estadoTerminado.indexOf(null);
+                if (termIdx !== -1) {
+                    estadoTerminado[termIdx] = auto;
+                    estadoSecado[index] = null;
+                    advanceQueueTerminado();
+                    showToast(`Auto ${auto.patente} pasó a Terminado`, 'success');
+                } else {
+                    showToast('La zona de Terminado está llena', 'error');
+                    return;
+                }
+            }
+        } else if (zone === 'terminado') {
+            auto = estadoTerminado[index];
+            if (auto) {
+                if (window.recordMetric) window.recordMetric(auto);
+                estadoTerminado[index] = null;
+                advanceQueueTerminado();
+                showToast(`Auto ${auto.patente} retirado y registrado`, 'success');
+            }
+        } else if (zone === 'espera') {
+            auto = estadoEspera[index];
+            if (auto) {
+                if (estadoLavado === null && auto.tipo !== 'solo_secado') {
+                    auto.endTime = Date.now() + window.APP_CONFIG.tiempoLavado;
+                    estadoLavado = auto;
+                    estadoEspera[index] = null;
+                    advanceQueue();
+                    showToast(`Auto ${auto.patente} ingresó al Túnel de Lavado`, 'success');
+                } else if (estadoSecado[0] === null && auto.tipo === 'solo_secado') {
+                    auto.endTime = Date.now() + window.APP_CONFIG.tiempoSecado;
+                    estadoSecado[0] = auto;
+                    estadoEspera[index] = null;
+                    advanceQueue();
+                    showToast(`Auto ${auto.patente} ingresó a Interior`, 'success');
+                } else {
+                    showToast('Los boxes de lavado/interior están ocupados', 'info');
+                    return;
+                }
+            }
+        }
+
+        updateVisuals();
+        checkMovement();
+        renderBoxesManagementList();
+    };
+
+    // Asignar Auto Directo a Box Libre
+    window.assignFreeBoxPrompt = function(zone, index) {
+        const plate = prompt(`Ingresá la patente para asignar a ${zone.toUpperCase()} ${index + 1}:`);
+        if (!plate) return;
+        const cleanPlate = plate.toUpperCase().trim().replace(/[^A-Z0-9]/g, '');
+        if (!cleanPlate) return;
+
+        const newCar = {
+            id: autoIdCounter++,
+            patente: cleanPlate,
+            tipo: 'express_auto',
+            startTime: Date.now()
+        };
+
+        if (zone === 'lavado') {
+            newCar.endTime = Date.now() + (window.APP_CONFIG.tiempoLavado || 120000);
+            estadoLavado = newCar;
+        } else if (zone === 'interior') {
+            newCar.endTime = Date.now() + (window.APP_CONFIG.tiempoSecado || 180000);
+            estadoSecado[index] = newCar;
+        } else if (zone === 'terminado') {
+            estadoTerminado[index] = newCar;
+            advanceQueueTerminado();
+        } else if (zone === 'espera') {
+            estadoEspera[index] = newCar;
+            advanceQueue();
+        }
+
+        updateVisuals();
+        checkMovement();
+        renderBoxesManagementList();
+        showToast(`Auto ${cleanPlate} asignado a ${zone.toUpperCase()} ${index + 1}`, 'success');
+    };
+
+    // ============================================================
+    // SISTEMA LPR INTELIGENTE (CÁMARA + SOCIOS FUNDADORES + RESERVAS)
+    // ============================================================
+    let lastDetectedLpr = null;
+
+    window.triggerLprScanManual = function() {
+        const input = document.getElementById('lpr-scan-input');
+        if (!input) return;
+        const plate = input.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (!plate) {
+            showToast('Ingresá una patente válida para consultar', 'error');
+            return;
+        }
+        processLprDetection(plate);
+    };
+
+    window.simulateLprDetection = function(plate) {
+        const input = document.getElementById('lpr-scan-input');
+        if (input) input.value = plate;
+        processLprDetection(plate);
+    };
+
+    async function processLprDetection(plate) {
+        const cleanPlate = plate.toUpperCase().trim().replace(/[^A-Z0-9]/g, '');
+        lastDetectedLpr = cleanPlate;
+
+        const resultCard = document.getElementById('lpr-detection-result');
+        if (!resultCard) return;
+
+        resultCard.style.display = 'block';
+        resultCard.innerHTML = `<div style="text-align: center; color: #38bdf8; padding: 15px;"><i class='bx bx-loader-alt bx-spin' style="font-size: 1.8rem;"></i><br>Buscando patente ${cleanPlate} en Padrón de Socios y Reservas...</div>`;
+
+        // 1. Buscar en Socios Fundadores
+        let socioFound = null;
+        try {
+            let sociosList = [];
+            const raw = localStorage.getItem('aura_socios_fundadores_v2');
+            if (raw) sociosList = JSON.parse(raw);
+            
+            socioFound = sociosList.find(s => {
+                const p = (s.patente || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+                return p === cleanPlate || cleanPlate.includes(p) || (p && p.length >= 5 && cleanPlate.includes(p));
+            });
+
+            if (!socioFound) {
+                // Probar por API DonWeb
+                const res = await fetch(`${API_URL}socios_fundadores.php`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.socios) {
+                        socioFound = data.socios.find(s => {
+                            const p = (s.patente || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+                            return p === cleanPlate || cleanPlate.includes(p);
+                        });
+                    }
+                }
+            }
+        } catch(e) {}
+
+        // 2. Buscar en Reservas del día
+        let reservaFound = null;
+        try {
+            const res = await fetch(`${API_URL}reservas.php`);
+            if (res.ok) {
+                const list = await res.json();
+                if (Array.isArray(list)) {
+                    reservaFound = list.find(r => {
+                        const p = (r.patente || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+                        return p === cleanPlate && r.estado !== 'completado';
+                    });
+                }
+            }
+        } catch(e) {}
+
+        // Renderizar tarjeta de diagnóstico
+        let badgeHtml = '';
+        let benefitsHtml = '';
+        let defaultService = 'express_auto';
+
+        if (socioFound) {
+            const isBlack = (socioFound.tipo || '').toUpperCase() === 'BLACK';
+            const badgeColor = isBlack ? '#fbbf24' : '#f59e0b';
+            const badgeBg = isBlack ? 'rgba(251, 191, 36, 0.2)' : 'rgba(245, 158, 11, 0.2)';
+            const iconName = isBlack ? 'bx-crown' : 'bxs-award';
+            const discText = isBlack ? '30% OFF Permanente + Acceso VIP Pit Lane #1' : '20% OFF Permanente + Box Preferencial';
+            defaultService = isBlack ? 'completo_auto' : 'express_auto';
+
+            badgeHtml = `
+                <div style="background: ${badgeBg}; border: 2px solid ${badgeColor}; border-radius: 12px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 8px; color: ${badgeColor}; font-weight: 900; font-size: 0.95rem;">
+                    <i class='bx ${iconName}' style="font-size: 1.4rem;"></i> SOCIO FUNDADOR ${socioFound.tipo.toUpperCase()} ${socioFound.numero || '#VIP'}
+                </div>
+            `;
+
+            benefitsHtml = `
+                <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid ${badgeColor};">
+                    <strong style="color: #fff; font-size: 0.9rem;">Titular: ${socioFound.titular || socioFound.nombre || 'Socio VIP'}</strong>
+                    <p style="margin: 3px 0 0; color: #cbd5e1; font-size: 0.82rem;">Beneficio: <span style="color:${badgeColor}; font-weight:700;">${discText}</span></p>
+                </div>
+            `;
+        } else if (reservaFound) {
+            badgeHtml = `
+                <div style="background: rgba(14, 165, 233, 0.2); border: 2px solid #0ea5e9; border-radius: 12px; padding: 10px 14px; display: inline-flex; align-items: center; gap: 8px; color: #38bdf8; font-weight: 900; font-size: 0.95rem;">
+                    <i class='bx bx-calendar-check' style="font-size: 1.4rem;"></i> RESERVA ONLINE CONFIRMADA
+                </div>
+            `;
+
+            benefitsHtml = `
+                <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid #0ea5e9;">
+                    <strong style="color: #fff; font-size: 0.9rem;">Servicio Contratado: ${reservaFound.tipo_servicio || 'Lavado'}</strong>
+                    <p style="margin: 3px 0 0; color: #cbd5e1; font-size: 0.82rem;">Teléfono: ${reservaFound.telefono || 'WhatsApp'}</p>
+                </div>
+            `;
+        } else {
+            badgeHtml = `
+                <div style="background: rgba(100, 116, 139, 0.2); border: 1px solid rgba(100, 116, 139, 0.4); border-radius: 12px; padding: 8px 14px; display: inline-flex; align-items: center; gap: 8px; color: #94a3b8; font-weight: 800; font-size: 0.85rem;">
+                    <i class='bx bx-car' style="font-size: 1.2rem;"></i> Cliente Regular (Sin Membresía / Reserva previa)
+                </div>
+            `;
+        }
+
+        resultCard.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 700;">VEHÍCULO IDENTIFICADO</div>
+                    <div style="font-family: 'Racing Sans One', sans-serif; font-size: 1.8rem; color: #38bdf8; letter-spacing: 2px; margin: 2px 0 6px;">${cleanPlate}</div>
+                    ${badgeHtml}
+                </div>
+                <div>
+                    <span style="font-size: 0.78rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 6px;">ASIGNAR SERVICIO A PISTA:</span>
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="assignLprCarToTrack('${cleanPlate}', 'express_auto')" style="padding: 8px 12px; font-size: 0.8rem; background: #0ea5e9;">
+                            <i class='bx bx-car'></i> Express Auto
+                        </button>
+                        <button class="btn btn-primary" onclick="assignLprCarToTrack('${cleanPlate}', 'express_camioneta')" style="padding: 8px 12px; font-size: 0.8rem; background: #0284c7;">
+                            <i class='bx bx-car'></i> Express Camioneta
+                        </button>
+                        <button class="btn btn-primary" onclick="assignLprCarToTrack('${cleanPlate}', 'completo_auto')" style="padding: 8px 12px; font-size: 0.8rem; background: #10b981;">
+                            <i class='bx bx-star'></i> Completo Auto
+                        </button>
+                        <button class="btn btn-primary" onclick="assignLprCarToTrack('${cleanPlate}', 'completo_camioneta')" style="padding: 8px 12px; font-size: 0.8rem; background: #f59e0b;">
+                            <i class='bx bx-star'></i> Completo Camioneta
+                        </button>
+                    </div>
+                </div>
+            </div>
+            ${benefitsHtml}
+        `;
+
+        // 3. Auto-asignación inteligente si está activado el switch
+        const autoAssignToggle = document.getElementById('lpr-auto-assign-toggle');
+        if (autoAssignToggle && autoAssignToggle.checked && (socioFound || reservaFound)) {
+            assignLprCarToTrack(cleanPlate, defaultService, socioFound ? socioFound.tipo : 'Reserva');
+        } else {
+            // Disparar banner flotante en el Dashboard
+            showDashboardLprAlert(cleanPlate, socioFound, reservaFound, defaultService);
+        }
+    }
+
+    window.assignLprCarToTrack = function(plate, tipo, socioLabel = null) {
+        ingresarAuto(tipo, plate);
+        if (socioLabel) {
+            showToast(`¡Auto ${plate} ingresó a la pista como ${socioLabel}!`, 'success');
+        } else {
+            showToast(`Auto ${plate} ingresó a la pista (${getServiceReadableName(tipo)})`, 'success');
+        }
+        renderBoxesManagementList();
+        const alertBanner = document.getElementById('dashboard-lpr-alert');
+        if (alertBanner) alertBanner.style.display = 'none';
+    };
+
+    function showDashboardLprAlert(plate, socio, reserva, defaultSrv) {
+        const alertBanner = document.getElementById('dashboard-lpr-alert');
+        const plateEl = document.getElementById('alert-plate-text');
+        const infoEl = document.getElementById('alert-plate-info');
+        const btnAssign = document.getElementById('btn-alert-quick-assign');
+
+        if (!alertBanner || !plateEl || !infoEl) return;
+
+        plateEl.textContent = plate;
+        if (socio) {
+            infoEl.innerHTML = `<span style="color:#fbbf24; font-weight:800;">👑 SOCIO ${(socio.tipo || 'VIP').toUpperCase()}</span> ${socio.titular || ''}`;
+        } else if (reserva) {
+            infoEl.innerHTML = `<span style="color:#38bdf8; font-weight:800;">📅 RESERVA ACTIVA</span> (${reserva.tipo_servicio || 'Lavado'})`;
+        } else {
+            infoEl.innerHTML = `<span>Cliente en Ingreso</span>`;
+        }
+
+        if (btnAssign) {
+            btnAssign.onclick = () => assignLprCarToTrack(plate, defaultSrv, socio ? socio.tipo : null);
+        }
+
+        alertBanner.style.display = 'flex';
+        setTimeout(() => {
+            if (alertBanner.style.display === 'flex') alertBanner.style.display = 'none';
+        }, 12000);
+    }
+
+
     // Ejecutar restauración al iniciar
     restoreLiveState();
 
