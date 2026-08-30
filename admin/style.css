@@ -254,32 +254,32 @@ body {
 
 .dashboard-container {
     display: flex;
-    height: 100vh;
+    flex-direction: column;
+    height: 100dvh;
     width: 100vw;
 }
 
-/* Sidebar */
+/* Sidebar → barra inferior global */
 .sidebar {
-    width: 260px;
+    width: 100%;
+    height: auto;
     background-color: var(--bg-sidebar);
-    border-right: 1px solid var(--border-color);
+    border-right: none;
+    border-top: 1px solid var(--border-color);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     box-shadow: var(--shadow-sm);
     z-index: 10;
+    order: 2;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
-.sidebar-header {
-    padding: 24px;
-    border-bottom: 1px solid var(--border-color);
-}
+.sidebar-header,
+.sidebar-footer { display: none; }
 
 .logo-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px;
-    width: 100%;
+    display: none;
 }
 
 .sidebar-logo {
@@ -326,33 +326,36 @@ body {
 
 .sidebar-nav {
     flex: 1;
-    padding: 24px 16px;
+    padding: 6px 10px;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
+    flex-direction: row;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
 }
+.sidebar-nav::-webkit-scrollbar { display: none; }
 
 .nav-btn {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 12px;
-    width: 100%;
-    padding: 14px 16px;
+    gap: 3px;
+    padding: 8px 10px;
+    min-width: 60px;
     background: transparent;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 0.65rem;
+    white-space: nowrap;
     font-weight: 500;
     color: var(--text-muted);
     cursor: pointer;
-    text-align: left;
     transition: all 0.2s ease;
 }
 
 .nav-btn i {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
 }
 
 .nav-btn:hover {
@@ -369,22 +372,18 @@ body {
     text-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
 }
 
-.sidebar-footer {
-    padding: 24px;
-    border-top: 1px solid var(--border-color);
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-align: center;
-}
+.sidebar-footer { display: none; }
 
 /* Main Content (Lienzo) */
 .main-content {
     flex: 1;
-    padding: 24px;
+    order: 1;
+    padding: 10px;
     background-color: var(--bg-body);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    min-height: 0;
 }
 
 .canvas-area {
