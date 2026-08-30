@@ -1101,3 +1101,192 @@ html, body {
 
 
 
+/* ==========================================================================
+   Ajustes para eliminar el scroll en pantallas de Socios (Omar - Aura)
+   ========================================================================== */
+
+/* Ajuste general de padding en las pantallas de socios */
+#screen-socio-black, 
+#screen-socio-gold, 
+#screen-socio-checkout, 
+#screen-socio-welcome {
+    padding-top: 8px !important;
+    padding-bottom: 75px !important;
+}
+
+/* Ajuste de padding de las tarjetas contenedor */
+#screen-socio-black .card, 
+#screen-socio-gold .card, 
+#screen-socio-checkout .card, 
+#screen-socio-welcome .card {
+    padding: 6px 6px !important;
+}
+
+/* Ajustes específicos para las pantallas Socio Black y Gold */
+#screen-socio-black .card > div:first-of-type,
+#screen-socio-gold .card > div:first-of-type {
+    margin-top: 0px !important;
+    margin-bottom: 4px !important;
+}
+#screen-socio-black .card .bx-crown,
+#screen-socio-gold .card .bx-crown {
+    font-size: 1.4rem !important;
+}
+#screen-socio-black .card h2,
+#screen-socio-gold .card h2 {
+    font-size: 0.95rem !important;
+    margin-top: 1px !important;
+}
+#screen-socio-black .card h2 + span,
+#screen-socio-gold .card h2 + span {
+    font-size: 0.55rem !important;
+    padding: 1px 5px !important;
+}
+#screen-socio-black .benefits-list,
+#screen-socio-gold .benefits-list {
+    padding: 4px 6px !important;
+    margin-bottom: 6px !important;
+}
+#screen-socio-black .benefits-list > div,
+#screen-socio-gold .benefits-list > div {
+    margin-bottom: 4px !important;
+    gap: 4px !important;
+}
+#screen-socio-black .benefits-list > div:last-child,
+#screen-socio-gold .benefits-list > div:last-child {
+    margin-bottom: 0 !important;
+}
+#screen-socio-black .benefits-list i,
+#screen-socio-gold .benefits-list i {
+    font-size: 0.9rem !important;
+}
+#screen-socio-black .benefits-list strong,
+#screen-socio-gold .benefits-list strong {
+    font-size: 0.7rem !important;
+}
+#screen-socio-black .benefits-list p,
+#screen-socio-gold .benefits-list p {
+    font-size: 0.65rem !important;
+    margin-top: 0px !important;
+}
+#screen-socio-black .card > div:nth-of-type(3),
+#screen-socio-gold .card > div:nth-of-type(3) {
+    padding: 4px !important;
+    margin-bottom: 6px !important;
+}
+#screen-socio-black .card > div:nth-of-type(3) span,
+#screen-socio-gold .card > div:nth-of-type(3) span {
+    font-size: 0.6rem !important;
+}
+#screen-socio-black .card > div:nth-of-type(3) div,
+#screen-socio-gold .card > div:nth-of-type(3) div {
+    font-size: 0.95rem !important;
+}
+#screen-socio-black .btn-socio-black,
+#screen-socio-gold .btn-socio-gold {
+    padding: 6px !important;
+    font-size: 0.75rem !important;
+}
+
+/* Ajustes para la pantalla de Registro/Checkout de Socio */
+#screen-socio-checkout #socio-checkout-title {
+    font-size: 1.05rem !important;
+    margin-top: 0px !important;
+    margin-bottom: 1px !important;
+}
+#screen-socio-checkout #socio-checkout-title + p {
+    font-size: 0.68rem !important;
+    margin-bottom: 4px !important;
+}
+#screen-socio-checkout .card > div {
+    margin-bottom: 4px !important;
+}
+#screen-socio-checkout label {
+    font-size: 0.65rem !important;
+    margin-bottom: 1px !important;
+}
+#screen-socio-checkout input {
+    font-size: 0.8rem !important;
+    padding: 5px 8px !important;
+}
+#screen-socio-checkout .input-group {
+    margin-bottom: 0 !important;
+}
+#screen-socio-checkout .input-group input {
+    padding: 5px 8px !important;
+}
+#screen-socio-checkout .input-group .prefix {
+    font-size: 0.8rem !important;
+    padding: 5px 8px !important;
+}
+#screen-socio-checkout .order-summary {
+    margin-bottom: 4px !important;
+    padding: 4px 8px !important;
+}
+#screen-socio-checkout .order-summary h3 {
+    font-size: 0.68rem !important;
+    margin-bottom: 1px !important;
+}
+#screen-socio-checkout .order-summary p {
+    font-size: 0.68rem !important;
+    margin: 1px 0 !important;
+}
+#screen-socio-checkout .btn-mp {
+    padding: 6px !important;
+}
+#screen-socio-checkout .btn-mp img {
+    height: 12px !important;
+}
+
+/* Ajustes para la pantalla de Bienvenida de Socio (Credencial Digital) */
+#screen-socio-welcome #socio-card-icon {
+    font-size: 1.8rem !important;
+}
+#screen-socio-welcome h2 {
+    font-size: 1.05rem !important;
+    margin-top: 2px !important;
+}
+#screen-socio-welcome p {
+    font-size: 0.75rem !important;
+    margin: 2px 0 6px !important;
+}
+#screen-socio-welcome #socio-assigned-number {
+    font-size: 1.1rem !important;
+}
+#screen-socio-welcome .digital-socio-card {
+    padding: 10px 8px !important;
+    margin-bottom: 8px !important;
+    border-radius: 12px !important;
+}
+#screen-socio-welcome .digital-socio-card > div:first-of-type {
+    padding-bottom: 6px !important;
+    margin-bottom: 6px !important;
+}
+#screen-socio-welcome .digital-socio-card span {
+    font-size: 0.55rem !important;
+}
+#screen-socio-welcome .digital-socio-card strong {
+    font-size: 0.85rem !important;
+}
+#screen-socio-welcome #socio-card-badge-type {
+    font-size: 0.6rem !important;
+    padding: 2px 6px !important;
+}
+#screen-socio-welcome #socio-card-name {
+    font-size: 0.85rem !important;
+}
+#screen-socio-welcome #socio-card-plate {
+    font-size: 0.85rem !important;
+}
+#screen-socio-welcome #socio-card-num-big {
+    font-size: 1.05rem !important;
+}
+#screen-socio-welcome .digital-socio-card > div:last-of-type {
+    margin-top: 6px !important;
+    padding-top: 4px !important;
+}
+#screen-socio-welcome .btn-primary {
+    padding: 8px !important;
+    font-size: 0.85rem !important;
+    margin-bottom: 0 !important;
+}
