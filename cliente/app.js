@@ -300,6 +300,7 @@ function processSocioPayment() {
     appState.socioNombre = nombre;
     appState.plate = patente;
     appState.phone = '+54 ' + phone;
+    appState.socioFechaNac = fechaNac;
 
     processPayment();
 }
@@ -325,6 +326,7 @@ async function confirmMPPayment() {
                         nombre: appState.socioNombre,
                         patente: appState.plate,
                         telefono: appState.phone,
+                        fecha_nacimiento: appState.socioFechaNac,
                         tipo_membresia: appState.socioTipo,
                         monto_pagado: appState.price,
                         metodo_pago: 'mercadopago'

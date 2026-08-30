@@ -2901,6 +2901,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="font-weight: 700; color: #f8fafc;">
                         ${item.titular || 'Sin Titular'}
                         ${item.email ? `<br><span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">${item.email}</span>` : ''}
+                        ${item.fecha_nacimiento ? `<br><span style="font-size: 0.75rem; color: #fbbf24; font-weight: bold;"><i class='bx bx-gift'></i> ${item.fecha_nacimiento}</span>` : ''}
                     </td>
                     <td>
                         ${item.telefono ? `
@@ -2951,6 +2952,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('form-socio-titular').value = '';
         document.getElementById('form-socio-telefono').value = '';
         document.getElementById('form-socio-email').value = '';
+        document.getElementById('form-socio-fecha-nac').value = '';
         document.getElementById('form-socio-estado').value = 'PAGADO';
         document.getElementById('form-socio-monto').value = '35000';
         document.getElementById('form-socio-notas').value = 'Socio Fundador Inauguración';
@@ -2973,6 +2975,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('form-socio-titular').value = socio.titular || '';
         document.getElementById('form-socio-telefono').value = socio.telefono || '';
         document.getElementById('form-socio-email').value = socio.email || '';
+        document.getElementById('form-socio-fecha-nac').value = socio.fecha_nacimiento || '';
         document.getElementById('form-socio-estado').value = socio.estado || 'PAGADO';
         document.getElementById('form-socio-monto').value = socio.monto || '';
         document.getElementById('form-socio-notas').value = socio.notas || '';
@@ -3004,6 +3007,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const titular = document.getElementById('form-socio-titular').value.trim();
         const telefono = document.getElementById('form-socio-telefono').value.trim();
         const email = document.getElementById('form-socio-email').value.trim();
+        const fecha_nacimiento = document.getElementById('form-socio-fecha-nac').value.trim();
         const estado = document.getElementById('form-socio-estado').value;
         const monto = parseFloat(document.getElementById('form-socio-monto').value) || 0;
         const notas = document.getElementById('form-socio-notas').value.trim();
@@ -3035,6 +3039,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     titular,
                     telefono,
                     email,
+                    fecha_nacimiento,
                     estado,
                     monto,
                     notas
@@ -3051,6 +3056,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 titular,
                 telefono,
                 email,
+                fecha_nacimiento,
                 estado,
                 monto,
                 notas,
