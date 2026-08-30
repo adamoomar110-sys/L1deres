@@ -342,6 +342,7 @@ body {
     gap: 3px;
     padding: 8px 10px;
     min-width: 60px;
+    flex-shrink: 0;
     background: transparent;
     border: none;
     border-radius: 8px;
