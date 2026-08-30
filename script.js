@@ -11,7 +11,7 @@ let landingConfig = {
     precio_express_camioneta: 12000,
     precio_completo_auto: 15000,
     precio_completo_camioneta: 18000,
-    whatsapp_number: '5491123456789',
+    whatsapp_number: '5491160473754',
     dias_atencion: 'Lunes a Sábados',
     hora_apertura: '08:00',
     hora_cierre: '20:00',
@@ -883,12 +883,12 @@ async function initConveniosTicker() {
 
     if (!convenioItems || convenioItems.length === 0) {
         convenioItems = [
-            { nombre: 'Socio Fundador Black', categoria: 'Socio Fundador', descripcion: 'Acceso prioritario VIP #1 en Pit Lane sin fila, 30% OFF en todos los lavados y encerado cerámico sin cargo.', logo_url: 'bx bx-crown', enlace: 'https://wa.me/5491123456789?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Black' },
-            { nombre: 'Socio Fundador Gold', categoria: 'Socio Fundador', descripcion: 'Atención preferencial en boxes, 20% OFF en todos los lavados y obsequio de perfumería en cada visita.', logo_url: 'bx bxs-award', enlace: 'https://wa.me/5491123456789?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Gold' },
-            { nombre: 'Uber, Cabify & DiDi Pro', categoria: 'Apps de Viajes', descripcion: '20% de descuento exclusivo en lavado completo para conductores de aplicaciones registradas.', logo_url: 'bx bxs-taxi', enlace: 'https://wa.me/5491123456789?text=Hola,%20soy%20conductor%20de%20app%20de%20viajes' },
-            { nombre: 'Country Club Los Lagartos', categoria: 'Barrios Cerrados', descripcion: 'Atención prioritaria en Pit Lane y tarifa preferencial para residentes de Los Lagartos C.C. y zona.', logo_url: 'bx bx-home-alt', enlace: 'https://wa.me/5491123456789?text=Hola,%20soy%20residente%20de%20Los%20Lagartos' },
-            { nombre: 'Empresas & Flotas Corporativas', categoria: 'Corporativo', descripcion: 'Planes de mantenimiento mensual con Factura A y facturación consolidada para flotas de empresas.', logo_url: 'bx bx-building-house', enlace: 'https://wa.me/5491123456789?text=Hola,%20quiero%20informacion%20para%20flota%20empresa' },
-            { nombre: 'Remises & Taxis Pilar', categoria: 'Servicio Público', descripcion: 'Lavado express acelerado y combos especiales para unidades de agencias de remises y taxis de Pilar.', logo_url: 'bx bx-car', enlace: 'https://wa.me/5491123456789?text=Hola,%20soy%20remisero%20de%20Pilar' },
+            { nombre: 'Socio Fundador Black', categoria: 'Socio Fundador', descripcion: 'Acceso prioritario VIP #1 en Pit Lane sin fila, 30% OFF en todos los lavados y encerado cerámico sin cargo.', logo_url: 'bx bx-crown', enlace: 'https://wa.me/5491160473754?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Black' },
+            { nombre: 'Socio Fundador Gold', categoria: 'Socio Fundador', descripcion: 'Atención preferencial en boxes, 20% OFF en todos los lavados y obsequio de perfumería en cada visita.', logo_url: 'bx bxs-award', enlace: 'https://wa.me/5491160473754?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Gold' },
+            { nombre: 'Uber, Cabify & DiDi Pro', categoria: 'Apps de Viajes', descripcion: '20% de descuento exclusivo en lavado completo para conductores de aplicaciones registradas.', logo_url: 'bx bxs-taxi', enlace: 'https://wa.me/5491160473754?text=Hola,%20soy%20conductor%20de%20app%20de%20viajes' },
+            { nombre: 'Country Club Los Lagartos', categoria: 'Barrios Cerrados', descripcion: 'Atención prioritaria en Pit Lane y tarifa preferencial para residentes de Los Lagartos C.C. y zona.', logo_url: 'bx bx-home-alt', enlace: 'https://wa.me/5491160473754?text=Hola,%20soy%20residente%20de%20Los%20Lagartos' },
+            { nombre: 'Empresas & Flotas Corporativas', categoria: 'Corporativo', descripcion: 'Planes de mantenimiento mensual con Factura A y facturación consolidada para flotas de empresas.', logo_url: 'bx bx-building-house', enlace: 'https://wa.me/5491160473754?text=Hola,%20quiero%20informacion%20para%20flota%20empresa' },
+            { nombre: 'Remises & Taxis Pilar', categoria: 'Servicio Público', descripcion: 'Lavado express acelerado y combos especiales para unidades de agencias de remises y taxis de Pilar.', logo_url: 'bx bx-car', enlace: 'https://wa.me/5491160473754?text=Hola,%20soy%20remisero%20de%20Pilar' },
             { nombre: 'Mercado Pago & Bancos', categoria: 'Medios de Pago', descripcion: 'Promociones especiales y cuotas sin interés abonando con Mercado Pago y bancos adheridos.', logo_url: 'bx bx-credit-card', enlace: '#' },
             { nombre: 'Aseguradoras Partner', categoria: 'Beneficios', descripcion: 'Descuentos del 15% presentando póliza activa de La Caja, Sancor Seguros o Federación Patronal.', logo_url: 'bx bx-shield-quarter', enlace: '#' }
         ];
@@ -933,7 +933,7 @@ function showConvenioSlide(index) {
             iconBox.innerHTML = `<i class='${iconClass}'></i>`;
         }
         if (linkEl) {
-            linkEl.href = item.enlace && item.enlace !== '#' ? item.enlace : 'https://wa.me/5491123456789?text=' + encodeURIComponent('Hola, me interesa el convenio de ' + item.nombre);
+            linkEl.href = item.enlace && item.enlace !== '#' ? item.enlace : 'https://wa.me/5491160473754?text=' + encodeURIComponent('Hola, me interesa el convenio de ' + item.nombre);
         }
 
         // Actualizar indicadores (dots)

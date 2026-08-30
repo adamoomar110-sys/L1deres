@@ -1026,7 +1026,7 @@ function openSocioModal(tipo) {
     const descElem = document.getElementById('socio-modal-desc');
     const btnWaElem = document.getElementById('socio-modal-wa');
 
-    const numWa = appState.whatsappNumber || '5491123456789';
+    const numWa = appState.whatsappNumber || '5491160473754';
 
     if (tipo === 'Black') {
         if (titleElem) titleElem.innerHTML = `<i class='bx bx-crown' style='color:#fbbf24;'></i> SOCIO FUNDADOR BLACK`;

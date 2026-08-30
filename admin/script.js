@@ -3427,7 +3427,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaultCfg = {
             lavado_min: 0, lavado_sec: 5,
             secado_min: 0, secado_sec: 5,
-            whatsapp: "5491123456789",
+            whatsapp: "5491160473754",
             precio_lavado: 12000,
             precio_secado: 12000,
             precio_completo: 20000,
@@ -3517,7 +3517,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const configPayload = {
             id: 1,
-            whatsapp_number: document.getElementById('config-whatsapp')?.value.trim() || "5491123456789",
+            whatsapp_number: document.getElementById('config-whatsapp')?.value.trim() || "5491160473754",
             precio_express_auto: parseFloat(document.getElementById('precio-express-auto')?.value || 0),
             precio_express_camioneta: parseFloat(document.getElementById('precio-express-camioneta')?.value || 0),
             precio_completo_auto: parseFloat(document.getElementById('precio-completo-auto')?.value || 0),

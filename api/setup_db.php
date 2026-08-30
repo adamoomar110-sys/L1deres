@@ -53,7 +53,7 @@ CREATE TABLE `configuracion` (
   `precio_express_camioneta` INT DEFAULT 15000,
   `precio_completo_auto` INT DEFAULT 18000,
   `precio_completo_camioneta` INT DEFAULT 22000,
-  `whatsapp_number` VARCHAR(50) DEFAULT '5491123456789',
+  `whatsapp_number` VARCHAR(50) DEFAULT '5491160473754',
   `dias_atencion` VARCHAR(100) DEFAULT 'Lunes a Sábados',
   `hora_apertura` VARCHAR(20) DEFAULT '08:00',
   `hora_cierre` VARCHAR(20) DEFAULT '20:00',
@@ -64,7 +64,7 @@ CREATE TABLE `configuracion` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `configuracion` (`id`, `precio_express_auto`, `precio_express_camioneta`, `precio_completo_auto`, `precio_completo_camioneta`, `whatsapp_number`, `dias_atencion`, `hora_apertura`, `hora_cierre`)
-VALUES (1, 10000, 12000, 15000, 18000, '5491123456789', 'Lunes a Sábados', '08:00', '20:00')
+VALUES (1, 10000, 12000, 15000, 18000, '5491160473754', 'Lunes a Sábados', '08:00', '20:00')
 ON DUPLICATE KEY UPDATE `id` = 1;
 
 CREATE TABLE IF NOT EXISTS `reservas` (

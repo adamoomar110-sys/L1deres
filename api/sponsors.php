@@ -41,7 +41,7 @@ if ($pdo) {
                     'categoria' => 'Socio Fundador',
                     'descripcion' => 'Acceso prioritario VIP #1 en Pit Lane sin fila, 30% OFF en todos los lavados y encerado cerámico sin cargo.',
                     'logo_url' => 'bx bx-crown',
-                    'enlace' => 'https://wa.me/5491123456789?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Black',
+                    'enlace' => 'https://wa.me/5491160473754?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Black',
                     'orden' => 1
                 ],
                 [
@@ -49,7 +49,7 @@ if ($pdo) {
                     'categoria' => 'Socio Fundador',
                     'descripcion' => 'Atención preferencial en boxes, 20% OFF en todos los lavados y obsequio de perfumería en cada visita.',
                     'logo_url' => 'bx bxs-award',
-                    'enlace' => 'https://wa.me/5491123456789?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Gold',
+                    'enlace' => 'https://wa.me/5491160473754?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Gold',
                     'orden' => 2
                 ],
                 [
@@ -57,7 +57,7 @@ if ($pdo) {
                     'categoria' => 'Apps de Viajes',
                     'descripcion' => '20% de descuento exclusivo en lavado completo para conductores de aplicaciones de viajes registradas.',
                     'logo_url' => 'bx bxs-taxi',
-                    'enlace' => 'https://wa.me/5491123456789?text=Hola,%20soy%20conductor%20de%20app%20de%20viajes',
+                    'enlace' => 'https://wa.me/5491160473754?text=Hola,%20soy%20conductor%20de%20app%20de%20viajes',
                     'orden' => 3
                 ],
                 [
@@ -65,7 +65,7 @@ if ($pdo) {
                     'categoria' => 'Barrios Cerrados',
                     'descripcion' => 'Atención prioritaria en Pit Lane y tarifa preferencial para residentes de Los Lagartos C.C. y barrios de la zona.',
                     'logo_url' => 'bx bx-home-alt',
-                    'enlace' => 'https://wa.me/5491123456789?text=Hola,%20soy%20residente%20de%20Los%20Lagartos',
+                    'enlace' => 'https://wa.me/5491160473754?text=Hola,%20soy%20residente%20de%20Los%20Lagartos',
                     'orden' => 4
                 ],
                 [
@@ -73,7 +73,7 @@ if ($pdo) {
                     'categoria' => 'Corporativo',
                     'descripcion' => 'Planes de mantenimiento mensual con Factura A y facturación consolidada para flotas de empresas.',
                     'logo_url' => 'bx bx-building-house',
-                    'enlace' => 'https://wa.me/5491123456789?text=Hola,%20quiero%20informacion%20para%20flota%20empresa',
+                    'enlace' => 'https://wa.me/5491160473754?text=Hola,%20quiero%20informacion%20para%20flota%20empresa',
                     'orden' => 5
                 ],
                 [
@@ -81,7 +81,7 @@ if ($pdo) {
                     'categoria' => 'Servicio Público',
                     'descripcion' => 'Lavado express acelerado y combos especiales para unidades de agencias de remises y taxis de Pilar.',
                     'logo_url' => 'bx bx-car',
-                    'enlace' => 'https://wa.me/5491123456789?text=Hola,%20soy%20remisero%20de%20Pilar',
+                    'enlace' => 'https://wa.me/5491160473754?text=Hola,%20soy%20remisero%20de%20Pilar',
                     'orden' => 6
                 ],
                 [
@@ -123,7 +123,7 @@ if ($pdo) {
                     ':cat' => 'Socio Fundador',
                     ':des' => 'Acceso prioritario VIP #1 en Pit Lane sin fila, 30% OFF en todos los lavados y encerado cerámico sin cargo.',
                     ':log' => 'bx bx-crown',
-                    ':enl' => 'https://wa.me/5491123456789?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Black',
+                    ':enl' => 'https://wa.me/5491160473754?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Black',
                     ':ord' => 1
                 ]);
             }
@@ -136,7 +136,7 @@ if ($pdo) {
                     ':cat' => 'Socio Fundador',
                     ':des' => 'Atención preferencial en boxes, 20% OFF en todos los lavados y obsequio de perfumería en cada visita.',
                     ':log' => 'bx bxs-award',
-                    ':enl' => 'https://wa.me/5491123456789?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Gold',
+                    ':enl' => 'https://wa.me/5491160473754?text=Hola,%20quiero%20ser%20Socio%20Fundador%20Gold',
                     ':ord' => 2
                 ]);
             }
