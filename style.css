@@ -677,12 +677,12 @@ body {
 .section-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 90px 20px;
+    padding: 40px 20px;
 }
 
 .section-header {
     text-align: center;
-    margin-bottom: 60px;
+    margin-bottom: 30px;
 }
 
 .section-tag {
@@ -1706,11 +1706,11 @@ body {
 
     /* SECCIONES Y CONTENEDORES */
     .section-container {
-        padding: 45px 16px;
+        padding: 25px 16px;
     }
 
     .section-header {
-        margin-bottom: 30px;
+        margin-bottom: 20px;
     }
 
     .section-header h2 {
