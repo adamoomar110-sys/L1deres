@@ -140,12 +140,7 @@
                 </div>
 
                 <div class="hero-render-actions">
-                    <button onclick="openDirectBookingModal()" class="btn-render-primary">
-                        <i class='bx bx-calendar-check'></i> SACAR TURNO ONLINE
-                    </button>
-                    <a href="#circuito-vivo" class="btn-render-secondary">
-                        <i class='bx bx-video-rec'></i> VER CIRCUITO EN VIVO
-                    </a>
+
                     <a href="#servicios" class="btn-render-ghost">
                         <i class='bx bx-car'></i> SERVICIOS &amp; TARIFAS
                     </a>
@@ -175,7 +170,7 @@
                             <div id="landing-status-board" class="status-board-top" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
                                 <div class="status-info" style="display: flex; align-items: center; gap: 8px;">
                                     <div class="status-title" style="font-size: 0.68rem; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px;">Demora Estimada</div>
-                                    <div class="status-time" id="landing-status-time" style="font-size: 1.25rem; font-weight: 900; color: #38bdf8; font-family: 'Racing Sans One', sans-serif;">00:00</div>
+
                                 </div>
                                 <div class="status-badge badge-libre" id="landing-status-badge" style="padding: 4px 10px; border-radius: 16px; font-weight: 700; font-size: 0.72rem; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">Sin Demora</div>
                             </div>
@@ -254,88 +249,7 @@
 
     <!-- HERO SECTION -->
 
-    <!-- SECCIÓN SERVICIOS & PRECIOS -->
-    <section id="servicios" class="services-section">
-        <div class="section-container">
-            <div class="section-header">
-                <span class="section-tag">SERVICIOS DE PIT LANE</span>
-                <h2>Elegí el nivel de detalle para tu vehículo</h2>
-                <p>Equipamiento automatizado de alta fidelidad con insumos biodegradables de primera calidad.</p>
-            </div>
 
-            <div class="services-grid">
-                <!-- Servicio 1 -->
-                <div class="service-card">
-                    <div class="service-icon"><i class='bx bx-car'></i></div>
-                    <h3>Lavado Express Auto</h3>
-                    <p class="service-desc">Limpieza exterior rápida y eficiente para tu automóvil.</p>
-                    <ul class="service-features">
-                        <li><i class='bx bx-check'></i> Espuma activa</li>
-                        <li><i class='bx bx-check'></i> Enjuague a presión</li>
-                        <li><i class='bx bx-check'></i> Secado acelerado</li>
-                    </ul>
-                    <div class="service-price">
-                        <span class="price-val" id="price-express-auto-display">$0</span>
-                        <span class="price-unit">/ Servicio Express</span>
-                    </div>
-                    <a href="cliente/" class="btn btn-service">Reservar Auto</a>
-                </div>
-
-                <!-- Servicio 2 -->
-                <div class="service-card">
-                    <div class="service-icon"><i class='bx bxs-truck'></i></div>
-                    <h3>Lavado Express Camioneta</h3>
-                    <p class="service-desc">Limpieza exterior rápida especializada para camionetas y utilitarios.</p>
-                    <ul class="service-features">
-                        <li><i class='bx bx-check'></i> Cobertura para vehículos grandes</li>
-                        <li><i class='bx bx-check'></i> Enjuague a presión intensivo</li>
-                        <li><i class='bx bx-check'></i> Secado acelerado</li>
-                    </ul>
-                    <div class="service-price">
-                        <span class="price-val" id="price-express-camioneta-display">$0</span>
-                        <span class="price-unit">/ Servicio Express</span>
-                    </div>
-                    <a href="cliente/" class="btn btn-service">Reservar Camioneta</a>
-                </div>
-
-                <!-- Servicio 3 -->
-                <div class="service-card featured">
-                    <div class="featured-badge">MÁS POPULAR VIP</div>
-                    <div class="service-icon"><i class='bx bx-star'></i></div>
-                    <h3>Lavado Completo Auto</h3>
-                    <p class="service-desc">Tratamiento exterior e interior detallado para automóviles.</p>
-                    <ul class="service-features">
-                        <li><i class='bx bx-check'></i> Lavado exterior detallado</li>
-                        <li><i class='bx bx-check'></i> Aspirado y limpieza interior</li>
-                        <li><i class='bx bx-check'></i> Acondicionamiento de plásticos</li>
-                    </ul>
-                    <div class="service-price">
-                        <span class="price-val" id="price-completo-auto-display">$0</span>
-                        <span class="price-unit">/ Combo VIP</span>
-                    </div>
-                    <a href="cliente/" class="btn btn-service btn-featured">Reservar VIP Auto</a>
-                </div>
-
-                <!-- Servicio 4 -->
-                <div class="service-card featured" style="border-color: #f59e0b;">
-                    <div class="featured-badge" style="background: #f59e0b;">MÁS POPULAR VIP</div>
-                    <div class="service-icon"><i class='bx bx-star' style="color:#f59e0b;"></i></div>
-                    <h3>Lavado Completo Camioneta</h3>
-                    <p class="service-desc">Tratamiento exterior e interior detallado para vehículos grandes.</p>
-                    <ul class="service-features">
-                        <li><i class='bx bx-check'></i> Lavado exterior profundo</li>
-                        <li><i class='bx bx-check'></i> Aspirado intensivo</li>
-                        <li><i class='bx bx-check'></i> Acondicionamiento de plásticos</li>
-                    </ul>
-                    <div class="service-price">
-                        <span class="price-val" id="price-completo-camioneta-display">$0</span>
-                        <span class="price-unit">/ Combo VIP</span>
-                    </div>
-                    <a href="cliente/" class="btn btn-service btn-featured" style="background:#f59e0b;">Reservar VIP Camioneta</a>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- CÓMO FUNCIONA -->
     <section id="funciona" class="how-section">
@@ -410,7 +324,7 @@
                         <li><i class='bx bx-check-circle' style="color: #fbbf24; font-size: 1.25rem; vertical-align: middle;"></i> <strong>8 Lavados pagan 6 (2 gratis)</strong> por mes (Suscripción)</li>
                         <li><i class='bx bx-check-circle' style="color: #fbbf24; font-size: 1.25rem; vertical-align: middle;"></i> <strong>30% OFF</strong> en nuestra tienda</li>
                         <li><i class='bx bx-check-circle' style="color: #fbbf24; font-size: 1.25rem; vertical-align: middle;"></i> <strong>10% OFF</strong> en cualquier trabajo de Detailing</li>
-                        <li><i class='bx bx-gift' style="color: #fbbf24; font-size: 1.25rem; vertical-align: middle;"></i> <strong>Día de Cumpleaños:</strong> 1 Botella de Champagne de regalo</li>
+                        <li><i class='bx bx-gift' style="color: #fbbf24; font-size: 1.25rem; vertical-align: middle;"></i> <strong>Día de Cumpleaños:</strong> REGALO ESPECIAL</li>
                         <li><i class='bx bx-star' style="color: #fbbf24; font-size: 1.25rem; vertical-align: middle;"></i> <strong>30% OFF en Eventos</strong> o <strong>GRATIS</strong> con un acompañante que abona con 30% OFF</li>
                     </ul>
 
@@ -456,7 +370,7 @@
         <div class="section-container">
             <div class="contact-grid">
                 <div class="contact-info">
-                    <h2>Visitanos en nuestro Pit Lane</h2>
+                    <h2>Visitanos</h2>
                     <p>Atención automatizada sin turnos previos largos. Tu auto limpio en minutos.</p>
 
                     <div class="info-list">

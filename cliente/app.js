@@ -288,9 +288,10 @@ function processSocioPayment() {
     const nombre = document.getElementById('input-socio-nombre').value.trim();
     const patente = document.getElementById('input-socio-patente').value.trim().toUpperCase();
     const phone = document.getElementById('input-socio-phone').value.trim();
+    const fechaNac = document.getElementById('input-socio-fecha-nac').value.trim();
     const errorElem = document.getElementById('error-socio-form');
 
-    if (!nombre || patente.length < 6 || phone.length < 6) {
+    if (!nombre || patente.length < 6 || phone.length < 6 || !fechaNac) {
         if (errorElem) errorElem.style.display = 'block';
         return;
     }
