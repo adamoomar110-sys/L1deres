@@ -353,16 +353,26 @@ async function simularPagoMP() {
         });
         const data = await res.json();
         if (data && data.success && data.socio && data.socio.numero_socio) {
+            // ✅ Registro exitoso: usar número real de MySQL
             numeroAsignado = data.socio.numero_socio;
         } else if (data && !data.success && data.error) {
-            // Patente duplicada u otro error real
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '<img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="MP" style="height:18px;"> PAGAR CON MERCADO PAGO';
+            // Solo mostrar alerta para errores de negocio (patente duplicada, cupos llenos)
+            // Los errores de infraestructura (sin DB) usan el número simulado silenciosamente
+            const esErrorNegocio = data.error.includes('patente') || 
+                                   data.error.includes('Cupos completados') ||
+                                   data.error.includes('ya está registrada');
+            if (esErrorNegocio) {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="MP" style="height:18px;"> PAGAR CON MERCADO PAGO';
+                }
+                alert('⚠️ ' + data.error);
+                return;
             }
-            alert('⚠️ ' + data.error);
-            return;
+            // Error de infraestructura: continuar con número simulado sin interrumpir
+            console.warn('Infraestructura no disponible, usando número simulado:', data.error);
         }
+
     } catch (e) {
         console.warn('API offline, usando número simulado:', e);
     }
