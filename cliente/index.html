@@ -247,9 +247,37 @@
                 </div>
 
                 <button class="btn btn-mp" onclick="processSocioPayment()" style="width: 100%; padding: 13px; font-weight: 900; font-size: 0.95rem;">
-                    <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="Mercado Pago" style="height: 18px;">
-                    Pagar con Mercado Pago
+                    <i class='bx bx-arrow-from-left'></i>
+                    CONTINUAR AL PAGO &rarr;
                 </button>
+            </div>
+        </div>
+
+        <!-- Pantalla 3B: Pantalla de Pago Simulado -->
+        <div id="screen-socio-pago" class="screen">
+            <div class="card slide-in" style="text-align: center;">
+                <button class="back-btn" onclick="prevScreen('screen-socio-checkout')" title="Volver" aria-label="Volver"><i class='bx bx-arrow-back'></i></button>
+                <div style="margin-bottom: 16px;">
+                    <i class='bx bx-credit-card' id="pago-icon" style="font-size: 3rem; color: #009ee3; filter: drop-shadow(0 0 12px rgba(0,158,227,0.5));"></i>
+                </div>
+                <h2 class="racing-font" style="font-size: 1.25rem; margin-bottom: 4px;">CONFIRMÁ TU PAGO</h2>
+                <p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 20px;">Estás a un paso de convertirte en Socio Fundador</p>
+
+                <div class="order-summary" style="margin-bottom: 20px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0,158,227,0.3); border-radius: 12px; padding: 12px 14px; text-align: left;">
+                    <h3 style="font-size: 0.8rem; color: #38bdf8; text-transform: uppercase; margin-bottom: 8px;">Detalle del Pago</h3>
+                    <p style="margin: 4px 0; font-size: 0.85rem;">Membresía: <strong id="pago-tipo-label" style="color: #fbbf24;">Socio Black VIP</strong></p>
+                    <p style="margin: 4px 0; font-size: 0.85rem;">Nombre: <strong id="pago-nombre-label" style="color: #fff;">-</strong></p>
+                    <p style="margin: 4px 0; font-size: 0.85rem;">Patente: <strong id="pago-patente-label" style="color: #38bdf8;">-</strong></p>
+                    <hr style="border-color: rgba(255,255,255,0.08); margin: 10px 0;">
+                    <p style="margin: 4px 0; font-size: 1rem;">Total: <strong id="pago-monto-label" style="color: #009ee3; font-size: 1.1rem;">$ 65.000</strong></p>
+                </div>
+
+                <!-- Botón simulado de MercadoPago - reemplazar href cuando llegue el link real -->
+                <button class="btn btn-mp" id="btn-simular-pago" onclick="simularPagoMP()" style="width: 100%; padding: 14px; font-weight: 900; font-size: 1rem; margin-bottom: 10px;">
+                    <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="MP" style="height: 18px;">
+                    PAGAR CON MERCADO PAGO
+                </button>
+                <p style="color: #475569; font-size: 0.72rem;">🔒 Pago seguro procesado por Mercado Pago</p>
             </div>
         </div>
 

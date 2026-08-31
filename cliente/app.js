@@ -297,13 +297,106 @@ function processSocioPayment() {
     }
     if (errorElem) errorElem.style.display = 'none';
 
+    // Guardar datos en estado
     appState.socioNombre = nombre;
     appState.plate = patente;
     appState.phone = '+54 ' + phone;
     appState.socioFechaNac = fechaNac;
 
-    processPayment();
+    // Actualizar resumen en pantalla de pago
+    const pagoTipo = document.getElementById('pago-tipo-label');
+    const pagoNombre = document.getElementById('pago-nombre-label');
+    const pagoPatente = document.getElementById('pago-patente-label');
+    const pagoMonto = document.getElementById('pago-monto-label');
+    if (pagoTipo) {
+        pagoTipo.innerText = appState.socioTipo === 'black' ? 'Socio Fundador Black VIP' : 'Socio Fundador Gold VIP';
+        pagoTipo.style.color = appState.socioTipo === 'black' ? '#fbbf24' : '#f59e0b';
+    }
+    if (pagoNombre) pagoNombre.innerText = nombre;
+    if (pagoPatente) pagoPatente.innerText = patente;
+    if (pagoMonto) pagoMonto.innerText = `$ ${appState.price.toLocaleString('es-AR')}`;
+
+    // Ir a pantalla de pago
+    nextScreen('screen-socio-pago');
 }
+
+// Simula el pago con MP, registra en MySQL y muestra número de socio real
+// TODO: Cuando llegue el link real de MercadoPago, reemplazar la simulación
+//       por: window.location.href = 'https://mpago.la/TU_LINK_AQUI';
+//       y manejar el retorno por URL con ?payment_status=approved
+async function simularPagoMP() {
+    const btn = document.getElementById('btn-simular-pago');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Procesando pago...';
+    }
+
+    // Simular tiempo de procesamiento de pago (2 segundos)
+    await new Promise(r => setTimeout(r, 2000));
+
+    let numeroAsignado = Math.floor(Math.random() * 190) + 1; // Fallback por si la API falla
+
+    try {
+        const res = await fetch(`${API_URL}socios_fundadores.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nombre: appState.socioNombre,
+                patente: appState.plate,
+                telefono: appState.phone,
+                fecha_nacimiento: appState.socioFechaNac,
+                tipo_membresia: appState.socioTipo,
+                monto_pagado: appState.price,
+                metodo_pago: 'mercadopago',
+                estado_pago: 'pagado'
+            })
+        });
+        const data = await res.json();
+        if (data && data.success && data.socio && data.socio.numero_socio) {
+            numeroAsignado = data.socio.numero_socio;
+        } else if (data && !data.success && data.error) {
+            // Patente duplicada u otro error real
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="MP" style="height:18px;"> PAGAR CON MERCADO PAGO';
+            }
+            alert('⚠️ ' + data.error);
+            return;
+        }
+    } catch (e) {
+        console.warn('API offline, usando número simulado:', e);
+    }
+
+    appState.assignedSocioNumber = numeroAsignado;
+    const numFormatted = '#' + String(numeroAsignado).padStart(3, '0');
+
+    // Actualizar credencial digital con datos reales
+    const numElem = document.getElementById('socio-assigned-number');
+    const cardName = document.getElementById('socio-card-name');
+    const cardPlate = document.getElementById('socio-card-plate');
+    const cardNumBig = document.getElementById('socio-card-num-big');
+    const cardBadge = document.getElementById('socio-card-badge-type');
+    const cardIcon = document.getElementById('socio-card-icon');
+
+    if (numElem) numElem.innerText = numFormatted;
+    if (cardName) cardName.innerText = appState.socioNombre.toUpperCase();
+    if (cardPlate) cardPlate.innerText = appState.plate;
+    if (cardNumBig) cardNumBig.innerText = numFormatted;
+    if (cardBadge) {
+        cardBadge.innerText = appState.socioTipo === 'black' ? 'SOCIO BLACK VIP' : 'SOCIO GOLD VIP';
+        cardBadge.style.color = appState.socioTipo === 'black' ? '#fbbf24' : '#f59e0b';
+        cardBadge.style.borderColor = appState.socioTipo === 'black' ? 'rgba(251,191,36,0.4)' : 'rgba(245,158,11,0.4)';
+        cardBadge.style.background = appState.socioTipo === 'black' ? 'rgba(251,191,36,0.15)' : 'rgba(245,158,11,0.15)';
+    }
+    if (cardIcon) {
+        cardIcon.style.color = appState.socioTipo === 'black' ? '#fbbf24' : '#f59e0b';
+    }
+
+    // Ir a pantalla de bienvenida con número real
+    nextScreen('screen-socio-welcome');
+    appState.isSocioCheckout = false;
+}
+
 
 // Confirmar Pago en Mercado Pago
 async function confirmMPPayment() {
