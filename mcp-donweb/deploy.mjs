@@ -1,9 +1,14 @@
 #!/usr/bin/env node
 /**
- * Deploy FTP a DonWeb/Ferozo (4 Niveles: Landing, Admin, Cliente, API)
- * Aura v1.8 - L1deres AutoWash
- * MySQL: a0170001_l1deres @ localhost
- * FTP:   a0170001 @ a0170001.ferozo.com
+ * ================================================================
+ * Deploy FTP a DonWeb/Ferozo — PROYECTO: L1deres AutoWash
+ * ================================================================
+ * ⚠️  ESTE SCRIPT SOLO TOCA LA CARPETA: public_html/
+ *     NO modifica nada de public_html/aura-adamo/ (otro proyecto)
+ *
+ * Niveles: Landing | Admin | Cliente | API
+ * FTP:  a0170001 @ a0170001.ferozo.com
+ * ================================================================
  */
 import * as ftp from "basic-ftp";
 import fs from "fs";
@@ -19,15 +24,18 @@ const CONFIG = {
   password: "AuraFTP2025@aura",
   secure: true,
   secureOptions: { rejectUnauthorized: false },
+  // ⚠️ RAÍZ de L1deres — NO cambiar
   remoteRoot: "public_html",
 };
 
-// Archivos Landing Comercial (Raíz)
+// ⚠️ Archivos de la Landing Comercial de L1deres (Raíz public_html/)
+// NOTA: .htaccess incluye las reglas multi-dominio que separan
+//       aura-adamo.site de l1deres.site — NO eliminar esa regla
 const LANDING_FILES = [
   "index.html",
   "style.css",
   "script.js",
-  ".htaccess",
+  ".htaccess",         // ← Contiene reglas para separar aura-adamo.site
   "logo.jpg",
   "logo_horizontal.jpg",
   "logo_icon.jpg",
@@ -97,11 +105,11 @@ async function connectFTP() {
 }
 
 async function deployLanding() {
-  console.log("🌐 [1/3] DEPLOY LANDING COMERCIAL (public_html/)");
+  console.log("🌐 [1/4] DEPLOY LANDING COMERCIAL (public_html/)");
   console.log("─".repeat(45));
   for (const file of LANDING_FILES) {
     const local = path.join(ROOT, file);
-    if (!fs.existsSync(local)) continue;
+    if (!fs.existsSync(local)) { console.log(`  ⏭️  ${file} (no existe localmente, omitido)`); continue; }
     const remote = `${CONFIG.remoteRoot}/${file}`;
     const client = await connectFTP();
     try {
@@ -110,26 +118,19 @@ async function deployLanding() {
       console.log(`  ✅ ${file} (${size} KB)`);
     } catch (err) {
       console.log(`  ❌ ${file} → Error: ${err.message}`);
-    } finally {
-      client.close();
-    }
+    } finally { client.close(); }
   }
 }
 
 async function deployAdmin() {
-  console.log("\n🔒 [2/3] DEPLOY ADMIN DASHBOARD (public_html/admin/)");
+  console.log("\n🔒 [2/4] DEPLOY ADMIN DASHBOARD (public_html/admin/)");
   console.log("─".repeat(45));
   const setupClient = await connectFTP();
-  try {
-    await setupClient.ensureDir(`${CONFIG.remoteRoot}/admin`);
-    console.log("  📂 Carpeta public_html/admin/ lista");
-  } finally {
-    setupClient.close();
-  }
-
+  try { await setupClient.ensureDir(`${CONFIG.remoteRoot}/admin`); console.log("  📂 Carpeta admin/ lista"); }
+  finally { setupClient.close(); }
   for (const file of ADMIN_FILES) {
     const local = path.join(ROOT, "admin", file);
-    if (!fs.existsSync(local)) continue;
+    if (!fs.existsSync(local)) { console.log(`  ⏭️  admin/${file} (no existe localmente, omitido)`); continue; }
     const remote = `${CONFIG.remoteRoot}/admin/${file}`;
     const client = await connectFTP();
     try {
@@ -138,26 +139,19 @@ async function deployAdmin() {
       console.log(`  ✅ admin/${file} (${size} KB)`);
     } catch (err) {
       console.log(`  ❌ admin/${file} → Error: ${err.message}`);
-    } finally {
-      client.close();
-    }
+    } finally { client.close(); }
   }
 }
 
 async function deployCliente() {
-  console.log("\n📱 [3/3] DEPLOY APP CLIENTE PWA (public_html/cliente/)");
+  console.log("\n📱 [3/4] DEPLOY APP CLIENTE PWA (public_html/cliente/)");
   console.log("─".repeat(45));
   const setupClient = await connectFTP();
-  try {
-    await setupClient.ensureDir(`${CONFIG.remoteRoot}/cliente`);
-    console.log("  📂 Carpeta public_html/cliente/ lista");
-  } finally {
-    setupClient.close();
-  }
-
+  try { await setupClient.ensureDir(`${CONFIG.remoteRoot}/cliente`); console.log("  📂 Carpeta cliente/ lista"); }
+  finally { setupClient.close(); }
   for (const file of CLIENT_FILES) {
     const local = path.join(ROOT, "cliente", file);
-    if (!fs.existsSync(local)) continue;
+    if (!fs.existsSync(local)) { console.log(`  ⏭️  cliente/${file} (no existe localmente, omitido)`); continue; }
     const remote = `${CONFIG.remoteRoot}/cliente/${file}`;
     const client = await connectFTP();
     try {
@@ -166,9 +160,7 @@ async function deployCliente() {
       console.log(`  ✅ cliente/${file} (${size} KB)`);
     } catch (err) {
       console.log(`  ❌ cliente/${file} → Error: ${err.message}`);
-    } finally {
-      client.close();
-    }
+    } finally { client.close(); }
   }
 }
 
@@ -176,16 +168,11 @@ async function deployApi() {
   console.log("\n⚡ [4/4] DEPLOY BACKEND API PHP (public_html/api/)");
   console.log("─".repeat(45));
   const setupClient = await connectFTP();
-  try {
-    await setupClient.ensureDir(`${CONFIG.remoteRoot}/api`);
-    console.log("  📂 Carpeta public_html/api/ lista");
-  } finally {
-    setupClient.close();
-  }
-
+  try { await setupClient.ensureDir(`${CONFIG.remoteRoot}/api`); console.log("  📂 Carpeta api/ lista"); }
+  finally { setupClient.close(); }
   for (const file of API_FILES) {
     const local = path.join(ROOT, "api", file);
-    if (!fs.existsSync(local)) continue;
+    if (!fs.existsSync(local)) { console.log(`  ⏭️  api/${file} (no existe localmente, omitido)`); continue; }
     const remote = `${CONFIG.remoteRoot}/api/${file}`;
     const client = await connectFTP();
     try {
@@ -194,29 +181,26 @@ async function deployApi() {
       console.log(`  ✅ api/${file} (${size} KB)`);
     } catch (err) {
       console.log(`  ❌ api/${file} → Error: ${err.message}`);
-    } finally {
-      client.close();
-    }
+    } finally { client.close(); }
   }
 }
 
 async function deploy() {
   try {
-    console.log("🚀 INICIANDO DESPLIEGUE MULTI-NIVEL EN DONWEB (l1deres.site)\n");
+    console.log("🚀 DEPLOY L1DERES AUTOWASH → l1deres.site\n");
+    console.log("⚠️  Este script NO toca public_html/aura-adamo/ (proyecto separado)\n");
     await deployLanding();
     await deployAdmin();
     await deployCliente();
     await deployApi();
-
-    console.log("\n🎉 DESPLIEGUE MULTI-NIVEL COMPLETADO CON ÉXITO");
+    console.log("\n🎉 DESPLIEGUE COMPLETADO CON ÉXITO");
     console.log("─".repeat(50));
-    console.log("  🌐 Landing Page Comercial: https://l1deres.site");
-    console.log("  📱 App Cliente (PWA):       https://l1deres.site/cliente/");
-    console.log("  🔒 Admin Dashboard:         https://l1deres.site/admin/");
-    console.log("  ⚡ Backend API PHP:          https://l1deres.site/api/");
+    console.log("  🌐 Landing:  https://l1deres.site");
+    console.log("  📱 Cliente:  https://l1deres.site/cliente/");
+    console.log("  🔒 Admin:    https://l1deres.site/admin/");
+    console.log("  ⚡ API:      https://l1deres.site/api/");
   } catch (err) {
-    console.error("\n❌ ERROR DE CONEXIÓN FTP:");
-    console.error(err.message);
+    console.error("\n❌ ERROR DE CONEXIÓN FTP:", err.message);
     process.exit(1);
   }
 }

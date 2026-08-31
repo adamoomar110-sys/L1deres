@@ -1,15 +1,4 @@
 # ============================================================
-# REGLA MULTI-DOMINIO: Separar aura-adamo.site de l1deres.site
-# Cuando el visitante entra desde aura-adamo.site,
-# se sirven los archivos de la subcarpeta /aura-adamo/
-# ============================================================
-RewriteEngine On
-
-RewriteCond %{HTTP_HOST} ^(www\.)?aura-adamo\.site$ [NC]
-RewriteCond %{REQUEST_URI} !^/aura-adamo/
-RewriteRule ^(.*)$ /aura-adamo/$1 [L]
-
-# ============================================================
 # Apache / LiteSpeed Web Server Configuration for DonWeb
 # App: Aura v1.5 - Panel Administrativo (L1deres AutoWash)
 # ============================================================
@@ -17,7 +6,9 @@ RewriteRule ^(.*)$ /aura-adamo/$1 [L]
 DirectoryIndex index.html
 Options -Indexes
 
-RewriteCond %{HTTP_HOST} !^(www\.)?aura-adamo\.site$ [NC]
+RewriteEngine On
+
+# Si la ruta no corresponde a un archivo o carpeta existente, redirigir a index.html
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.html [L]
