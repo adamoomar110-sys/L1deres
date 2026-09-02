@@ -39,13 +39,13 @@ async function loadLandingConfig() {
 
     // 2. Cargar desde API DonWeb MySQL
     try {
-        const res = await fetch(`${API_URL}configuracion.php`);
+        const res = await fetch(`${API_URL}configuracion.php?t=${Date.now()}`);
         if (res.ok) {
             const data = await res.json();
             if (data && !data.error) {
                 landingConfig = { ...landingConfig, ...data };
                 if (data.live_state) {
-                    renderLandingCars(data.live_state);
+                    renderLandingCars(recalcularETAsLanding(data.live_state));
                 }
             }
         }
@@ -286,13 +286,86 @@ _landingCarImg.onerror = () => {
     }
 };
 
+// ============================================================
+// RECÁLCULO DINÁMICO DE ETAs LANDING (Mirror del motor Dashboard)
+// Recalcula tiempos frescos desde la posición en cola, sin
+// depender de timestamps absolutos que pueden haber vencido en BD.
+// ============================================================
+function recalcularETAsLanding(state) {
+    if (!state) return state;
+
+    const now = Date.now();
+    const msLavado = state.tiempo_lavado_ms || 120000;
+    const msSecado = state.tiempo_secado_ms || 180000;
+
+    let T_LavadoFree = now;
+    if (state.lavado && state.lavado.endTime) {
+        const lavadoRemaining = state.lavado.endTime - (state.ts || now);
+        const lavadoEndAjustado = now + Math.max(0, lavadoRemaining);
+        state.lavado.endTime = lavadoEndAjustado;
+        T_LavadoFree = lavadoEndAjustado + 2000;
+    }
+
+    let T_Secado1Free = now;
+    if (Array.isArray(state.secado) && state.secado[0] && state.secado[0].endTime) {
+        const secRemaining = state.secado[0].endTime - (state.ts || now);
+        const secEndAjustado = now + Math.max(0, secRemaining);
+        state.secado[0].endTime = secEndAjustado;
+        T_Secado1Free = secEndAjustado + 2000;
+    }
+
+    if (Array.isArray(state.terminado)) {
+        state.terminado.forEach(a => {
+            if (a && a.endTime) {
+                const remaining = a.endTime - (state.ts || now);
+                a.endTime = now + Math.max(0, remaining);
+            }
+        });
+    }
+
+    let T_LaneFree = { impar: now, par: now };
+
+    if (Array.isArray(state.espera)) {
+        let waitingCars = [];
+        state.espera.forEach((auto, idx) => {
+            if (auto) waitingCars.push({ auto, idx });
+        });
+        waitingCars.sort((a, b) => (a.auto.startTime || 0) - (b.auto.startTime || 0));
+
+        waitingCars.forEach(item => {
+            const auto = item.auto;
+            const idx  = item.idx;
+            const lane = (idx % 2 === 0) ? 'impar' : 'par';
+
+            const myDestFree = (auto.tipo === 'solo_secado') ? T_Secado1Free : T_LavadoFree;
+            const T_leave_queue = Math.max(T_LaneFree[lane], myDestFree);
+
+            auto.etaSalidaEspera = T_leave_queue;
+
+            if (auto.tipo === 'solo_secado') {
+                T_Secado1Free = T_leave_queue + msSecado + 2000;
+            } else {
+                let processTime = msLavado;
+                if (auto.tipo === 'completo_auto' || auto.tipo === 'completo_camioneta' || auto.tipo === 'lavado_secado') {
+                    processTime += msSecado;
+                }
+                T_LavadoFree = T_leave_queue + processTime + 2000;
+            }
+            T_LaneFree[lane] = T_leave_queue + 2000;
+        });
+    }
+
+    state.ts = now;
+    return state;
+}
+
 async function fetchLandingLiveState() {
     try {
-        const res = await fetch(`${API_URL}configuracion.php`);
+        const res = await fetch(`${API_URL}configuracion.php?t=${Date.now()}`);
         if (res.ok) {
             const data = await res.json();
             if (data && data.live_state) {
-                renderLandingCars(data.live_state);
+                renderLandingCars(recalcularETAsLanding(data.live_state));
             }
         }
     } catch (e) {
@@ -698,19 +771,19 @@ function renderLandingSponsorSlide() {
 function setupRealtimeSubscriptions() {
     setInterval(async () => {
         try {
-            const res = await fetch(`${API_URL}configuracion.php`);
+            const res = await fetch(`${API_URL}configuracion.php?t=${Date.now()}`);
             if (res.ok) {
                 const data = await res.json();
                 if (data && !data.error) {
                     landingConfig = { ...landingConfig, ...data };
                     updateLandingUI();
                     if (data.live_state) {
-                        renderLandingCars(data.live_state);
+                        renderLandingCars(recalcularETAsLanding(data.live_state));
                     }
                 }
             }
         } catch (e) {}
-    }, 4000);
+    }, 3000);
 }
 
 function handleContactForm(e) {

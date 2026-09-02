@@ -660,13 +660,95 @@ const ESPERA_ZONES = [11, 12, 17, 18, 23, 24, 29, 30];
 const LAVADO_ZONE = 4;
 const SECADO_ZONES = [3];
 
+// ============================================================
+// RECÁLCULO DINÁMICO DE ETAs (Mirror del motor del Dashboard)
+// Recalcula los tiempos en base a la posición en cola y los
+// tiempos de lavado/secado, sin depender de timestamps absolutos
+// guardados en la BD que pueden estar vencidos.
+// ============================================================
+function recalcularETAs(state) {
+    if (!state) return state;
+
+    const now = Date.now();
+    const msLavado = state.tiempo_lavado_ms || 120000;
+    const msSecado = state.tiempo_secado_ms || 180000;
+
+    // 1. Disponibilidad inicial de recursos
+    // Si hay un auto en lavado, calcular cuándo termina desde ahora
+    let T_LavadoFree = now;
+    if (state.lavado && state.lavado.endTime) {
+        const lavadoRemaining = state.lavado.endTime - (state.ts || now);
+        const lavadoEndAjustado = now + Math.max(0, lavadoRemaining);
+        state.lavado.endTime = lavadoEndAjustado;
+        T_LavadoFree = lavadoEndAjustado + 2000;
+    }
+
+    let T_Secado1Free = now;
+    if (Array.isArray(state.secado) && state.secado[0] && state.secado[0].endTime) {
+        const secRemaining = state.secado[0].endTime - (state.ts || now);
+        const secEndAjustado = now + Math.max(0, secRemaining);
+        state.secado[0].endTime = secEndAjustado;
+        T_Secado1Free = secEndAjustado + 2000;
+    }
+
+    // Ajustar terminados también
+    if (Array.isArray(state.terminado)) {
+        state.terminado.forEach(a => {
+            if (a && a.endTime) {
+                const remaining = a.endTime - (state.ts || now);
+                a.endTime = now + Math.max(0, remaining);
+            }
+        });
+    }
+
+    let T_LaneFree = { impar: now, par: now };
+
+    // 2. Ordenar autos en espera por startTime (igual que el admin)
+    if (Array.isArray(state.espera)) {
+        let waitingCars = [];
+        state.espera.forEach((auto, idx) => {
+            if (auto) waitingCars.push({ auto, idx });
+        });
+        waitingCars.sort((a, b) => (a.auto.startTime || 0) - (b.auto.startTime || 0));
+
+        // 3. Simular ETAs frescos (mismo algoritmo que admin/script.js updateTimers)
+        waitingCars.forEach(item => {
+            const auto = item.auto;
+            const idx  = item.idx;
+            const lane = (idx % 2 === 0) ? 'impar' : 'par';
+
+            const myDestFree = (auto.tipo === 'solo_secado') ? T_Secado1Free : T_LavadoFree;
+            const T_leave_queue = Math.max(T_LaneFree[lane], myDestFree);
+
+            // ETA recalculado y fresco
+            auto.etaSalidaEspera = T_leave_queue;
+
+            if (auto.tipo === 'solo_secado') {
+                T_Secado1Free = T_leave_queue + msSecado + 2000;
+            } else {
+                let processTime = msLavado;
+                if (auto.tipo === 'completo_auto' || auto.tipo === 'completo_camioneta' || auto.tipo === 'lavado_secado') {
+                    processTime += msSecado;
+                }
+                T_LavadoFree = T_leave_queue + processTime + 2000;
+            }
+            T_LaneFree[lane] = T_leave_queue + 2000;
+        });
+    }
+
+    // Actualizar ts al momento actual para que próximas llamadas sepan que el state es fresco
+    state.ts = now;
+    return state;
+}
+
 async function fetchClientLiveState() {
     try {
-        const res = await fetch(`${API_URL}configuracion.php`);
+        const res = await fetch(`${API_URL}configuracion.php?t=${Date.now()}`);
         if (res.ok) {
             const data = await res.json();
             if (data && data.live_state) {
-                renderClientCars(data.live_state);
+                const stateAjustado = recalcularETAs(data.live_state);
+                renderClientCars(stateAjustado);
             }
         }
     } catch (e) {
@@ -1030,8 +1112,8 @@ function updateClientBadge(state) {
 
 function initClientCarSync() {
     fetchClientLiveState();
-    setInterval(fetchClientLiveState, 4000);
-    setInterval(updateClientBadge, 1000);
+    setInterval(fetchClientLiveState, 3000); // Polling cada 3s — sincronizado con el admin
+    setInterval(updateClientBadge, 1000);    // Actualizar reloj cada segundo
 }
 
 // ============================================================
