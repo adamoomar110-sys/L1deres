@@ -621,7 +621,17 @@ function renderLandingCars(state) {
         });
     }
 
-    let remainingSegundos = Math.ceil((maxEta - Date.now()) / 1000);
+    let remainingSegundos = 0;
+    if (autosEsperaCount > 0) {
+        if (maxEta > Date.now()) {
+            remainingSegundos = Math.ceil((maxEta - Date.now()) / 1000);
+        } else {
+            const msLav = (state && state.tiempo_lavado_ms) || 120000;
+            const msSec = (state && state.tiempo_secado_ms) || 180000;
+            const minPorTurnoSeg = Math.round((msLav + msSec) / 1000);
+            remainingSegundos = Math.ceil(autosEsperaCount / 2) * minPorTurnoSeg;
+        }
+    }
     if (remainingSegundos < 0 || autosEsperaCount === 0) remainingSegundos = 0;
 
     const timeStr = formatLandingTime(remainingSegundos);

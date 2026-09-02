@@ -1013,20 +1013,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cars = [];
                 if (Array.isArray(estadoEspera)) {
                     estadoEspera.forEach((a, i) => {
-                        if (a) cars.push({ slot: `espera_${i}`, estado: 'espera', tipo: a.tipo, id: a.id });
+                        if (a) cars.push({ slot: `espera_${i}`, estado: 'espera', tipo: a.tipo, id: a.id, etaSalidaEspera: a.etaSalidaEspera || null, plate: a.plate || '' });
                     });
                 }
                 if (estadoLavado) {
-                    cars.push({ slot: 'lavado', estado: 'lavando', tipo: estadoLavado.tipo, id: estadoLavado.id });
+                    cars.push({ slot: 'lavado', estado: 'lavando', tipo: estadoLavado.tipo, id: estadoLavado.id, plate: estadoLavado.plate || '' });
                 }
                 if (Array.isArray(estadoSecado)) {
                     estadoSecado.forEach((a, i) => {
-                        if (a) cars.push({ slot: `secado_${i}`, estado: 'secando', tipo: a.tipo, id: a.id });
+                        if (a) cars.push({ slot: `secado_${i}`, estado: 'secando', tipo: a.tipo, id: a.id, plate: a.plate || '' });
                     });
                 }
                 if (Array.isArray(estadoTerminado)) {
                     estadoTerminado.forEach((a, i) => {
-                        if (a) cars.push({ slot: `terminado_${i}`, estado: 'terminado', tipo: a.tipo, id: a.id });
+                        if (a) cars.push({ slot: `terminado_${i}`, estado: 'terminado', tipo: a.tipo, id: a.id, plate: a.plate || '' });
                     });
                 }
 
@@ -1053,6 +1053,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 150);
     }
     window.syncLiveState = syncLiveState;
+    setInterval(() => { if (isLiveStateRestored) syncLiveState(); }, 3000);
 
     // ============================================================
     // GESTIÓN INTEGRAL DE BOXES EN VIVO (Panel de Control y Edición)
