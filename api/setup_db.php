@@ -5,32 +5,45 @@
 header("Content-Type: application/json; charset=UTF-8");
 
 $host = 'localhost';
-$db_name = 'a0170001_l1deres';
+$db_names = [
+    'a0170001_lava2',
+    'a0170001_lava',
+    'a0170001_l1deres',
+    'a0170001_lideres',
+    'a0170001_aura',
+    'a0170001_autowash',
+    'a0170001_db',
+    'a0170001_main'
+];
 
 $credentials = [
     ['user' => 'a0170001_l1deres', 'pass' => '@Peloymago110Peloymago110'],
     ['user' => 'a0170001_l1deres', 'pass' => 'AuraFTP2025@aura'],
     ['user' => 'a0170001_lava2',   'pass' => '@Peloymago110Peloymago110'],
+    ['user' => 'a0170001_lava2',   'pass' => 'AuraFTP2025@aura'],
     ['user' => 'a0170001',         'pass' => '@Peloymago110Peloymago110'],
-    ['user' => 'a0170001',         'pass' => 'AuraFTP2025@aura'],
-    ['user' => 'a0170001_lava2',   'pass' => 'AuraFTP2025@aura']
+    ['user' => 'a0170001',         'pass' => 'AuraFTP2025@aura']
 ];
 
 $pdo = null;
 $logs = [];
 $usedCred = null;
+$connectedDb = null;
 
-foreach ($credentials as $cred) {
-    try {
-        $testPdo = new PDO("mysql:host={$host};dbname={$db_name};charset=utf8mb4", $cred['user'], $cred['pass'], [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
-        $pdo = $testPdo;
-        $usedCred = $cred;
-        $logs[] = "¡Conectado exitosamente a '{$db_name}' usando usuario '{$cred['user']}'!";
-        break;
-    } catch (PDOException $ex) {
-        $logs[] = "Prueba con usuario '{$cred['user']}' falló: " . $ex->getMessage();
+foreach ($db_names as $db_name) {
+    foreach ($credentials as $cred) {
+        try {
+            $testPdo = new PDO("mysql:host={$host};dbname={$db_name};charset=utf8mb4", $cred['user'], $cred['pass'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            ]);
+            $pdo = $testPdo;
+            $usedCred = $cred;
+            $connectedDb = $db_name;
+            $logs[] = "¡Conectado exitosamente a DB '{$db_name}' usando usuario '{$cred['user']}'!";
+            break 2;
+        } catch (PDOException $ex) {
+            $logs[] = "Prueba DB '{$db_name}' usuario '{$cred['user']}': " . $ex->getMessage();
+        }
     }
 }
 
