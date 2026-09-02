@@ -961,7 +961,12 @@ function renderClientCars(state) {
     updateClientBadge(state);
 }
 
+let latestClientLiveState = null;
+
 function updateClientBadge(state) {
+    if (state) latestClientLiveState = state;
+    const currentState = state || latestClientLiveState;
+
     const timeEl  = document.getElementById('client-status-time');
     const badgeEl = document.getElementById('client-status-badge');
     if (!timeEl || !badgeEl) return;
@@ -969,15 +974,26 @@ function updateClientBadge(state) {
     let maxEta = Date.now();
     let autosEsperaCount = 0;
 
-    if (state && Array.isArray(state.espera)) {
-        state.espera.forEach(a => {
-            if (a) {
-                autosEsperaCount++;
-                if (a.etaSalidaEspera && a.etaSalidaEspera > maxEta) {
-                    maxEta = a.etaSalidaEspera;
+    if (currentState) {
+        if (Array.isArray(currentState.espera)) {
+            currentState.espera.forEach(a => {
+                if (a) {
+                    autosEsperaCount++;
+                    if (a.etaSalidaEspera && a.etaSalidaEspera > maxEta) {
+                        maxEta = a.etaSalidaEspera;
+                    }
                 }
-            }
-        });
+            });
+        } else if (Array.isArray(currentState.cars)) {
+            currentState.cars.forEach(c => {
+                if (c && c.slot && c.slot.startsWith('espera_')) {
+                    autosEsperaCount++;
+                    if (c.etaSalidaEspera && c.etaSalidaEspera > maxEta) {
+                        maxEta = c.etaSalidaEspera;
+                    }
+                }
+            });
+        }
     }
 
     let remainingSegundos = Math.ceil((maxEta - Date.now()) / 1000);
@@ -989,14 +1005,23 @@ function updateClientBadge(state) {
         badgeEl.textContent = 'SIN DEMORA';
     } else {
         timeEl.textContent  = formatClientTime(remainingSegundos);
-        badgeEl.className   = autosEsperaCount > 3 ? 'status-badge badge-alta' : 'status-badge badge-normal';
-        badgeEl.textContent = `${autosEsperaCount} EN ESPERA`;
+        if (autosEsperaCount <= 4) {
+            badgeEl.className   = 'status-badge badge-normal';
+            badgeEl.textContent = 'DEMORA NORMAL';
+        } else if (autosEsperaCount <= 6) {
+            badgeEl.className   = 'status-badge badge-alta';
+            badgeEl.textContent = 'DEMORA ALTA';
+        } else {
+            badgeEl.className   = 'status-badge badge-critica';
+            badgeEl.textContent = 'CAP. MÁXIMA';
+        }
     }
 }
 
 function initClientCarSync() {
     fetchClientLiveState();
     setInterval(fetchClientLiveState, 4000);
+    setInterval(updateClientBadge, 1000);
 }
 
 // ============================================================

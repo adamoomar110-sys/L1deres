@@ -72,6 +72,18 @@
                     <img src="render_fachada.jpg" alt="L1deres AutoWash & Detailing" style="width: 100%; height: 120px; object-fit: cover; display: block;" onerror="this.src='../render_fachada.jpg'; this.onerror=null;">
                 </div>
 
+                <!-- Reloj de Demora Estimada del Dashboard (Entre el Render y la Pista) -->
+                <div id="client-status-board" class="client-status-board" style="width: 100%; background: rgba(11, 15, 25, 0.95); border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 14px; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.7), inset 0 0 15px rgba(15,23,42,0.6); box-sizing: border-box;">
+                    <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                        <div style="font-size: 0.72rem; font-weight: 800; color: #38bdf8; letter-spacing: 1.5px; text-transform: uppercase; line-height: 1.2;">DEMORA</div>
+                        <div style="font-size: 0.72rem; font-weight: 800; color: #38bdf8; letter-spacing: 1.5px; text-transform: uppercase; line-height: 1.2; margin-bottom: 4px;">ESTIMADA</div>
+                        <div id="client-status-time" style="font-size: 2rem; font-weight: 900; color: #ffffff; font-family: 'Racing Sans One', sans-serif; text-shadow: 0 0 15px rgba(255, 255, 255, 0.7), 0 0 5px rgba(56, 189, 248, 0.8); line-height: 1;">00:00</div>
+                    </div>
+                    <div>
+                        <span id="client-status-badge" class="status-badge badge-libre" style="display: inline-block; padding: 8px 18px; border-radius: 9999px; font-size: 0.85rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; border: 1.5px solid #22c55e; background: rgba(34, 197, 94, 0.12); color: #4ade80; box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);">SIN DEMORA</span>
+                    </div>
+                </div>
+
                 <!-- Pista F1 Mini Circuito Realista -->
                 <div style="width: 100%; background: #0b0f19; border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(56,189,248,0.3); position: relative; height: 56px; box-shadow: 0 4px 20px rgba(0,0,0,0.6), inset 0 0 15px rgba(0,0,0,0.8);">
                     <!-- Pianos F1 Superior (Kerbs rojo y blanco) -->
