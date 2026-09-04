@@ -1,6 +1,7 @@
 <?php
 // ============================================================
-// DONWEB MYSQL PDO CONNECTION & API CONFIGURATION (Aura v1.5)
+// DONWEB MYSQL PDO CONNECTION & API CONFIGURATION (Aura v1.8)
+// Base de datos oficial: a0170001_l1deres
 // ============================================================
 
 header("Access-Control-Allow-Origin: *");
@@ -19,10 +20,8 @@ $db_name = 'a0170001_l1deres';
 $credentials = [
     ['user' => 'a0170001_l1deres', 'pass' => '@Peloymago110Peloymago110'],
     ['user' => 'a0170001_l1deres', 'pass' => 'AuraFTP2025@aura'],
-    ['user' => 'a0170001_lava2',   'pass' => '@Peloymago110Peloymago110'],
     ['user' => 'a0170001',         'pass' => '@Peloymago110Peloymago110'],
-    ['user' => 'a0170001',         'pass' => 'AuraFTP2025@aura'],
-    ['user' => 'a0170001_lava2',   'pass' => 'AuraFTP2025@aura']
+    ['user' => 'a0170001',         'pass' => 'AuraFTP2025@aura']
 ];
 
 $pdo = null;
@@ -39,6 +38,12 @@ foreach ($credentials as $cred) {
     } catch (PDOException $e) {
         continue;
     }
+}
+
+if (!$pdo) {
+    http_response_code(500);
+    echo json_encode(['error' => 'No se pudo conectar a la base de datos a0170001_l1deres.'], JSON_UNESCAPED_UNICODE);
+    exit();
 }
 
 function getJsonInput() {

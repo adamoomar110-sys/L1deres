@@ -659,6 +659,7 @@ _clientCarImg.onload = () => {
 const ESPERA_ZONES = [11, 12, 17, 18, 23, 24, 29, 30];
 const LAVADO_ZONE = 4;
 const SECADO_ZONES = [3];
+const TERMINADO_ZONES = [25, 19, 13, 7];
 
 async function fetchClientLiveState() {
     try {
@@ -666,7 +667,9 @@ async function fetchClientLiveState() {
         if (res.ok) {
             const data = await res.json();
             if (data && data.live_state) {
-                renderClientCars(data.live_state);
+                const ls = typeof data.live_state === 'string' ? JSON.parse(data.live_state) : data.live_state;
+                renderClientCars(ls);
+                updateClientBadge(ls);
             }
         }
     } catch (e) {
@@ -768,8 +771,11 @@ function clientGameLoop() {
 requestAnimationFrame(clientGameLoop);
 
 function renderClientCars(state) {
+    if (!state) return;
+    updateClientBadge(state);
+
     const canvas = document.getElementById('client-canvas-area') || document.querySelector('.client-canvas-area');
-    if (!canvas || !state) return;
+    if (!canvas) return;
 
     const activeCarIds = new Set();
     const ESPERA_ZONES = [11, 12, 17, 18, 23, 24, 29, 30];
@@ -919,6 +925,14 @@ function renderClientCars(state) {
                 }
             });
         }
+        if (Array.isArray(state.terminado)) {
+            state.terminado.forEach((item, index) => {
+                if (item && TERMINADO_ZONES[index]) {
+                    const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
+                    placeCar(TERMINADO_ZONES[index], '¡Listo!', '#34d399', 180, type, item.id || `term-${index}`, item, 'terminado');
+                }
+            });
+        }
     } 
     else if (Array.isArray(state.cars)) {
         state.cars.forEach((carInfo, idx) => {
@@ -964,12 +978,12 @@ function renderClientCars(state) {
 function updateClientBadge(state) {
     const timeEl  = document.getElementById('client-status-time');
     const badgeEl = document.getElementById('client-status-badge');
-    if (!timeEl || !badgeEl) return;
+    if (!timeEl || !badgeEl || !state) return;
 
     let maxEta = Date.now();
     let autosEsperaCount = 0;
 
-    if (state && Array.isArray(state.espera)) {
+    if (Array.isArray(state.espera)) {
         state.espera.forEach(a => {
             if (a) {
                 autosEsperaCount++;
@@ -983,14 +997,21 @@ function updateClientBadge(state) {
     let remainingSegundos = Math.ceil((maxEta - Date.now()) / 1000);
     if (remainingSegundos < 0 || autosEsperaCount === 0) remainingSegundos = 0;
 
+    timeEl.textContent = formatClientTime(remainingSegundos);
+
+    badgeEl.className = 'status-badge';
     if (autosEsperaCount === 0) {
-        timeEl.textContent  = '00:00';
-        badgeEl.className   = 'status-badge badge-libre';
-        badgeEl.textContent = 'SIN DEMORA';
+        badgeEl.textContent = 'Sin Demora';
+        badgeEl.classList.add('badge-libre');
+    } else if (autosEsperaCount <= 4) {
+        badgeEl.textContent = 'Demora Normal';
+        badgeEl.classList.add('badge-normal');
+    } else if (autosEsperaCount <= 6) {
+        badgeEl.textContent = 'Demora Alta';
+        badgeEl.classList.add('badge-alta');
     } else {
-        timeEl.textContent  = formatClientTime(remainingSegundos);
-        badgeEl.className   = autosEsperaCount > 3 ? 'status-badge badge-alta' : 'status-badge badge-normal';
-        badgeEl.textContent = `${autosEsperaCount} EN ESPERA`;
+        badgeEl.textContent = 'Cap. Máxima';
+        badgeEl.classList.add('badge-critica');
     }
 }
 

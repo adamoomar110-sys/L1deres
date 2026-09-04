@@ -72,6 +72,15 @@
                     <img src="render_fachada.jpg" alt="L1deres AutoWash & Detailing" style="width: 100%; height: 120px; object-fit: cover; display: block;" onerror="this.src='../render_fachada.jpg'; this.onerror=null;">
                 </div>
 
+                <!-- Widget Reloj Demora Estimada (Sincronizado en tiempo real) -->
+                <div class="client-status-board" id="client-status-board">
+                    <div class="status-info">
+                        <div class="status-title">Demora Estimada</div>
+                        <div class="status-time" id="client-status-time">00:00</div>
+                    </div>
+                    <div class="status-badge badge-libre" id="client-status-badge">Sin Demora</div>
+                </div>
+
                 <!-- Pista F1 Mini Circuito Realista -->
                 <div style="width: 100%; background: #0b0f19; border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(56,189,248,0.3); position: relative; height: 56px; box-shadow: 0 4px 20px rgba(0,0,0,0.6), inset 0 0 15px rgba(0,0,0,0.8);">
                     <!-- Pianos F1 Superior (Kerbs rojo y blanco) -->
@@ -125,6 +134,12 @@
                         <i class='bx bxs-award' style="color: #78350f; font-size: 1rem;"></i> HACETE SOCIO GOLD
                     </button>
                 </div>
+
+                <!-- Botón Principal: Sacar Turno de Lavado -->
+                <button class="btn btn-primary" onclick="handleReservaClick()" style="width: 100%; padding: 13px 10px; margin-bottom: 10px; font-size: 1rem; font-weight: 900; letter-spacing: 0.5px; border-radius: 12px; background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%); border: none; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 18px rgba(14,165,233,0.4); cursor: pointer;">
+                    <i class='bx bx-calendar-check' style="font-size: 1.3rem; color: #fde047;"></i> SACAR TURNO DE LAVADO <i class='bx bx-right-arrow-alt' style="font-size: 1.2rem;"></i>
+                </button>
+
                 <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 8px;">
                     <a href="https://wa.me/5491160473754?text=Hola%20L1deres%2C%20quiero%20hacerme%20socio!" target="_blank" rel="noopener noreferrer" class="btn" style="flex: 1; background: #25d366; color: #fff; font-weight: 900; font-size: 0.85rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 12px 6px; border-radius: 12px; box-shadow: 0 4px 16px rgba(37,211,102,0.4);">
                         <i class='bx bxl-whatsapp' style="font-size: 1.2rem;"></i> WHATSAPP
@@ -601,7 +616,8 @@
                     <i class='bx bx-navigation'></i> ¿Cómo llegar?
                 </a>
             </p>
-            <img src="logo_horizontal.jpg" alt="L1deres" style="height: 28px; margin-top: 4px; border-radius: 4px;">
+            <p style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">&copy; 2026 Aura · L1deres. Todos los derechos reservados.</p>
+            <img src="logo_horizontal.jpg" alt="L1deres" style="height: 26px; margin-top: 4px; border-radius: 4px;">
         </footer>
 
     </div>

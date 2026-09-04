@@ -1156,6 +1156,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (countAllEl) countAllEl.textContent = totalCount;
         if (countOcupadosEl) countOcupadosEl.textContent = occupiedCount;
 
+        // Si el usuario está escribiendo una patente o interactuando con un control dentro del panel, actualizamos solo tiempos sin pisar el DOM
+        const activeEl = document.activeElement;
+        if (activeEl && container.contains(activeEl)) {
+            boxes.forEach(b => {
+                const card = document.getElementById(`box-card-${b.id}`);
+                if (card) {
+                    const timerEl = card.querySelector('.box-timer-val');
+                    if (timerEl && b.auto) {
+                        const timeDisplay = (b.zone === 'terminado') ? '¡Listo para Salir!' : formatTimeMmSs(b.remainingSecs);
+                        if (timerEl.textContent !== timeDisplay) timerEl.textContent = timeDisplay;
+                    }
+                }
+            });
+            return;
+        }
+
         // Filtrado
         const filteredBoxes = boxes.filter(b => {
             if (currentBoxFilter === 'all') return true;
