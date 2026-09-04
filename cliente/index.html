@@ -59,17 +59,15 @@
 
         <!-- Pantalla 2: Bienvenida -->
         <div id="screen-welcome" class="screen">
-            <div class="card fade-in">
-                <h1 class="racing-font" style="margin-bottom: 4px; font-size: 1.6rem;">BIENVENIDO</h1>
-                <p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 12px;">
+            <div class="card fade-in" style="padding: 10px 10px 8px 10px; max-width: 390px;">
+                <h1 class="racing-font" style="margin-bottom: 2px; font-size: 1.45rem; line-height: 1.1;">BIENVENIDO</h1>
+                <p style="color: #94a3b8; font-size: 0.74rem; margin-bottom: 8px;">
                     Centro de Lavado Automático Inteligente
                 </p>
 
-
-
-                <!-- Render de Fachada 100% Limpio (Sin badges ni capas encimadas) -->
-                <div class="welcome-render-card" style="width: 100%; border-radius: 14px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.4); box-shadow: 0 8px 25px rgba(0,0,0,0.8); margin-bottom: 12px;">
-                    <img src="render_fachada.jpg" alt="L1deres AutoWash & Detailing" style="width: 100%; height: 120px; object-fit: cover; display: block;" onerror="this.src='../render_fachada.jpg'; this.onerror=null;">
+                <!-- Render de Fachada 100% Limpio y Prolijo -->
+                <div class="welcome-render-card" style="width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.4); box-shadow: 0 6px 18px rgba(0,0,0,0.8); margin-bottom: 8px;">
+                    <img src="render_fachada.jpg" alt="L1deres AutoWash & Detailing" style="width: 100%; height: 95px; object-fit: cover; display: block;" onerror="this.src='../render_fachada.jpg'; this.onerror=null;">
                 </div>
 
                 <!-- Widget Reloj Demora Estimada (Sincronizado en tiempo real) -->
@@ -82,32 +80,32 @@
                 </div>
 
                 <!-- Pista F1 Mini Circuito Realista -->
-                <div style="width: 100%; background: #0b0f19; border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(56,189,248,0.3); position: relative; height: 56px; box-shadow: 0 4px 20px rgba(0,0,0,0.6), inset 0 0 15px rgba(0,0,0,0.8);">
+                <div style="width: 100%; background: #0b0f19; border-radius: 10px; overflow: hidden; margin-bottom: 8px; border: 1px solid rgba(56,189,248,0.3); position: relative; height: 38px; box-shadow: 0 3px 15px rgba(0,0,0,0.6), inset 0 0 12px rgba(0,0,0,0.8);">
                     <!-- Pianos F1 Superior (Kerbs rojo y blanco) -->
-                    <div style="position: absolute; top: 0; left: 0; right: 0; height: 5px; background: repeating-linear-gradient(90deg, #ef4444 0px, #ef4444 14px, #ffffff 14px, #ffffff 28px); opacity: 0.85;"></div>
+                    <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: repeating-linear-gradient(90deg, #ef4444 0px, #ef4444 12px, #ffffff 12px, #ffffff 24px); opacity: 0.85;"></div>
                     <!-- Pianos F1 Inferior (Kerbs rojo y blanco) -->
-                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 5px; background: repeating-linear-gradient(90deg, #ffffff 0px, #ffffff 14px, #ef4444 14px, #ef4444 28px); opacity: 0.85;"></div>
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: repeating-linear-gradient(90deg, #ffffff 0px, #ffffff 12px, #ef4444 12px, #ef4444 24px); opacity: 0.85;"></div>
                     <!-- Asfalto textura y líneas de carril -->
-                    <div style="position: absolute; top: 5px; bottom: 5px; left: 0; right: 0; background: linear-gradient(180deg, #111827 0%, #1e293b 50%, #111827 100%);"></div>
+                    <div style="position: absolute; top: 4px; bottom: 4px; left: 0; right: 0; background: linear-gradient(180deg, #111827 0%, #1e293b 50%, #111827 100%);"></div>
                     <!-- Línea de llegada / meta a cuadros sutil -->
-                    <div style="position: absolute; top: 5px; bottom: 5px; right: 25px; width: 8px; background: repeating-linear-gradient(0deg, #fff 0px, #fff 4px, #000 4px, #000 8px); opacity: 0.35;"></div>
+                    <div style="position: absolute; top: 4px; bottom: 4px; right: 20px; width: 6px; background: repeating-linear-gradient(0deg, #fff 0px, #fff 3px, #000 3px, #000 6px); opacity: 0.35;"></div>
                     <!-- Línea central de carrera -->
-                    <div style="position: absolute; top: 50%; left: 0; right: 0; height: 2px; transform: translateY(-50%); background: repeating-linear-gradient(90deg, #38bdf8 0px, #38bdf8 16px, transparent 16px, transparent 32px); opacity: 0.4;"></div>
+                    <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1.5px; transform: translateY(-50%); background: repeating-linear-gradient(90deg, #38bdf8 0px, #38bdf8 14px, transparent 14px, transparent 28px); opacity: 0.4;"></div>
                     <!-- Estela de velocidad luminosa -->
                     <div style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; background: linear-gradient(90deg, transparent 0%, rgba(56,189,248,0.08) 50%, transparent 100%); animation: speedPulse 3s ease-in-out infinite;"></div>
                     <!-- Auto F1 Oficial Top-Down orientado de frente hacia la derecha (rotate 90deg) -->
                     <img src="f1_car_top_down.png" alt="F1 L1deres AutoWash"
-                        style="position: absolute; top: 50%; height: 38px; width: auto;
+                        style="position: absolute; top: 50%; height: 26px; width: auto;
                                transform: translateY(-50%) rotate(90deg);
                                animation: carRaceF1 3.5s cubic-bezier(0.25, 1, 0.5, 1) infinite;
-                               filter: drop-shadow(0 0 10px rgba(56,189,248,0.9)) drop-shadow(0 0 4px rgba(239,68,68,0.8));"
+                               filter: drop-shadow(0 0 8px rgba(56,189,248,0.9)) drop-shadow(0 0 3px rgba(239,68,68,0.8));"
                         onerror="this.src='../f1_car_top_down.png'; this.onerror=null;">
                     <style>
                         @keyframes carRaceF1 {
-                            0%   { left: -70px; opacity: 0; }
+                            0%   { left: -50px; opacity: 0; }
                             5%   { opacity: 1; }
                             90%  { opacity: 1; }
-                            100% { left: calc(100% + 40px); opacity: 0; }
+                            100% { left: calc(100% + 30px); opacity: 0; }
                         }
                         @keyframes speedPulse {
                             0%, 100% { opacity: 0.3; }
@@ -117,40 +115,56 @@
                 </div>
 
                 <!-- Cartel 200 Socios Fundadores -->
-                <div style="width: 100%; background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.08)); border: 1px solid rgba(251,191,36,0.35); border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                    <i class='bx bx-crown' style="font-size: 1.6rem; color: #fbbf24; flex-shrink: 0; filter: drop-shadow(0 0 8px rgba(251,191,36,0.6));"></i>
+                <div style="width: 100%; background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.08)); border: 1px solid rgba(251,191,36,0.35); border-radius: 10px; padding: 6px 10px; margin-bottom: 7px; display: flex; align-items: center; gap: 8px;">
+                    <i class='bx bx-crown' style="font-size: 1.35rem; color: #fbbf24; flex-shrink: 0; filter: drop-shadow(0 0 6px rgba(251,191,36,0.6));"></i>
                     <div style="text-align: left;">
-                        <p style="font-family: 'Racing Sans One', sans-serif; font-size: 1rem; color: #fbbf24; margin: 0; letter-spacing: 1px;">200 SOCIOS FUNDADORES</p>
-                        <p style="font-size: 0.72rem; color: #94a3b8; margin: 2px 0 0;">Club VIP exclusivo · Cupos limitados</p>
+                        <p style="font-family: 'Racing Sans One', sans-serif; font-size: 0.88rem; color: #fbbf24; margin: 0; letter-spacing: 0.8px;">200 SOCIOS FUNDADORES</p>
+                        <p style="font-size: 0.66rem; color: #94a3b8; margin: 1px 0 0;">Club VIP exclusivo · Cupos limitados</p>
                     </div>
                 </div>
 
                 <!-- Botones Club 200 Socios Fundadores VIP (Black & Gold) -->
-                <div class="socios-welcome-grid" style="display: flex; gap: 8px; width: 100%; margin-bottom: 10px;">
-                    <button class="btn btn-socio-black" onclick="nextScreen('screen-socio-black')" style="flex: 1; padding: 10px 4px; font-size: 0.72rem; font-weight: 800; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 4px; text-transform: uppercase;">
-                        <i class='bx bx-crown' style="color: #fbbf24; font-size: 1rem;"></i> HACETE SOCIO BLACK
+                <div class="socios-welcome-grid" style="display: flex; gap: 6px; width: 100%; margin-bottom: 7px;">
+                    <button class="btn btn-socio-black" onclick="nextScreen('screen-socio-black')" style="flex: 1; padding: 8px 4px; font-size: 0.70rem; font-weight: 800; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 3px; text-transform: uppercase;">
+                        <i class='bx bx-crown' style="color: #fbbf24; font-size: 0.9rem;"></i> SOCIO BLACK
                     </button>
-                    <button class="btn btn-socio-gold" onclick="nextScreen('screen-socio-gold')" style="flex: 1; padding: 10px 4px; font-size: 0.72rem; font-weight: 900; border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 4px; text-transform: uppercase;">
-                        <i class='bx bxs-award' style="color: #78350f; font-size: 1rem;"></i> HACETE SOCIO GOLD
+                    <button class="btn btn-socio-gold" onclick="nextScreen('screen-socio-gold')" style="flex: 1; padding: 8px 4px; font-size: 0.70rem; font-weight: 900; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 3px; text-transform: uppercase;">
+                        <i class='bx bxs-award' style="color: #78350f; font-size: 0.9rem;"></i> SOCIO GOLD
                     </button>
                 </div>
 
                 <!-- Botón Principal: Sacar Turno de Lavado -->
-                <button class="btn btn-primary" onclick="handleReservaClick()" style="width: 100%; padding: 13px 10px; margin-bottom: 10px; font-size: 1rem; font-weight: 900; letter-spacing: 0.5px; border-radius: 12px; background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%); border: none; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 18px rgba(14,165,233,0.4); cursor: pointer;">
-                    <i class='bx bx-calendar-check' style="font-size: 1.3rem; color: #fde047;"></i> SACAR TURNO DE LAVADO <i class='bx bx-right-arrow-alt' style="font-size: 1.2rem;"></i>
+                <button class="btn btn-primary" onclick="handleReservaClick()" style="width: 100%; padding: 11px 10px; margin-bottom: 7px; font-size: 0.94rem; font-weight: 900; letter-spacing: 0.5px; border-radius: 11px; background: linear-gradient(135deg, #0ea5e9 0%, #10b981 100%); border: none; color: white; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 16px rgba(14,165,233,0.35); cursor: pointer;">
+                    <i class='bx bx-calendar-check' style="font-size: 1.2rem; color: #fde047;"></i> SACAR TURNO DE LAVADO <i class='bx bx-right-arrow-alt' style="font-size: 1.1rem;"></i>
                 </button>
 
-                <div style="display: flex; gap: 8px; width: 100%; margin-bottom: 8px;">
-                    <a href="https://wa.me/5491160473754?text=Hola%20L1deres%2C%20quiero%20hacerme%20socio!" target="_blank" rel="noopener noreferrer" class="btn" style="flex: 1; background: #25d366; color: #fff; font-weight: 900; font-size: 0.85rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 12px 6px; border-radius: 12px; box-shadow: 0 4px 16px rgba(37,211,102,0.4);">
-                        <i class='bx bxl-whatsapp' style="font-size: 1.2rem;"></i> WHATSAPP
+                <div style="display: flex; gap: 6px; width: 100%; margin-bottom: 6px;">
+                    <a href="https://wa.me/5491160473754?text=Hola%20L1deres%2C%20quiero%20hacerme%20socio!" target="_blank" rel="noopener noreferrer" class="btn" style="flex: 1; background: #25d366; color: #fff; font-weight: 800; font-size: 0.78rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 3px; padding: 8px 4px; border-radius: 9px; box-shadow: 0 3px 12px rgba(37,211,102,0.35);">
+                        <i class='bx bxl-whatsapp' style="font-size: 1.1rem;"></i> WHATSAPP
                     </a>
-                    <a href="mailto:contacto@l1deres.site" class="btn" style="flex: 1; background: #eab308; color: #000; font-weight: 900; font-size: 0.85rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 12px 6px; border-radius: 12px; box-shadow: 0 4px 16px rgba(234,179,8,0.4);">
-                        <i class='bx bx-envelope' style="font-size: 1.2rem;"></i> EMAIL
+                    <a href="mailto:contacto@l1deres.site" class="btn" style="flex: 1; background: #eab308; color: #000; font-weight: 900; font-size: 0.78rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 3px; padding: 8px 4px; border-radius: 9px; box-shadow: 0 3px 12px rgba(234,179,8,0.35);">
+                        <i class='bx bx-envelope' style="font-size: 1.1rem;"></i> EMAIL
                     </a>
                 </div>
-                <button id="btn-install" class="btn" style="width: 100%; background: #0ea5e9; color: white; display: none; margin-bottom: 10px;">
+
+                <button id="btn-install" class="btn" style="width: 100%; background: #0ea5e9; color: white; display: none; margin-bottom: 6px; padding: 8px;">
                     <i class='bx bx-download'></i> INSTALAR APP
                 </button>
+
+                <!-- Footer Integrado de forma fluida (Sin barras negras superpuestas ni cortes) -->
+                <div class="welcome-footer-info" style="margin-top: 4px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); text-align: center;">
+                    <p style="margin: 0; font-size: 0.68rem; color: #94a3b8; display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap;">
+                        <span style="display: inline-flex; align-items: center; gap: 3px;">
+                            <i class='bx bx-map-pin' style="color: #fde047;"></i> Ramal Pilar km 45,5 · Los Lagartos C.C.
+                        </span>
+                        <span>·</span>
+                        <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 2px;">
+                            <i class='bx bx-navigation'></i> ¿Cómo llegar?
+                        </a>
+                    </p>
+                    <p style="font-size: 0.64rem; color: #64748b; margin: 3px 0 0 0;">&copy; 2026 Aura · L1deres. Todos los derechos reservados.</p>
+                    <img src="logo_horizontal.jpg" alt="L1deres" style="height: 18px; margin-top: 3px; border-radius: 3px; opacity: 0.85;">
+                </div>
             </div>
 
 
@@ -608,17 +622,7 @@
             </div>
         </div>
 
-        <!-- Footer Fijo de la App -->
-        <footer class="app-footer">
-            <p>
-                <i class='bx bx-map-pin' style="color: #fde047;"></i> Ramal Pilar km 45,5 · Los Lagartos C.C. · 
-                <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank" rel="noopener noreferrer">
-                    <i class='bx bx-navigation'></i> ¿Cómo llegar?
-                </a>
-            </p>
-            <p style="font-size: 0.72rem; color: #64748b; margin-top: 4px;">&copy; 2026 Aura · L1deres. Todos los derechos reservados.</p>
-            <img src="logo_horizontal.jpg" alt="L1deres" style="height: 26px; margin-top: 4px; border-radius: 4px;">
-        </footer>
+
 
     </div>
 
