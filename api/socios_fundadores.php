@@ -1,7 +1,7 @@
 <?php
 // ============================================================
-// ENDPOINT SOCIOS FUNDADORES — CLUB 200 VIP (Aura v1.8 - DonWeb)
-// Asignación de número de socio del 1 al 200 (Black y Gold)
+// ENDPOINT SOCIOS FUNDADORES — CLUB 100 VIP (Aura v1.8 - DonWeb)
+// Asignación de número de socio del 1 al 100 (Black y Gold)
 // ============================================================
 
 require_once __DIR__ . '/config.php';
@@ -37,19 +37,19 @@ function ensureSociosTable($pdo) {
     }
 }
 
-// Obtener el próximo número de socio disponible entre 1 y 200
+// Obtener el próximo número de socio disponible entre 1 y 100
 function getNextAvailableNumber($pdo) {
     if (!$pdo) return 1;
     $stmt = $pdo->query("SELECT numero_socio FROM `socios_fundadores` ORDER BY numero_socio ASC");
     $taken = $stmt->fetchAll(PDO::FETCH_COLUMN);
     $takenMap = array_flip($taken);
 
-    for ($i = 1; $i <= 200; $i++) {
+    for ($i = 1; $i <= 100; $i++) {
         if (!isset($takenMap[$i])) {
             return $i;
         }
     }
-    return null; // Cupos agotados (los 200 están ocupados)
+    return null; // Cupos agotados (los 100 están ocupados)
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -89,9 +89,9 @@ if ($method === 'GET') {
         sendResponse([
             'success' => true,
             'stats' => [
-                'total_cupos' => 200,
+                'total_cupos' => 100,
                 'ocupados' => 0,
-                'disponibles' => 200,
+                'disponibles' => 100,
                 'black' => 0,
                 'gold' => 0,
                 'recaudado' => 0,
@@ -134,7 +134,7 @@ if ($method === 'GET') {
     $stmt->execute($params);
     $socios = $stmt->fetchAll();
 
-    // Estadísticas globales del Club 200
+    // Estadísticas globales del Club 100
     $statsStmt = $pdo->query("
         SELECT 
             COUNT(*) as total_ocupados,
@@ -146,13 +146,13 @@ if ($method === 'GET') {
     $statsRow = $statsStmt->fetch() ?: [];
 
     $totalOcupados = intval($statsRow['total_ocupados'] ?? 0);
-    $totalDisponibles = max(0, 200 - $totalOcupados);
+    $totalDisponibles = max(0, 100 - $totalOcupados);
     $proximoNum = getNextAvailableNumber($pdo);
 
     sendResponse([
         'success' => true,
         'stats' => [
-            'total_cupos' => 200,
+            'total_cupos' => 100,
             'ocupados' => $totalOcupados,
             'disponibles' => $totalDisponibles,
             'black' => intval($statsRow['total_black'] ?? 0),
@@ -203,10 +203,10 @@ if ($method === 'POST') {
         ], 409);
     }
 
-    // Determinar número de socio entre 1 y 200
+    // Determinar número de socio entre 1 y 100
     $numeroAsignado = null;
 
-    if ($customNumero !== null && $customNumero >= 1 && $customNumero <= 200) {
+    if ($customNumero !== null && $customNumero >= 1 && $customNumero <= 100) {
         // Verificar si el número solicitado está libre
         $checkNum = $pdo->prepare("SELECT id FROM `socios_fundadores` WHERE numero_socio = :num LIMIT 1");
         $checkNum->execute([':num' => $customNumero]);
@@ -218,12 +218,12 @@ if ($method === 'POST') {
         }
         $numeroAsignado = $customNumero;
     } else {
-        // Asignación automática del 1 al 200
+        // Asignación automática del 1 al 100
         $numeroAsignado = getNextAvailableNumber($pdo);
         if ($numeroAsignado === null) {
             sendResponse([
                 'success' => false,
-                'error' => '¡Cupos completados! El Club de 200 Socios Fundadores ya alcanzó su límite máximo de miembros.'
+                'error' => '¡Cupos completados! El Club de 100 Socios Fundadores ya alcanzó su límite máximo de miembros.'
             ], 400);
         }
     }

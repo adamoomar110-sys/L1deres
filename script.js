@@ -715,16 +715,16 @@ function renderLandingCars(state) {
     if (landingBadgeEl) {
         landingBadgeEl.className = 'status-badge';
         if (autosEsperaCount === 0) {
-            landingBadgeEl.textContent = 'Sin Demora';
+            landingBadgeEl.textContent = 'SIN DEMORA';
             landingBadgeEl.classList.add('badge-libre');
         } else if (autosEsperaCount <= 4) {
-            landingBadgeEl.textContent = 'Demora Normal';
+            landingBadgeEl.textContent = 'DEMORA NORMAL';
             landingBadgeEl.classList.add('badge-normal');
         } else if (autosEsperaCount <= 6) {
-            landingBadgeEl.textContent = 'Demora Alta';
+            landingBadgeEl.textContent = 'DEMORA ALTA';
             landingBadgeEl.classList.add('badge-alta');
         } else {
-            landingBadgeEl.textContent = 'Cap. Máxima';
+            landingBadgeEl.textContent = 'CAP. MÁXIMA';
             landingBadgeEl.classList.add('badge-critica');
         }
     }
