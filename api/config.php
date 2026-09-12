@@ -40,11 +40,7 @@ foreach ($credentials as $cred) {
     }
 }
 
-if (!$pdo) {
-    http_response_code(500);
-    echo json_encode(['error' => 'No se pudo conectar a la base de datos a0170001_l1deres.'], JSON_UNESCAPED_UNICODE);
-    exit();
-}
+// Si no conecta, $pdo queda null y los endpoints usan cache de contingencia
 
 function getJsonInput() {
     $input = file_get_contents("php://input");

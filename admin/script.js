@@ -947,6 +947,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (freeIdx !== undefined) {
             estadoEspera[freeIdx] = { id: autoIdCounter++, patente: patenteFinal, tipo: tipo, startTime: Date.now() };
             if (advanceQueue()) {} // Las físicas los empujan hacia adelante dentro de su carril
+            if (typeof updateTimers === 'function') updateTimers();
+            if (typeof updateStatusBoard === 'function') updateStatusBoard();
             updateVisuals();
             checkMovement();
             
@@ -1030,6 +1032,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
+                let autosEspera = Array.isArray(estadoEspera) ? estadoEspera.filter(a => a !== null).length : 0;
+                let maxEta = Date.now();
+                if (Array.isArray(estadoEspera)) {
+                    estadoEspera.forEach(a => {
+                        if (a && a.etaSalidaEspera && a.etaSalidaEspera > maxEta) maxEta = a.etaSalidaEspera;
+                    });
+                }
+                let remSeg = Math.ceil((maxEta - Date.now()) / 1000);
+                if (remSeg < 0 || autosEspera === 0) remSeg = 0;
+
                 const live = {
                     total: cars.length,
                     espera: Array.isArray(estadoEspera) ? estadoEspera : [],
@@ -1038,6 +1050,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     terminado: Array.isArray(estadoTerminado) ? estadoTerminado : [],
                     cars: cars,
                     ts: Date.now(),
+                    max_eta: maxEta,
+                    demora_segundos: remSeg,
+                    autos_espera: autosEspera,
                     tiempo_lavado_ms: window.APP_CONFIG ? window.APP_CONFIG.tiempoLavado : 120000,
                     tiempo_secado_ms: window.APP_CONFIG ? window.APP_CONFIG.tiempoSecado : 180000
                 };
@@ -1053,6 +1068,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 150);
     }
     window.syncLiveState = syncLiveState;
+    setInterval(() => { if (isLiveStateRestored) syncLiveState(); }, 2500);
 
     // ============================================================
     // GESTIÓN INTEGRAL DE BOXES EN VIVO (Panel de Control y Edición)

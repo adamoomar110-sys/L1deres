@@ -621,19 +621,19 @@ function handleReservaClick() {
 // ============================================================
 function initClientTrack() {
     const grid = document.getElementById('client-canvas-grid');
-    if (!grid) return;
-
-    if (grid.querySelectorAll('.grid-box').length === 0) {
-        grid.innerHTML = `
-            <div class="grid-box" data-box-number="11">Espera 1</div>
-            <div class="grid-box" data-box-number="12">Espera 2</div>
-            <div class="grid-box" data-box-number="17">Espera 3</div>
-            <div class="grid-box" data-box-number="18">Espera 4</div>
-            <div class="grid-box" data-box-number="23">Espera 5</div>
-            <div class="grid-box" data-box-number="24">Espera 6</div>
-            <div class="grid-box" data-box-number="29">Espera 7</div>
-            <div class="grid-box" data-box-number="30">Espera 8</div>
-        `;
+    if (grid) {
+        if (grid.querySelectorAll('.grid-box').length === 0) {
+            grid.innerHTML = `
+                <div class="grid-box" data-box-number="11">Espera 1</div>
+                <div class="grid-box" data-box-number="12">Espera 2</div>
+                <div class="grid-box" data-box-number="17">Espera 3</div>
+                <div class="grid-box" data-box-number="18">Espera 4</div>
+                <div class="grid-box" data-box-number="23">Espera 5</div>
+                <div class="grid-box" data-box-number="24">Espera 6</div>
+                <div class="grid-box" data-box-number="29">Espera 7</div>
+                <div class="grid-box" data-box-number="30">Espera 8</div>
+            `;
+        }
     }
 
     initClientSponsors();
@@ -661,13 +661,16 @@ const LAVADO_ZONE = 4;
 const SECADO_ZONES = [3];
 const TERMINADO_ZONES = [25, 19, 13, 7];
 
+let currentClientLiveState = null;
+
 async function fetchClientLiveState() {
     try {
-        const res = await fetch(`${API_URL}configuracion.php`);
+        const res = await fetch(`${API_URL}configuracion.php?_t=${Date.now()}`);
         if (res.ok) {
             const data = await res.json();
             if (data && data.live_state) {
                 const ls = typeof data.live_state === 'string' ? JSON.parse(data.live_state) : data.live_state;
+                currentClientLiveState = ls;
                 renderClientCars(ls);
                 updateClientBadge(ls);
             }
@@ -978,29 +981,35 @@ function renderClientCars(state) {
 function updateClientBadge(state) {
     const timeEl  = document.getElementById('client-status-time');
     const badgeEl = document.getElementById('client-status-badge');
-    if (!timeEl || !badgeEl || !state) return;
+    if (!timeEl || !badgeEl) return;
+    if (!state) return;
 
-    let maxEta = Date.now();
     let autosEsperaCount = 0;
-
-    if (Array.isArray(state.espera)) {
-        state.espera.forEach(a => {
-            if (a) {
-                autosEsperaCount++;
-                if (a.etaSalidaEspera && a.etaSalidaEspera > maxEta) {
-                    maxEta = a.etaSalidaEspera;
-                }
-            }
-        });
+    if (state.autos_espera !== undefined) {
+        autosEsperaCount = state.autos_espera;
+    } else if (Array.isArray(state.espera)) {
+        autosEsperaCount = state.espera.filter(Boolean).length;
     }
 
-    let remainingSegundos = Math.ceil((maxEta - Date.now()) / 1000);
-    if (remainingSegundos < 0 || autosEsperaCount === 0) remainingSegundos = 0;
+    let remainingSegundos = 0;
+    if (autosEsperaCount > 0) {
+        if (state.demora_segundos !== undefined && state.ts) {
+            const elapsed = Math.floor((Date.now() - state.ts) / 1000);
+            remainingSegundos = Math.max(0, state.demora_segundos - elapsed);
+        } else if (state.max_eta && state.max_eta > Date.now()) {
+            remainingSegundos = Math.ceil((state.max_eta - Date.now()) / 1000);
+        } else {
+            const msLav = state.tiempo_lavado_ms || 120000;
+            const msSec = state.tiempo_secado_ms || 180000;
+            const turnoSeg = Math.round((msLav + msSec) / 1000);
+            remainingSegundos = Math.ceil(autosEsperaCount / 2) * turnoSeg;
+        }
+    }
 
     timeEl.textContent = formatClientTime(remainingSegundos);
 
     badgeEl.className = 'status-badge';
-    if (autosEsperaCount === 0) {
+    if (autosEsperaCount === 0 || remainingSegundos === 0) {
         badgeEl.textContent = 'Sin Demora';
         badgeEl.classList.add('badge-libre');
     } else if (autosEsperaCount <= 4) {
@@ -1015,9 +1024,18 @@ function updateClientBadge(state) {
     }
 }
 
+let _clientSyncInterval = null;
+let _clientTickInterval = null;
+
 function initClientCarSync() {
+    if (_clientSyncInterval) return;
     fetchClientLiveState();
-    setInterval(fetchClientLiveState, 4000);
+    _clientSyncInterval = setInterval(fetchClientLiveState, 2500);
+    _clientTickInterval = setInterval(() => {
+        if (currentClientLiveState) {
+            updateClientBadge(currentClientLiveState);
+        }
+    }, 1000);
 }
 
 // ============================================================
@@ -1134,6 +1152,7 @@ function initClientSponsors() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initClientCarSync();
     setTimeout(initClientTrack, 300);
     window.addEventListener('resize', () => {
         setTimeout(updateClientTracks, 200);

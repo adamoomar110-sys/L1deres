@@ -286,13 +286,18 @@ _landingCarImg.onerror = () => {
     }
 };
 
+let currentLandingLiveState = null;
+
 async function fetchLandingLiveState() {
     try {
-        const res = await fetch(`${API_URL}configuracion.php`);
+        const res = await fetch(`${API_URL}configuracion.php?_t=${Date.now()}`);
         if (res.ok) {
             const data = await res.json();
             if (data && data.live_state) {
-                renderLandingCars(data.live_state);
+                const ls = typeof data.live_state === 'string' ? JSON.parse(data.live_state) : data.live_state;
+                currentLandingLiveState = ls;
+                renderLandingCars(ls);
+                updateLandingBadge(ls);
             }
         }
     } catch (e) {
@@ -602,27 +607,38 @@ function renderLandingCars(state) {
         }
     });
 
-    // Actualizar telemetría de la cabecera (Demora Total Estimada)
+    // Actualizar telemetría y reloj sincronizado exactamente con el Dashboard
+    updateLandingBadge(state);
+}
+
+function updateLandingBadge(state) {
     const waitTimeEl = document.getElementById('live-wait-time');
     const landingWaitTimeEl = document.getElementById('landing-status-time');
     const landingBadgeEl = document.getElementById('landing-status-badge');
+    if (!landingWaitTimeEl && !waitTimeEl && !landingBadgeEl) return;
+    if (!state) return;
 
-    let maxEta = Date.now();
     let autosEsperaCount = 0;
-
-    if (Array.isArray(state.espera)) {
-        state.espera.forEach(a => {
-            if (a) {
-                autosEsperaCount++;
-                if (a.etaSalidaEspera && a.etaSalidaEspera > maxEta) {
-                    maxEta = a.etaSalidaEspera;
-                }
-            }
-        });
+    if (state.autos_espera !== undefined) {
+        autosEsperaCount = state.autos_espera;
+    } else if (Array.isArray(state.espera)) {
+        autosEsperaCount = state.espera.filter(Boolean).length;
     }
 
-    let remainingSegundos = Math.ceil((maxEta - Date.now()) / 1000);
-    if (remainingSegundos < 0 || autosEsperaCount === 0) remainingSegundos = 0;
+    let remainingSegundos = 0;
+    if (autosEsperaCount > 0) {
+        if (state.demora_segundos !== undefined && state.ts) {
+            const elapsed = Math.floor((Date.now() - state.ts) / 1000);
+            remainingSegundos = Math.max(0, state.demora_segundos - elapsed);
+        } else if (state.max_eta && state.max_eta > Date.now()) {
+            remainingSegundos = Math.ceil((state.max_eta - Date.now()) / 1000);
+        } else {
+            const msLav = state.tiempo_lavado_ms || 120000;
+            const msSec = state.tiempo_secado_ms || 180000;
+            const minPorTurnoSeg = Math.round((msLav + msSec) / 1000);
+            remainingSegundos = Math.ceil(autosEsperaCount / 2) * minPorTurnoSeg;
+        }
+    }
 
     const timeStr = formatLandingTime(remainingSegundos);
 
@@ -631,18 +647,18 @@ function renderLandingCars(state) {
 
     if (landingBadgeEl) {
         landingBadgeEl.className = 'status-badge';
-        if (autosEsperaCount === 0) {
+        if (autosEsperaCount === 0 || remainingSegundos === 0) {
             landingBadgeEl.textContent = 'Sin Demora';
-            landingBadgeEl.classList.add('badge-libre');
+            landingBadgeEl.className = 'status-badge badge-libre';
         } else if (autosEsperaCount <= 4) {
             landingBadgeEl.textContent = 'Demora Normal';
-            landingBadgeEl.classList.add('badge-normal');
+            landingBadgeEl.className = 'status-badge badge-normal';
         } else if (autosEsperaCount <= 6) {
             landingBadgeEl.textContent = 'Demora Alta';
-            landingBadgeEl.classList.add('badge-alta');
+            landingBadgeEl.className = 'status-badge badge-alta';
         } else {
             landingBadgeEl.textContent = 'Cap. Máxima';
-            landingBadgeEl.classList.add('badge-critica');
+            landingBadgeEl.className = 'status-badge badge-critica';
         }
     }
 }
@@ -724,11 +740,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', drawLandingSVGTracks);
     window.addEventListener('load', drawLandingSVGTracks);
 
-    // Fallback de sincronización periódica
+    // Sincronización periódica frecuente con el backend
     setInterval(() => {
         loadLandingConfig();
         fetchLandingLiveState();
-    }, 5000);
+    }, 2500);
+
+    // Reloj continuo segundo a segundo sincronizado con el dashboard
+    setInterval(() => {
+        if (currentLandingLiveState) {
+            updateLandingBadge(currentLandingLiveState);
+        }
+    }, 1000);
 });
 
 // ============================================================
