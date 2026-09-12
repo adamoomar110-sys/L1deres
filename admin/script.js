@@ -236,6 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Verificar sesión persistente al iniciar cuando el DOM esté listo
     checkAuthSession();
 
+    // Precargar padrón de socios fundadores desde MySQL DonWeb
+    if (window.loadSociosFundadoresData) {
+        window.loadSociosFundadoresData(false);
+    }
+
     window.APP_CONFIG = {
         tiempoLavado: (parseInt(localStorage.getItem('tiempoLavado')) >= 10000 ? parseInt(localStorage.getItem('tiempoLavado')) : 120000),
         tiempoSecado: (parseInt(localStorage.getItem('tiempoSecado')) >= 10000 ? parseInt(localStorage.getItem('tiempoSecado')) : 180000),
@@ -347,7 +352,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (spanText === 'Socios Fundadores' || spanText.includes('Socio')) {
                 if (sociosFundadoresView) {
                     sociosFundadoresView.style.display = 'block';
-                    if (window.renderSociosFundadoresUI) window.renderSociosFundadoresUI();
+                    if (window.loadSociosFundadoresData) window.loadSociosFundadoresData(true);
+                    else if (window.renderSociosFundadoresUI) window.renderSociosFundadoresUI();
                 }
             } else if (spanText === 'Publicidad & Sponsors') {
                 if (sponsorsView) {
@@ -2738,13 +2744,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // === GESTIÓN INTEGRAL DE SOCIOS FUNDADORES (#001 - #100) ===
     const MAX_SOCIOS_FUNDADORES = 100;
     let currentVipViewingSocio = null;
+    let cachedSociosFundadores = null;
 
     function getSociosFundadoresData() {
+        if (Array.isArray(cachedSociosFundadores) && cachedSociosFundadores.length > 0) {
+            return cachedSociosFundadores;
+        }
         let list = [];
         try {
             const raw = localStorage.getItem('aura_socios_fundadores_v2');
             if (raw) {
                 list = JSON.parse(raw);
+                cachedSociosFundadores = list;
             } else {
                 // Migración automática de datos anteriores si existen
                 const oldBlack = JSON.parse(localStorage.getItem('aura_socio_black_data') || '{"patentes":[]}');
@@ -2760,6 +2771,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         titular: p.titular || 'Socio Black',
                         telefono: p.telefono || '',
                         email: '',
+                        fecha_nacimiento: '',
                         modelo: '',
                         estado: 'PAGADO',
                         monto: 35000,
@@ -2777,6 +2789,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         titular: p.titular || 'Socio Gold',
                         telefono: p.telefono || '',
                         email: '',
+                        fecha_nacimiento: '',
                         modelo: '',
                         estado: 'PAGADO',
                         monto: 45000,
@@ -2787,6 +2800,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (list.length > 0) {
                     localStorage.setItem('aura_socios_fundadores_v2', JSON.stringify(list));
+                    cachedSociosFundadores = list;
                 }
             }
         } catch (e) {
@@ -2797,15 +2811,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function saveSociosFundadoresData(list) {
+        cachedSociosFundadores = list;
         localStorage.setItem('aura_socios_fundadores_v2', JSON.stringify(list));
-        // Sincronizar también con Supabase si está disponible
-        if (window.supabaseClient) {
-            try {
-                // Background sync
-                console.log('Syncing socios fundadores with Supabase...');
-            } catch(e) {}
-        }
     }
+
+    // Cargar socios directamente desde el backend MySQL DonWeb
+    async function loadSociosFundadoresData(forceRender = false) {
+        try {
+            const res = await fetch(`${API_URL}socios_fundadores.php?_t=${Date.now()}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.success && Array.isArray(data.socios)) {
+                    cachedSociosFundadores = data.socios;
+                    localStorage.setItem('aura_socios_fundadores_v2', JSON.stringify(data.socios));
+                    if (forceRender && window.renderSociosFundadoresUI) {
+                        window.renderSociosFundadoresUI();
+                    }
+                    return data.socios;
+                }
+            }
+        } catch (e) {
+            console.warn('Conexión con api/socios_fundadores.php offline o lenta, usando caché local:', e);
+        }
+        if (forceRender && window.renderSociosFundadoresUI) {
+            window.renderSociosFundadoresUI();
+        }
+        return getSociosFundadoresData();
+    }
+    window.loadSociosFundadoresData = loadSociosFundadoresData;
 
     function getSocioConfig() {
         return JSON.parse(localStorage.getItem('aura_socios_config') || JSON.stringify({
@@ -2829,10 +2862,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.renderSociosFundadoresUI = function() {
         const socios = getSociosFundadoresData();
         const totalSocios = socios.length;
-        const blackCount = socios.filter(s => s.tipo === 'BLACK').length;
-        const goldCount = socios.filter(s => s.tipo === 'GOLD').length;
-        const paidCount = socios.filter(s => s.estado === 'PAGADO').length;
-        const totalRevenue = socios.filter(s => s.estado === 'PAGADO').reduce((acc, s) => acc + (Number(s.monto) || 0), 0);
+        const blackCount = socios.filter(s => (s.tipo || s.tipo_membresia || '').toUpperCase() === 'BLACK').length;
+        const goldCount = socios.filter(s => (s.tipo || s.tipo_membresia || '').toUpperCase() === 'GOLD').length;
+        const paidCount = socios.filter(s => (s.estado || s.estado_pago || '').toUpperCase() === 'PAGADO' || (s.estado_pago || '').toLowerCase() === 'activo').length;
+        const totalRevenue = socios.filter(s => (s.estado || s.estado_pago || '').toUpperCase() === 'PAGADO' || (s.estado_pago || '').toLowerCase() === 'activo').reduce((acc, s) => acc + (Number(s.monto || s.monto_pagado) || 0), 0);
         const disponibles = Math.max(0, MAX_SOCIOS_FUNDADORES - totalSocios);
         const pct = Math.min(100, Math.round((totalSocios / MAX_SOCIOS_FUNDADORES) * 100));
 
@@ -2877,15 +2910,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const estado = estadoFilter?.value || 'ALL';
 
         const filtered = socios.filter(s => {
-            const matchSearch = !search || 
-                (s.numero && s.numero.toLowerCase().includes(search)) ||
-                (s.patente && s.patente.toLowerCase().includes(search)) ||
-                (s.titular && s.titular.toLowerCase().includes(search)) ||
-                (s.telefono && s.telefono.toLowerCase().includes(search)) ||
-                (s.modelo && s.modelo.toLowerCase().includes(search));
+            const numStr = String(s.numero || s.numero_socio || '').toLowerCase();
+            const patStr = String(s.patente || '').toLowerCase();
+            const titStr = String(s.titular || s.nombre || '').toLowerCase();
+            const telStr = String(s.telefono || '').toLowerCase();
+            const modStr = String(s.modelo || s.modelo_auto || '').toLowerCase();
 
-            const matchTipo = (tipo === 'ALL') || (s.tipo === tipo);
-            const matchEstado = (estado === 'ALL') || (s.estado === estado);
+            const matchSearch = !search || 
+                numStr.includes(search) ||
+                patStr.includes(search) ||
+                titStr.includes(search) ||
+                telStr.includes(search) ||
+                modStr.includes(search);
+
+            const sTipo = (s.tipo || s.tipo_membresia || '').toUpperCase();
+            const matchTipo = (tipo === 'ALL') || (sTipo === tipo);
+
+            const sEstado = (s.estado || s.estado_pago || '').toUpperCase();
+            const isPaid = (sEstado === 'PAGADO' || sEstado === 'ACTIVO');
+            const matchEstado = (estado === 'ALL') || (estado === 'PAGADO' ? isPaid : !isPaid);
 
             return matchSearch && matchTipo && matchEstado;
         });
@@ -2905,8 +2948,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         tbody.innerHTML = filtered.map(item => {
-            const isBlack = item.tipo === 'BLACK';
-            const isPaid = item.estado === 'PAGADO';
+            const isBlack = (item.tipo || item.tipo_membresia || '').toUpperCase() === 'BLACK';
+            const isPaid = (item.estado || item.estado_pago || '').toUpperCase() === 'PAGADO' || (item.estado_pago || '').toLowerCase() === 'activo';
             
             const badgeTipo = isBlack 
                 ? `<span style="display: inline-flex; align-items: center; gap: 5px; background: #0f172a; color: #fbbf24; border: 1px solid #fbbf24; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800;"><i class='bx bx-crown'></i> BLACK</span>`
@@ -2917,12 +2960,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<span style="background: rgba(234,179,8,0.15); color: #facc15; border: 1px solid rgba(234,179,8,0.3); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">⏳ Pendiente</span>`;
 
             const cleanPhone = (item.telefono || '').replace(/\D/g, '');
-            const waLink = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`¡Hola ${item.titular || ''}! Te contactamos desde Aura L1deres respecto a tu membresía Socio Fundador ${item.numero || ''}.`)}` : '#';
+            const waLink = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`¡Hola ${item.titular || item.nombre || ''}! Te contactamos desde Aura L1deres respecto a tu membresía Socio Fundador ${item.numero || ''}.`)}` : '#';
 
             return `
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s ease;">
                     <td style="font-weight: 900; color: #fbbf24; font-family: monospace; font-size: 1.05rem;">
-                        ${item.numero || '#---'}
+                        ${item.numero || ('#' + String(item.numero_socio || '').padStart(3, '0'))}
                     </td>
                     <td>${badgeTipo}</td>
                     <td>
@@ -2931,7 +2974,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </span>
                     </td>
                     <td style="font-weight: 700; color: #f8fafc;">
-                        ${item.titular || 'Sin Titular'}
+                        ${item.titular || item.nombre || 'Sin Titular'}
                         ${item.email ? `<br><span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">${item.email}</span>` : ''}
                         ${item.fecha_nacimiento ? `<br><span style="font-size: 0.75rem; color: #fbbf24; font-weight: bold;"><i class='bx bx-gift'></i> ${item.fecha_nacimiento}</span>` : ''}
                     </td>
@@ -2943,12 +2986,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         ` : '<span style="color: #64748b;">-</span>'}
                     </td>
                     <td>
-                        <div style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600;">${item.modelo || '-'}</div>
-                        ${item.notas ? `<div style="font-size: 0.75rem; color: #64748b;">${item.notas}</div>` : ''}
+                        <div style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600;">${item.modelo || item.modelo_auto || '-'}</div>
+                        ${(item.notas || item.observaciones) ? `<div style="font-size: 0.75rem; color: #64748b;">${item.notas || item.observaciones}</div>` : ''}
                     </td>
                     <td>
                         ${badgeEstado}
-                        ${item.monto ? `<div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">$${Number(item.monto).toLocaleString('es-AR')}</div>` : ''}
+                        ${(item.monto || item.monto_pagado) ? `<div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">$${Number(item.monto || item.monto_pagado).toLocaleString('es-AR')}</div>` : ''}
                     </td>
                     <td style="text-align: center;">
                         <div style="display: inline-flex; gap: 6px; align-items: center;">
@@ -2969,10 +3012,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Modal de Creación / Edición
-    window.openNewSocioModal = function() {
+    window.openNewSocioModal = async function() {
         const socios = getSociosFundadoresData();
-        // Buscar el próximo número disponible
         let nextNum = socios.length + 1;
+        try {
+            const res = await fetch(`${API_URL}socios_fundadores.php?_t=${Date.now()}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.stats && data.stats.proximo_numero) {
+                    nextNum = data.stats.proximo_numero;
+                }
+            }
+        } catch (e) {}
+
         const nextNumStr = '#' + String(nextNum).padStart(3, '0');
 
         document.getElementById('modal-socio-title').innerHTML = "<i class='bx bx-crown'></i> Registrar Nuevo Socio Fundador";
@@ -2995,22 +3047,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openEditSocioModal = function(id) {
         const socios = getSociosFundadoresData();
-        const socio = socios.find(s => s.id === id);
+        const socio = socios.find(s => String(s.id) === String(id));
         if (!socio) return;
 
         document.getElementById('modal-socio-title').innerHTML = "<i class='bx bx-edit-alt'></i> Editar Socio Fundador";
         document.getElementById('form-socio-id').value = socio.id;
-        document.getElementById('form-socio-numero').value = socio.numero || '';
-        document.getElementById('form-socio-tipo').value = socio.tipo || 'BLACK';
+        document.getElementById('form-socio-numero').value = socio.numero || ('#' + String(socio.numero_socio || '').padStart(3, '0'));
+        document.getElementById('form-socio-tipo').value = (socio.tipo || socio.tipo_membresia || 'BLACK').toUpperCase();
         document.getElementById('form-socio-patente').value = socio.patente || '';
-        document.getElementById('form-socio-modelo').value = socio.modelo || '';
-        document.getElementById('form-socio-titular').value = socio.titular || '';
+        document.getElementById('form-socio-modelo').value = socio.modelo || socio.modelo_auto || '';
+        document.getElementById('form-socio-titular').value = socio.titular || socio.nombre || '';
         document.getElementById('form-socio-telefono').value = socio.telefono || '';
         document.getElementById('form-socio-email').value = socio.email || '';
         document.getElementById('form-socio-fecha-nac').value = socio.fecha_nacimiento || '';
-        document.getElementById('form-socio-estado').value = socio.estado || 'PAGADO';
-        document.getElementById('form-socio-monto').value = socio.monto || '';
-        document.getElementById('form-socio-notas').value = socio.notas || '';
+        document.getElementById('form-socio-estado').value = (socio.estado || socio.estado_pago || 'PAGADO').toUpperCase();
+        document.getElementById('form-socio-monto').value = socio.monto || socio.monto_pagado || '';
+        document.getElementById('form-socio-notas').value = socio.notas || socio.observaciones || '';
 
         const modal = document.getElementById('modal-socio-form');
         if (modal) modal.style.display = 'flex';
@@ -3029,7 +3081,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.handleSaveSocio = function(event) {
+    window.handleSaveSocio = async function(event) {
         if (event) event.preventDefault();
         const id = document.getElementById('form-socio-id').value;
         const numero = document.getElementById('form-socio-numero').value.trim();
@@ -3049,70 +3101,114 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const socios = getSociosFundadoresData();
-
-        // Validar patente duplicada en otro registro
-        const existingWithPlate = socios.find(s => s.patente === patente && s.id !== id);
-        if (existingWithPlate) {
-            if (window.showToast) window.showToast(`La patente ${patente} ya está asignada a ${existingWithPlate.titular} (${existingWithPlate.numero})`, 'error');
-            return;
+        const submitBtn = event?.target?.querySelector('button[type="submit"]') || document.querySelector('#modal-socio-form button[type="submit"]');
+        const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Guardando...";
         }
 
-        if (id) {
-            // Edición
-            const idx = socios.findIndex(s => s.id === id);
-            if (idx !== -1) {
-                socios[idx] = {
-                    ...socios[idx],
-                    numero,
-                    tipo,
-                    patente,
-                    modelo,
-                    titular,
-                    telefono,
-                    email,
-                    fecha_nacimiento,
-                    estado,
-                    monto,
-                    notas
-                };
-            }
-        } else {
-            // Nuevo
-            socios.push({
-                id: 'socio_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                numero,
-                tipo,
-                patente,
-                modelo,
-                titular,
-                telefono,
-                email,
-                fecha_nacimiento,
-                estado,
-                monto,
-                notas,
-                fechaRegistro: new Date().toLocaleDateString('es-AR')
+        try {
+            const payload = {
+                id: id ? (parseInt(id) || id) : undefined,
+                numero_socio: numero ? parseInt(numero.replace(/\D/g, '')) : undefined,
+                numero: numero,
+                tipo_membresia: tipo.toLowerCase(),
+                tipo: tipo,
+                patente: patente,
+                modelo_auto: modelo,
+                modelo: modelo,
+                nombre: titular,
+                titular: titular,
+                telefono: telefono,
+                email: email,
+                fecha_nacimiento: fecha_nacimiento,
+                estado_pago: estado.toLowerCase(),
+                estado: estado,
+                monto_pagado: monto,
+                monto: monto,
+                observaciones: notas,
+                notas: notas
+            };
+
+            const isEdit = Boolean(id);
+            const res = await fetch(`${API_URL}socios_fundadores.php`, {
+                method: isEdit ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
-        }
 
-        saveSociosFundadoresData(socios);
-        window.closeSocioModal();
-        window.renderSociosFundadoresUI();
-        if (window.showToast) window.showToast(`Socio ${numero} (${titular}) guardado con éxito`, 'success');
+            const data = await res.json();
+            if (data && data.success) {
+                window.closeSocioModal();
+                await loadSociosFundadoresData(true);
+                if (window.showToast) window.showToast(data.message || `Socio ${numero} (${titular}) guardado con éxito`, 'success');
+                return;
+            } else {
+                const msg = (data && data.error) ? data.error : 'Error al guardar socio en el servidor';
+                if (window.showToast) window.showToast(msg, 'error');
+                else alert('⚠️ ' + msg);
+            }
+        } catch (err) {
+            console.error('Error guardando socio en servidor:', err);
+            // Fallback local
+            const socios = getSociosFundadoresData();
+            if (id) {
+                const idx = socios.findIndex(s => String(s.id) === String(id));
+                if (idx !== -1) {
+                    socios[idx] = {
+                        ...socios[idx],
+                        numero, tipo, patente, modelo, titular, telefono, email, fecha_nacimiento, estado, monto, notas
+                    };
+                }
+            } else {
+                socios.push({
+                    id: 'socio_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                    numero, tipo, patente, modelo, titular, telefono, email, fecha_nacimiento, estado, monto, notas,
+                    fechaRegistro: new Date().toLocaleDateString('es-AR')
+                });
+            }
+            saveSociosFundadoresData(socios);
+            window.closeSocioModal();
+            window.renderSociosFundadoresUI();
+            if (window.showToast) window.showToast(`Socio ${numero} guardado localmente (modo offline)`, 'warning');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+            }
+        }
     };
 
-    window.deleteSocio = function(id) {
+    window.deleteSocio = async function(id) {
         const socios = getSociosFundadoresData();
-        const socio = socios.find(s => s.id === id);
+        const socio = socios.find(s => String(s.id) === String(id));
         if (!socio) return;
 
-        if (!confirm(`¿Estás seguro de eliminar al socio ${socio.numero} (${socio.titular} - Patente: ${socio.patente})?`)) return;
+        if (!confirm(`¿Estás seguro de eliminar al socio ${socio.numero || ''} (${socio.titular || socio.nombre} - Patente: ${socio.patente})?\nEsta acción liberará el cupo en el Club 100.`)) return;
 
-        const updated = socios.filter(s => s.id !== id);
+        try {
+            const res = await fetch(`${API_URL}socios_fundadores.php?id=${encodeURIComponent(id)}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            });
+            const data = await res.json();
+            if (data && data.success) {
+                await loadSociosFundadoresData(true);
+                if (window.showToast) window.showToast(data.message || `Socio ${socio.numero || ''} eliminado`, 'info');
+                return;
+            } else if (data && data.error) {
+                if (window.showToast) window.showToast(data.error, 'error');
+            }
+        } catch (e) {
+            console.warn('API delete falló, eliminando local:', e);
+        }
+
+        const updated = socios.filter(s => String(s.id) !== String(id));
         saveSociosFundadoresData(updated);
         window.renderSociosFundadoresUI();
-        if (window.showToast) window.showToast(`Socio ${socio.numero} eliminado`, 'info');
+        if (window.showToast) window.showToast(`Socio ${socio.numero || ''} eliminado localmente`, 'info');
     };
 
     // Modal de Configuración
@@ -3164,7 +3260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Modal de Visualización de Credencial VIP
     window.openVipCredential = function(id) {
         const socios = getSociosFundadoresData();
-        const socio = socios.find(s => s.id === id);
+        const socio = socios.find(s => String(s.id) === String(id));
         if (!socio) return;
 
         currentVipViewingSocio = socio;
@@ -3174,7 +3270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const titularEl = document.getElementById('vip-card-titular');
         const patenteEl = document.getElementById('vip-card-patente');
 
-        const isGold = socio.tipo === 'GOLD';
+        const isGold = (socio.tipo || socio.tipo_membresia || '').toUpperCase() === 'GOLD';
 
         if (cardRender) {
             if (isGold) {
@@ -3193,8 +3289,8 @@ document.addEventListener('DOMContentLoaded', () => {
             badgeType.style.color = isGold ? '#fbbf24' : '#38bdf8';
         }
 
-        if (numberEl) numberEl.textContent = socio.numero || '#---';
-        if (titularEl) titularEl.textContent = (socio.titular || 'SOCIO FUNDADOR').toUpperCase();
+        if (numberEl) numberEl.textContent = socio.numero || ('#' + String(socio.numero_socio || '').padStart(3, '0'));
+        if (titularEl) titularEl.textContent = (socio.titular || socio.nombre || 'SOCIO FUNDADOR').toUpperCase();
         if (patenteEl) patenteEl.textContent = socio.patente;
 
         const modal = document.getElementById('modal-vip-credential');
@@ -3213,10 +3309,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const cleanPhone = (s.telefono || '').replace(/\D/g, '');
         
         const message = `✨ *L1DERES - SOCIO FUNDADOR OFICIAL* ✨\n\n` +
-            `¡Hola *${s.titular}*! 👑\n` +
+            `¡Hola *${s.titular || s.nombre}*! 👑\n` +
             `Te confirmamos tu membresía exclusiva:\n\n` +
-            `🏷️ *Nº Socio:* ${s.numero}\n` +
-            `⭐ *Categoría:* Socio Fundador ${s.tipo}\n` +
+            `🏷️ *Nº Socio:* ${s.numero || '#' + s.numero_socio}\n` +
+            `⭐ *Categoría:* Socio Fundador ${(s.tipo || s.tipo_membresia || 'VIP').toUpperCase()}\n` +
             `🚗 *Vehículo / Patente:* ${s.patente} ${s.modelo ? '('+s.modelo+')' : ''}\n` +
             `🛡️ *Estado:* Activo y Verificado\n\n` +
             `Presentá tu patente o credencial en nuestro Pit Lane para acceder a tus beneficios y prioridad.\n\n` +
@@ -3238,9 +3334,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let csv = 'Numero,Tipo,Patente,Titular,Telefono,Email,Modelo,Estado,Monto,Notas,FechaRegistro\n';
+        let csv = 'Numero,Tipo,Patente,Titular,Telefono,Email,FechaNacimiento,Modelo,Estado,Monto,Notas,FechaRegistro\n';
         socios.forEach(s => {
-            csv += `"${s.numero}","${s.tipo}","${s.patente}","${s.titular}","${s.telefono}","${s.email}","${s.modelo}","${s.estado}","${s.monto}","${s.notas}","${s.fechaRegistro}"\n`;
+            csv += `"${s.numero || ''}","${(s.tipo || s.tipo_membresia || '').toUpperCase()}","${s.patente || ''}","${s.titular || s.nombre || ''}","${s.telefono || ''}","${s.email || ''}","${s.fecha_nacimiento || ''}","${s.modelo || s.modelo_auto || ''}","${s.estado || s.estado_pago || ''}","${s.monto || s.monto_pagado || ''}","${s.notas || s.observaciones || ''}","${s.fecha_inscripcion || s.fechaRegistro || ''}"\n`;
         });
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

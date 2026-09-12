@@ -1,12 +1,12 @@
 <?php
 // ============================================================
 // ENDPOINT SOCIOS FUNDADORES — CLUB 100 VIP (Aura v1.8 - DonWeb)
-// Asignación de número de socio del 1 al 100 (Black y Gold)
+// Gestión integral, guardado y carga completa de todos los datos
 // ============================================================
 
 require_once __DIR__ . '/config.php';
 
-// Asegurar que la tabla existe
+// Asegurar que la tabla y todas sus columnas existan
 function ensureSociosTable($pdo) {
     if (!$pdo) return;
     $sql = "
@@ -17,6 +17,7 @@ function ensureSociosTable($pdo) {
       `nombre` VARCHAR(150) NOT NULL,
       `telefono` VARCHAR(50) NOT NULL,
       `email` VARCHAR(150) NULL,
+      `fecha_nacimiento` VARCHAR(30) NULL,
       `patente` VARCHAR(20) NOT NULL,
       `modelo_auto` VARCHAR(100) NULL,
       `monto_pagado` DECIMAL(10,2) DEFAULT 0.00,
@@ -32,9 +33,46 @@ function ensureSociosTable($pdo) {
     ";
     try {
         $pdo->exec($sql);
-    } catch (Exception $e) {
-        // Ignorar si ya existe
-    }
+    } catch (Exception $e) {}
+
+    // Agregar fecha_nacimiento si la tabla ya existía sin esa columna
+    try {
+        $pdo->exec("ALTER TABLE `socios_fundadores` ADD COLUMN `fecha_nacimiento` VARCHAR(30) NULL AFTER `email`");
+    } catch (Exception $e) {}
+}
+
+// Formatear socio para compatibilidad total con Frontend Admin, Cliente y Landing
+function formatSocioRow($row) {
+    if (!$row) return null;
+    $num = intval($row['numero_socio'] ?? 0);
+    $tipo = strtolower(trim($row['tipo_membresia'] ?? 'black'));
+    $estado = strtolower(trim($row['estado_pago'] ?? 'pagado'));
+    $monto = floatval($row['monto_pagado'] ?? 0);
+
+    return [
+        'id' => intval($row['id'] ?? 0),
+        'numero_socio' => $num,
+        'numero' => sprintf("#%03d", $num),
+        'tipo_membresia' => $tipo,
+        'tipo' => strtoupper($tipo),
+        'nombre' => $row['nombre'] ?? '',
+        'titular' => $row['nombre'] ?? '',
+        'telefono' => $row['telefono'] ?? '',
+        'email' => $row['email'] ?? '',
+        'fecha_nacimiento' => $row['fecha_nacimiento'] ?? '',
+        'patente' => strtoupper(trim($row['patente'] ?? '')),
+        'modelo_auto' => $row['modelo_auto'] ?? '',
+        'modelo' => $row['modelo_auto'] ?? '',
+        'monto_pagado' => $monto,
+        'monto' => $monto,
+        'metodo_pago' => $row['metodo_pago'] ?? 'mercadopago',
+        'estado_pago' => $estado,
+        'estado' => $estado === 'pagado' || $estado === 'activo' ? 'PAGADO' : 'PENDIENTE',
+        'observaciones' => $row['observaciones'] ?? '',
+        'notas' => $row['observaciones'] ?? '',
+        'fecha_inscripcion' => $row['fecha_inscripcion'] ?? date('Y-m-d H:i:s'),
+        'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s')
+    ];
 }
 
 // Obtener el próximo número de socio disponible entre 1 y 100
@@ -49,14 +87,13 @@ function getNextAvailableNumber($pdo) {
             return $i;
         }
     }
-    return null; // Cupos agotados (los 100 están ocupados)
+    return null; // Cupos agotados
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
-$action = isset($_GET['action']) ? trim($_GET['action']) : '';
 
 // -------------------------------------------------------------
-// VERIFICAR PATENTE O CONSULTA ESPECÍFICA (GET ?check=PATENTE)
+// 1. VERIFICAR PATENTE O CONSULTA ESPECÍFICA (GET ?check=PATENTE)
 // -------------------------------------------------------------
 if ($method === 'GET' && !empty($_GET['check'])) {
     $patente = strtoupper(trim($_GET['check']));
@@ -69,7 +106,7 @@ if ($method === 'GET' && !empty($_GET['check'])) {
             sendResponse([
                 'success' => true,
                 'es_socio' => true,
-                'socio' => $socio
+                'socio' => formatSocioRow($socio)
             ]);
         }
     }
@@ -81,11 +118,10 @@ if ($method === 'GET' && !empty($_GET['check'])) {
 }
 
 // -------------------------------------------------------------
-// LISTAR SOCIOS Y ESTADÍSTICAS (GET)
+// 2. LISTAR SOCIOS Y ESTADÍSTICAS (GET)
 // -------------------------------------------------------------
 if ($method === 'GET') {
     if (!$pdo) {
-        // Fallback si no hay conexión a BD
         sendResponse([
             'success' => true,
             'stats' => [
@@ -111,13 +147,16 @@ if ($method === 'GET') {
     $params = [];
 
     if (!empty($tipoFilter) && in_array($tipoFilter, ['black', 'gold'])) {
-        $where[] = "tipo_membresia = :tipo";
+        $where[] = "LOWER(tipo_membresia) = :tipo";
         $params[':tipo'] = $tipoFilter;
     }
 
-    if (!empty($estadoFilter)) {
-        $where[] = "estado_pago = :estado";
-        $params[':estado'] = $estadoFilter;
+    if (!empty($estadoFilter) && $estadoFilter !== 'all') {
+        if ($estadoFilter === 'pagado' || $estadoFilter === 'activo') {
+            $where[] = "LOWER(estado_pago) IN ('pagado', 'activo')";
+        } else {
+            $where[] = "LOWER(estado_pago) NOT IN ('pagado', 'activo')";
+        }
     }
 
     if (!empty($search)) {
@@ -132,7 +171,9 @@ if ($method === 'GET') {
 
     $stmt = $pdo->prepare("SELECT * FROM `socios_fundadores` {$whereClause} ORDER BY numero_socio ASC");
     $stmt->execute($params);
-    $socios = $stmt->fetchAll();
+    $rows = $stmt->fetchAll();
+
+    $socios = array_map('formatSocioRow', $rows);
 
     // Estadísticas globales del Club 100
     $statsStmt = $pdo->query("
@@ -140,7 +181,7 @@ if ($method === 'GET') {
             COUNT(*) as total_ocupados,
             SUM(CASE WHEN LOWER(tipo_membresia) = 'black' THEN 1 ELSE 0 END) as total_black,
             SUM(CASE WHEN LOWER(tipo_membresia) = 'gold' THEN 1 ELSE 0 END) as total_gold,
-            SUM(CASE WHEN estado_pago = 'pagado' THEN monto_pagado ELSE 0 END) as total_recaudado
+            SUM(CASE WHEN LOWER(estado_pago) IN ('pagado', 'activo') THEN monto_pagado ELSE 0 END) as total_recaudado
         FROM `socios_fundadores`
     ");
     $statsRow = $statsStmt->fetch() ?: [];
@@ -165,65 +206,80 @@ if ($method === 'GET') {
 }
 
 // -------------------------------------------------------------
-// REGISTRAR NUEVO SOCIO FUNDADOR (POST)
+// 3. REGISTRAR NUEVO SOCIO FUNDADOR (POST)
 // -------------------------------------------------------------
 if ($method === 'POST') {
     $input = getJsonInput();
 
-    $nombre = isset($input['nombre']) ? trim($input['nombre']) : '';
-    $telefono = isset($input['telefono']) ? trim($input['telefono']) : '';
-    $email = isset($input['email']) ? trim($input['email']) : '';
-    $patente = isset($input['patente']) ? strtoupper(trim($input['patente'])) : '';
-    $modelo_auto = isset($input['modelo_auto']) ? trim($input['modelo_auto']) : '';
-    $tipo_membresia = isset($input['tipo_membresia']) && strtolower(trim($input['tipo_membresia'])) === 'gold' ? 'gold' : 'black';
-    $monto_pagado = isset($input['monto_pagado']) ? floatval($input['monto_pagado']) : ($tipo_membresia === 'black' ? 65000.00 : 45000.00);
-    $metodo_pago = isset($input['metodo_pago']) ? trim($input['metodo_pago']) : 'mercadopago';
-    $estado_pago = isset($input['estado_pago']) ? trim($input['estado_pago']) : 'pagado';
-    $observaciones = isset($input['observaciones']) ? trim($input['observaciones']) : '';
-    $customNumero = isset($input['numero_socio']) ? intval($input['numero_socio']) : null;
+    // Normalizar nombres de campos cruzados (admin / cliente)
+    $nombre = trim($input['nombre'] ?? $input['titular'] ?? '');
+    $patente = strtoupper(trim($input['patente'] ?? ''));
+    $telefono = trim($input['telefono'] ?? '');
+    $email = trim($input['email'] ?? '');
+    $fecha_nac = trim($input['fecha_nacimiento'] ?? $input['fecha_nac'] ?? '');
+    $modelo_auto = trim($input['modelo_auto'] ?? $input['modelo'] ?? '');
+    
+    $rawTipo = strtolower(trim($input['tipo_membresia'] ?? $input['tipo'] ?? 'black'));
+    $tipo_membresia = ($rawTipo === 'gold') ? 'gold' : 'black';
+
+    $defaultMonto = ($tipo_membresia === 'gold') ? 45000.00 : 65000.00;
+    $monto_pagado = isset($input['monto_pagado']) ? floatval($input['monto_pagado']) : (isset($input['monto']) ? floatval($input['monto']) : $defaultMonto);
+
+    $metodo_pago = trim($input['metodo_pago'] ?? 'mercadopago');
+    $rawEstado = strtolower(trim($input['estado_pago'] ?? $input['estado'] ?? 'pagado'));
+    $estado_pago = ($rawEstado === 'pendiente') ? 'pendiente' : 'pagado';
+    $observaciones = trim($input['observaciones'] ?? $input['notas'] ?? '');
+
+    // Parsear número si viene especificado
+    $customNumero = null;
+    if (isset($input['numero_socio']) && is_numeric($input['numero_socio'])) {
+        $customNumero = intval($input['numero_socio']);
+    } elseif (isset($input['numero'])) {
+        $cleanNum = preg_replace('/\D/', '', $input['numero']);
+        if (is_numeric($cleanNum) && intval($cleanNum) > 0) {
+            $customNumero = intval($cleanNum);
+        }
+    }
 
     if (empty($nombre) || empty($patente)) {
-        sendResponse(['success' => false, 'error' => 'Nombre y Patente son obligatorios.'], 400);
+        sendResponse(['success' => false, 'error' => 'Nombre/Titular y Patente son campos obligatorios.'], 400);
     }
 
     if (!$pdo) {
-        sendResponse(['success' => false, 'error' => 'No hay conexión a la base de datos.'], 500);
+        sendResponse(['success' => false, 'error' => 'No hay conexión a la base de datos DonWeb.'], 500);
     }
 
     ensureSociosTable($pdo);
 
-    // Validar si la patente ya está registrada como socio fundador
+    // Validar si la patente ya está registrada
     $checkPat = $pdo->prepare("SELECT id, numero_socio FROM `socios_fundadores` WHERE UPPER(patente) = :patente LIMIT 1");
     $checkPat->execute([':patente' => $patente]);
     $existente = $checkPat->fetch();
     if ($existente) {
         sendResponse([
             'success' => false,
-            'error' => "La patente {$patente} ya está registrada como Socio Fundador con el N° #{$existente['numero_socio']}."
+            'error' => "La patente {$patente} ya está registrada como Socio Fundador con el N° #" . sprintf("%03d", $existente['numero_socio']) . "."
         ], 409);
     }
 
-    // Determinar número de socio entre 1 y 100
+    // Asignación de número (1 al 100)
     $numeroAsignado = null;
-
     if ($customNumero !== null && $customNumero >= 1 && $customNumero <= 100) {
-        // Verificar si el número solicitado está libre
         $checkNum = $pdo->prepare("SELECT id FROM `socios_fundadores` WHERE numero_socio = :num LIMIT 1");
         $checkNum->execute([':num' => $customNumero]);
         if ($checkNum->fetch()) {
             sendResponse([
                 'success' => false,
-                'error' => "El número de socio #{$customNumero} ya está ocupado. Selecciona otro o usa asignación automática."
+                'error' => "El número de socio #{$customNumero} ya está ocupado. Selecciona otro número o déjalo automático."
             ], 409);
         }
         $numeroAsignado = $customNumero;
     } else {
-        // Asignación automática del 1 al 100
         $numeroAsignado = getNextAvailableNumber($pdo);
         if ($numeroAsignado === null) {
             sendResponse([
                 'success' => false,
-                'error' => '¡Cupos completados! El Club de 100 Socios Fundadores ya alcanzó su límite máximo de miembros.'
+                'error' => '¡Cupos agotados! El Club de 100 Socios Fundadores ya completó su límite de miembros.'
             ], 400);
         }
     }
@@ -231,9 +287,9 @@ if ($method === 'POST') {
     try {
         $stmt = $pdo->prepare("
             INSERT INTO `socios_fundadores` 
-            (`numero_socio`, `tipo_membresia`, `nombre`, `telefono`, `email`, `patente`, `modelo_auto`, `monto_pagado`, `metodo_pago`, `estado_pago`, `observaciones`, `fecha_inscripcion`)
+            (`numero_socio`, `tipo_membresia`, `nombre`, `telefono`, `email`, `fecha_nacimiento`, `patente`, `modelo_auto`, `monto_pagado`, `metodo_pago`, `estado_pago`, `observaciones`, `fecha_inscripcion`)
             VALUES 
-            (:numero, :tipo, :nombre, :telefono, :email, :patente, :modelo, :monto, :metodo, :estado, :obs, NOW())
+            (:numero, :tipo, :nombre, :telefono, :email, :fecha_nac, :patente, :modelo, :monto, :metodo, :estado, :obs, NOW())
         ");
         $stmt->execute([
             ':numero' => $numeroAsignado,
@@ -241,6 +297,7 @@ if ($method === 'POST') {
             ':nombre' => $nombre,
             ':telefono' => $telefono,
             ':email' => $email,
+            ':fecha_nac' => $fecha_nac,
             ':patente' => $patente,
             ':modelo' => $modelo_auto,
             ':monto' => $monto_pagado,
@@ -251,55 +308,61 @@ if ($method === 'POST') {
 
         $newId = $pdo->lastInsertId();
 
+        // Recuperar registro completo
+        $stmtGet = $pdo->prepare("SELECT * FROM `socios_fundadores` WHERE `id` = :id LIMIT 1");
+        $stmtGet->execute([':id' => $newId]);
+        $socioSaved = $stmtGet->fetch();
+
         sendResponse([
             'success' => true,
-            'message' => "¡Socio Fundador #{$numeroAsignado} registrado exitosamente!",
-            'socio' => [
-                'id' => $newId,
-                'numero_socio' => $numeroAsignado,
-                'numero_formateado' => sprintf("#%03d", $numeroAsignado),
-                'tipo_membresia' => $tipo_membresia,
-                'nombre' => $nombre,
-                'telefono' => $telefono,
-                'email' => $email,
-                'patente' => $patente,
-                'modelo_auto' => $modelo_auto,
-                'monto_pagado' => $monto_pagado,
-                'estado_pago' => $estado_pago
-            ]
+            'message' => "¡Socio Fundador #" . sprintf("%03d", $numeroAsignado) . " ({$nombre}) registrado con éxito!",
+            'numero_socio' => $numeroAsignado,
+            'socio' => formatSocioRow($socioSaved)
         ], 201);
     } catch (Exception $e) {
-        sendResponse(['success' => false, 'error' => 'Error al registrar socio: ' . $e->getMessage()], 500);
+        sendResponse(['success' => false, 'error' => 'Error al guardar socio: ' . $e->getMessage()], 500);
     }
 }
 
 // -------------------------------------------------------------
-// ACTUALIZAR SOCIO FUNDADOR (PUT)
+// 4. ACTUALIZAR SOCIO FUNDADOR (PUT)
 // -------------------------------------------------------------
 if ($method === 'PUT') {
     $input = getJsonInput();
     $id = isset($input['id']) ? intval($input['id']) : 0;
 
     if ($id <= 0) {
-        sendResponse(['success' => false, 'error' => 'ID de socio inválido.'], 400);
+        sendResponse(['success' => false, 'error' => 'ID de socio inválido o no especificado.'], 400);
     }
 
     if (!$pdo) {
-        sendResponse(['success' => false, 'error' => 'No hay conexión a la base de datos.'], 500);
+        sendResponse(['success' => false, 'error' => 'No hay conexión a la base de datos DonWeb.'], 500);
     }
 
     ensureSociosTable($pdo);
 
-    $nombre = isset($input['nombre']) ? trim($input['nombre']) : '';
-    $telefono = isset($input['telefono']) ? trim($input['telefono']) : '';
-    $email = isset($input['email']) ? trim($input['email']) : '';
-    $patente = isset($input['patente']) ? strtoupper(trim($input['patente'])) : '';
-    $modelo_auto = isset($input['modelo_auto']) ? trim($input['modelo_auto']) : '';
-    $tipo_membresia = isset($input['tipo_membresia']) && strtolower(trim($input['tipo_membresia'])) === 'gold' ? 'gold' : 'black';
-    $monto_pagado = isset($input['monto_pagado']) ? floatval($input['monto_pagado']) : 0.00;
-    $metodo_pago = isset($input['metodo_pago']) ? trim($input['metodo_pago']) : 'mercadopago';
-    $estado_pago = isset($input['estado_pago']) ? trim($input['estado_pago']) : 'pagado';
-    $observaciones = isset($input['observaciones']) ? trim($input['observaciones']) : '';
+    $nombre = trim($input['nombre'] ?? $input['titular'] ?? '');
+    $patente = strtoupper(trim($input['patente'] ?? ''));
+    $telefono = trim($input['telefono'] ?? '');
+    $email = trim($input['email'] ?? '');
+    $fecha_nac = trim($input['fecha_nacimiento'] ?? $input['fecha_nac'] ?? '');
+    $modelo_auto = trim($input['modelo_auto'] ?? $input['modelo'] ?? '');
+    
+    $rawTipo = strtolower(trim($input['tipo_membresia'] ?? $input['tipo'] ?? 'black'));
+    $tipo_membresia = ($rawTipo === 'gold') ? 'gold' : 'black';
+
+    $monto_pagado = isset($input['monto_pagado']) ? floatval($input['monto_pagado']) : (isset($input['monto']) ? floatval($input['monto']) : 0.00);
+    $metodo_pago = trim($input['metodo_pago'] ?? 'mercadopago');
+    $rawEstado = strtolower(trim($input['estado_pago'] ?? $input['estado'] ?? 'pagado'));
+    $estado_pago = ($rawEstado === 'pendiente') ? 'pendiente' : 'pagado';
+    $observaciones = trim($input['observaciones'] ?? $input['notas'] ?? '');
+
+    // Validar patente duplicada en otro registro
+    $checkPat = $pdo->prepare("SELECT id FROM `socios_fundadores` WHERE UPPER(patente) = :patente AND id != :id LIMIT 1");
+    $checkPat->execute([':patente' => $patente, ':id' => $id]);
+    if ($checkPat->fetch()) {
+        sendResponse(['success' => false, 'error' => "La patente {$patente} ya pertenece a otro socio fundador."], 409);
+    }
 
     try {
         $stmt = $pdo->prepare("
@@ -307,6 +370,7 @@ if ($method === 'PUT') {
                 `nombre` = :nombre,
                 `telefono` = :telefono,
                 `email` = :email,
+                `fecha_nacimiento` = :fecha_nac,
                 `patente` = :patente,
                 `modelo_auto` = :modelo,
                 `tipo_membresia` = :tipo,
@@ -320,6 +384,7 @@ if ($method === 'PUT') {
             ':nombre' => $nombre,
             ':telefono' => $telefono,
             ':email' => $email,
+            ':fecha_nac' => $fecha_nac,
             ':patente' => $patente,
             ':modelo' => $modelo_auto,
             ':tipo' => $tipo_membresia,
@@ -330,14 +395,23 @@ if ($method === 'PUT') {
             ':id' => $id
         ]);
 
-        sendResponse(['success' => true, 'message' => 'Socio Fundador actualizado correctamente.']);
+        // Retornar datos actualizados
+        $stmtGet = $pdo->prepare("SELECT * FROM `socios_fundadores` WHERE `id` = :id LIMIT 1");
+        $stmtGet->execute([':id' => $id]);
+        $socioUpdated = $stmtGet->fetch();
+
+        sendResponse([
+            'success' => true,
+            'message' => "Socio Fundador actualizado correctamente.",
+            'socio' => formatSocioRow($socioUpdated)
+        ]);
     } catch (Exception $e) {
         sendResponse(['success' => false, 'error' => 'Error al actualizar socio: ' . $e->getMessage()], 500);
     }
 }
 
 // -------------------------------------------------------------
-// ELIMINAR SOCIO FUNDADOR (DELETE)
+// 5. ELIMINAR SOCIO FUNDADOR (DELETE)
 // -------------------------------------------------------------
 if ($method === 'DELETE') {
     $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -347,17 +421,20 @@ if ($method === 'DELETE') {
     }
 
     if ($id <= 0) {
-        sendResponse(['success' => false, 'error' => 'ID de socio requerido.'], 400);
+        sendResponse(['success' => false, 'error' => 'ID de socio requerido para eliminar.'], 400);
     }
 
     if (!$pdo) {
-        sendResponse(['success' => false, 'error' => 'No hay conexión a la base de datos.'], 500);
+        sendResponse(['success' => false, 'error' => 'No hay conexión a la base de datos DonWeb.'], 500);
     }
 
     try {
         $stmt = $pdo->prepare("DELETE FROM `socios_fundadores` WHERE `id` = :id LIMIT 1");
         $stmt->execute([':id' => $id]);
-        sendResponse(['success' => true, 'message' => 'Socio eliminado. El cupo y número quedaron liberados.']);
+        sendResponse([
+            'success' => true,
+            'message' => 'Socio eliminado exitosamente. El cupo y número quedaron liberados.'
+        ]);
     } catch (Exception $e) {
         sendResponse(['success' => false, 'error' => 'Error al eliminar: ' . $e->getMessage()], 500);
     }

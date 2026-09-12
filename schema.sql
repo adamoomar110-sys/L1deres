@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS `socios_fundadores` (
   `nombre` VARCHAR(150) NOT NULL,
   `telefono` VARCHAR(50) NOT NULL,
   `email` VARCHAR(150) NULL,
+  `fecha_nacimiento` VARCHAR(30) NULL,
   `patente` VARCHAR(20) NOT NULL,
   `modelo_auto` VARCHAR(100) NULL,
   `monto_pagado` DECIMAL(10,2) DEFAULT 0.00,
