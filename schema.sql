@@ -85,7 +85,7 @@ VALUES
 ON DUPLICATE KEY UPDATE `email` = `email`;
 
 -- ============================================================
--- TABLA CLUB 200 SOCIOS FUNDADORES (BLACK & GOLD VIP)
+-- TABLA CLUB 100 SOCIOS FUNDADORES (BLACK & GOLD VIP)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `socios_fundadores` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,

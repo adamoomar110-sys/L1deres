@@ -254,7 +254,7 @@ function selectMPMethod(labelElem) {
     if (labelElem) labelElem.classList.add('active');
 }
 
-// --- LÓGICA DE REGISTRO Y PAGO DE SOCIOS FUNDADORES (1 A 200) ---
+// --- LÓGICA DE REGISTRO Y PAGO DE SOCIOS FUNDADORES (1 A 100) ---
 function startSocioCheckout(tipo) {
     appState.isSocioCheckout = true;
     appState.socioTipo = tipo === 'gold' ? 'gold' : 'black';
@@ -418,8 +418,8 @@ async function confirmMPPayment() {
         await new Promise(r => setTimeout(r, 1800));
 
         if (appState.isSocioCheckout) {
-            // REGISTRO DE SOCIO FUNDADOR EN BACKEND DONWEB MYSQL (1 A 200)
-            let numeroAsignado = Math.floor(Math.random() * 190) + 1; // Fallback aleatorio 1-200
+            // REGISTRO DE SOCIO FUNDADOR EN BACKEND DONWEB MYSQL (1 A 100)
+            let numeroAsignado = Math.floor(Math.random() * 95) + 1; // Fallback aleatorio 1-100
             
             try {
                 const res = await fetch(`${API_URL}socios_fundadores.php`, {

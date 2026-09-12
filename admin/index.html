@@ -119,6 +119,10 @@
                     <i class='bx bxl-whatsapp' style="color: #25D366;"></i>
                     <span>WhatsApp</span>
                 </button>
+                <button class="nav-btn" id="btn-webmail-donweb" onclick="window.open('https://ferozo.email/?_user=contacto@l1deres.site', '_blank')" title="Abrir contacto@l1deres.site">
+                    <i class='bx bx-envelope' style="color: #38bdf8;"></i>
+                    <span>Mail <small style="display:block; font-size:0.68rem; color:#94a3b8; font-weight:400; margin-top:1px;">contacto@l1deres.site</small></span>
+                </button>
                 <button class="nav-btn btn-logout" id="btn-logout" onclick="handleLogout()" style="margin-top: 15px; background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3);">
                     <i class='bx bx-log-out'></i>
                     <span>Cerrar Sesión</span>
@@ -400,7 +404,7 @@
                             <i class='bx bx-scan' style="font-size: 1.5rem;"></i> Sistema LPR de Reconocimiento y Asignación Automática
                         </h3>
                         <p style="margin: 3px 0 0; color: #94a3b8; font-size: 0.85rem;">
-                            Detecta automáticamente socios del Club 200 (Black/Gold) o reservas del día al ingresar al predio.
+                            Detecta automáticamente socios del Club 100 (Black/Gold) o reservas del día al ingresar al predio.
                         </p>
                     </div>
                     
@@ -741,14 +745,14 @@
             </div>
         </main>
 
-        <!-- Vista de Gestión de Socios Fundadores (Black & Gold #001 al #200) -->
+        <!-- Vista de Gestión de Socios Fundadores (Black & Gold #001 al #100) -->
         <main class="main-content" id="socios-fundadores-view" style="display: none; padding: 2rem; overflow-y: auto;">
             <div class="metrics-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
                 <div>
                     <h2 style="display: flex; align-items: center; gap: 10px; font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #fbbf24, #f59e0b, #e2e8f0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                         <i class='bx bx-crown' style="-webkit-text-fill-color: #fbbf24;"></i> Socios Fundadores Oficiales
                     </h2>
-                    <p style="color: var(--text-secondary); margin-top: 5px;">Membresías exclusivas limitadas a 200 cupos (#001 - #200) · Control de accesos, credenciales VIP y beneficios.</p>
+                    <p style="color: var(--text-secondary); margin-top: 5px;">Membresías exclusivas limitadas a 100 cupos (#001 - #100) · Control de accesos, credenciales VIP y beneficios.</p>
                 </div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <button class="btn btn-secondary" onclick="window.toggleSocioConfigModal()" style="display: flex; align-items: center; gap: 8px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer;">
@@ -767,7 +771,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
                             <span style="font-size: 0.85rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Cupos Ocupados</span>
-                            <h3 id="socio-kpi-total" style="font-size: 2rem; font-weight: 900; color: #fbbf24; margin: 6px 0 0 0;">0 <span style="font-size: 1.1rem; color: #94a3b8; font-weight: 500;">/ 200</span></h3>
+                            <h3 id="socio-kpi-total" style="font-size: 2rem; font-weight: 900; color: #fbbf24; margin: 6px 0 0 0;">0 <span style="font-size: 1.1rem; color: #94a3b8; font-weight: 500;">/ 100</span></h3>
                         </div>
                         <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(251,191,36,0.15); display: flex; align-items: center; justify-content: center; color: #fbbf24; font-size: 1.5rem;">
                             <i class='bx bx-group'></i>
@@ -778,7 +782,7 @@
                         <div id="socio-kpi-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); border-radius: 4px; transition: width 0.5s ease;"></div>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748b; margin-top: 6px;">
-                        <span>Disponibles: <strong id="socio-kpi-disponibles" style="color: #38bdf8;">200</strong></span>
+                        <span>Disponibles: <strong id="socio-kpi-disponibles" style="color: #38bdf8;">100</strong></span>
                         <span id="socio-kpi-pct">0% Ocupado</span>
                     </div>
                 </div>
@@ -907,7 +911,7 @@
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div>
-                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Nº Socio (Cupo #001 - #200):</label>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Nº Socio (Cupo #001 - #100):</label>
                             <input type="text" id="form-socio-numero" placeholder="Ej: #001" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: #fbbf24; font-weight: 800;" required>
                         </div>
                         <div>

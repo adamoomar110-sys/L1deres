@@ -648,17 +648,18 @@ function updateLandingBadge(state) {
     if (landingBadgeEl) {
         landingBadgeEl.className = 'status-badge';
         if (autosEsperaCount === 0 || remainingSegundos === 0) {
-            landingBadgeEl.textContent = 'Sin Demora';
+            landingBadgeEl.textContent = 'SIN DEMORA';
             landingBadgeEl.className = 'status-badge badge-libre';
         } else if (autosEsperaCount <= 4) {
-            landingBadgeEl.textContent = 'Demora Normal';
+            landingBadgeEl.textContent = 'DEMORA NORMAL';
             landingBadgeEl.className = 'status-badge badge-normal';
         } else if (autosEsperaCount <= 6) {
-            landingBadgeEl.textContent = 'Demora Alta';
+            landingBadgeEl.textContent = 'DEMORA ALTA';
             landingBadgeEl.className = 'status-badge badge-alta';
         } else {
-            landingBadgeEl.textContent = 'Cap. Máxima';
+            landingBadgeEl.textContent = 'CAP. MÁXIMA';
             landingBadgeEl.className = 'status-badge badge-critica';
+        }
         }
     }
 }

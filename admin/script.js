@@ -2735,8 +2735,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let sponsorIsPlaying = true;
 
     // === GESTIÓN SOCIO FUNDADOR BLACK Y GOLD ===
-    // === GESTIÓN INTEGRAL DE SOCIOS FUNDADORES (#001 - #200) ===
-    const MAX_SOCIOS_FUNDADORES = 200;
+    // === GESTIÓN INTEGRAL DE SOCIOS FUNDADORES (#001 - #100) ===
+    const MAX_SOCIOS_FUNDADORES = 100;
     let currentVipViewingSocio = null;
 
     function getSociosFundadoresData() {
