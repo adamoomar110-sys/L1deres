@@ -49,41 +49,56 @@ window.solicitarPermisosNotificacionOneSignal = solicitarPermisosNotificacionOne
 
 // Lógica de Instalación de PWA (Android, iOS y Desktop)
 let deferredPrompt;
+
+function setupInstallButton() {
+    const btnInstall = document.getElementById('btn-install');
+    if (!btnInstall) return;
+
+    const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+    // Si ya está instalada y corriendo en pantalla completa como app, ocultar botón
+    if (isStandalone) {
+        btnInstall.style.display = 'none';
+        return;
+    }
+
+    // Si no está instalada, mostrar el botón
+    btnInstall.style.display = 'flex';
+
+    if (isIos) {
+        btnInstall.innerHTML = "<i class='bx bx-export' style='font-size:1.15rem; color:#fde047;'></i> INSTALAR EN IPHONE / IPAD";
+        btnInstall.onclick = () => {
+            alert("Para instalar la App de L1deres en tu iPhone o iPad:\n\n1. Tocá el botón Compartir (ícono cuadrado con flecha hacia arriba) en Safari.\n2. Deslizá hacia abajo y seleccioná 'Añadir a pantalla de inicio'.");
+        };
+    } else {
+        btnInstall.innerHTML = "<i class='bx bx-download' style='font-size:1.15rem; color:#fde047;'></i> INSTALAR APP EN TU CELULAR";
+        btnInstall.onclick = () => {
+            if (deferredPrompt) {
+                solicitarPermisosNotificacionOneSignal();
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        btnInstall.style.display = 'none';
+                        console.log('El usuario aceptó la instalación de la PWA L1deres');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert("Para instalar la App de L1deres en tu dispositivo:\n\n1. Tocá los 3 puntos (⋮) o el ícono de menú de tu navegador.\n2. Elegí la opción 'Instalar aplicación' o 'Agregar a la pantalla principal'.");
+            }
+        };
+    }
+}
+
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    const btnInstall = document.getElementById('btn-install');
-    if (btnInstall) {
-        btnInstall.style.display = 'block';
-        btnInstall.onclick = () => {
-            btnInstall.style.display = 'none';
-            solicitarPermisosNotificacionOneSignal();
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('El usuario instaló la PWA L1deres Turnos');
-                }
-                deferredPrompt = null;
-            });
-        };
-    }
+    setupInstallButton();
 });
 
-// Detectar iOS Safari para mostrar banner de instalación
 document.addEventListener('DOMContentLoaded', () => {
-    const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
-    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-    
-    if (isIos && !isStandalone) {
-        const btnInstall = document.getElementById('btn-install');
-        if (btnInstall) {
-            btnInstall.style.display = 'block';
-            btnInstall.innerHTML = "<i class='bx bx-export'></i> INSTALAR EN IPHONE / IPAD";
-            btnInstall.onclick = () => {
-                alert("Para instalar la App de Turnos en tu iPhone:\n1. Toca el botón Compartir (cuadrado con flecha abajo) en Safari.\n2. Seleccioná 'Añadir a pantalla de inicio'.");
-            };
-        }
-    }
+    setupInstallButton();
 });
 
 // Navegación entre pantallas

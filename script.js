@@ -730,8 +730,29 @@ function handleContactForm(e) {
 }
 
 // ============================================================
-// 6. INICIALIZACIÓN GLOBAL Y REDIBUJO CONTINUO DE PISTA
+// 6. INICIALIZACIÓN GLOBAL, PWA Y REDIBUJO CONTINUO DE PISTA
 // ============================================================
+let landingDeferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    landingDeferredPrompt = e;
+    const pwaBtn = document.getElementById('landing-pwa-btn');
+    if (pwaBtn) {
+        pwaBtn.onclick = (evt) => {
+            if (landingDeferredPrompt) {
+                evt.preventDefault();
+                landingDeferredPrompt.prompt();
+                landingDeferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('PWA instalada desde la landing');
+                    }
+                    landingDeferredPrompt = null;
+                });
+            }
+        };
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     loadLandingConfig();
     initLandingTrackGrid();

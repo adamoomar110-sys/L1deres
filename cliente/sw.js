@@ -1,15 +1,15 @@
-const CACHE_NAME = 'l1deres-pwa-v2.8';
+const CACHE_NAME = 'l1deres-pwa-v3.0';
 const urlsToCache = [
   './',
   './index.html',
-  './style.css?v=1.8',
-  './app.js?v=1.8',
+  './style.css',
+  './app.js',
   './manifest.json',
   './f1_car_top_down.png',
+  './render_fachada.jpg',
   './logo.jpg',
   './logo_horizontal.jpg',
-  './logo_icon.jpg',
-  '../logo.jpg'
+  './logo_icon.jpg'
 ];
 
 self.addEventListener('install', event => {
@@ -37,8 +37,12 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // Estrategia Network-First con fallback a cache offline
   if (event.request.method !== 'GET') return;
+  // No interceptar llamadas a la API en tiempo real
+  if (event.request.url.includes('/api/')) return;
+  // Solo interceptar peticiones de nuestro propio origen
+  if (!event.request.url.startsWith(self.location.origin)) return;
+
   event.respondWith(
     fetch(event.request)
       .then(networkResponse => {

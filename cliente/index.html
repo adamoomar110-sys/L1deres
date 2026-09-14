@@ -144,8 +144,9 @@
                     </a>
                 </div>
 
-                <button id="btn-install" class="btn" style="width: 100%; background: #0ea5e9; color: white; display: none; margin-bottom: 6px; padding: 8px;">
-                    <i class='bx bx-download'></i> INSTALAR APP
+                <!-- Botón de Instalación PWA (Android / iOS / PC) -->
+                <button id="btn-install" class="btn" style="width: 100%; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); border: 1px solid rgba(56, 189, 248, 0.5); color: white; display: none; margin-bottom: 7px; padding: 10px 8px; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.5px; border-radius: 10px; box-shadow: 0 4px 16px rgba(14,165,233,0.35); align-items: center; justify-content: center; gap: 6px; cursor: pointer; text-transform: uppercase;">
+                    <i class='bx bx-download' style="font-size: 1.15rem; color: #fde047;"></i> INSTALAR APP EN TU CELULAR
                 </button>
 
                 <!-- Footer Integrado de forma fluida (Sin barras negras superpuestas ni cortes) -->
@@ -648,10 +649,19 @@
     </div>
 
     <!-- App Script -->
-    <script src="app.js?v=1.6"></script>
+    <script src="app.js?v=2.0"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                reg.update();
+            });
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
+            });
         }
     </script>
 </body>
