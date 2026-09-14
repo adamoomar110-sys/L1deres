@@ -49,6 +49,8 @@ DROP TABLE IF EXISTS `configuracion`;
 CREATE TABLE `configuracion` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `live_state` LONGTEXT NULL,
+  `tiempo_lavado` INT DEFAULT 120000,
+  `tiempo_secado` INT DEFAULT 180000,
   `precio_express_auto` INT DEFAULT 12000,
   `precio_express_camioneta` INT DEFAULT 15000,
   `precio_completo_auto` INT DEFAULT 18000,

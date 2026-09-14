@@ -112,7 +112,8 @@ if ($method === 'POST') {
 }
 
 if ($method === 'GET') {
-    $appId = '';
+    // Primero tomar el App ID de las constantes (secrets.php), luego intentar sobreescribir con DB
+    $appId = defined('ONESIGNAL_APP_ID') ? ONESIGNAL_APP_ID : '';
     if ($pdo) {
         try {
             $stmt = $pdo->query("SELECT live_state FROM configuracion WHERE id = 1 LIMIT 1");
@@ -125,5 +126,6 @@ if ($method === 'GET') {
     }
     sendResponse(['status' => 'push_endpoint_ready', 'onesignal_app_id' => $appId]);
 }
+
 
 sendResponse(['error' => 'Método no soportado'], 405);

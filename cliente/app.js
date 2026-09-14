@@ -17,8 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(`${API_URL}configuracion.php`)
         .then(res => res.json())
         .then(data => {
-            if (data && data.whatsapp_number) {
-                appState.whatsappNumber = data.whatsapp_number;
+            if (data) {
+                if (data.whatsapp_number) appState.whatsappNumber = data.whatsapp_number;
+                if (data.tiempo_lavado) appState.tiempoLavado = parseInt(data.tiempo_lavado);
+                if (data.tiempo_secado) appState.tiempoSecado = parseInt(data.tiempo_secado);
             }
         })
         .catch(err => console.warn('Cargando config cliente:', err));
@@ -911,11 +913,15 @@ function renderClientCars(state) {
         }
     }
 
-    const msLavado = state.tiempo_lavado_ms || 120000;
-    const msSecado = state.tiempo_secado_ms || 180000;
-    const minLavado = Math.round(msLavado / 60000);
-    const minSecado = Math.round(msSecado / 60000);
-    const minPorTurno = minLavado + minSecado;
+    const msLavado = (state && state.tiempo_lavado_ms) || appState.tiempoLavado || 120000;
+    const msSecado = (state && state.tiempo_secado_ms) || appState.tiempoSecado || 180000;
+    const minLavado = Math.floor(msLavado / 60000);
+    const secLavado = Math.floor((msLavado % 60000) / 1000);
+    const timeLavStr = `${minLavado.toString().padStart(2, '0')}:${secLavado.toString().padStart(2, '0')}`;
+    const minSecado = Math.floor(msSecado / 60000);
+    const secSecado = Math.floor((msSecado % 60000) / 1000);
+    const timeSecStr = `${minSecado.toString().padStart(2, '0')}:${secSecado.toString().padStart(2, '0')}`;
+    const minPorTurno = Math.max(1, Math.round((msLavado + msSecado) / 60000));
 
     if (state.espera || state.lavado || state.secado || state.terminado) {
         if (Array.isArray(state.espera)) {
@@ -931,15 +937,13 @@ function renderClientCars(state) {
         if (state.lavado) {
             const item = state.lavado;
             const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
-            const lavMin = minLavado.toString().padStart(2, '0');
-            placeCar(LAVADO_ZONE, `${lavMin}:00`, '#38bdf8', 270, type, item.id || 'lavado-1', item, 'lavado');
+            placeCar(LAVADO_ZONE, timeLavStr, '#38bdf8', 270, type, item.id || 'lavado-1', item, 'lavado');
         }
         if (Array.isArray(state.secado)) {
             state.secado.forEach((item, index) => {
                 if (item && SECADO_ZONES[index]) {
                     const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
-                    const secMin = minSecado.toString().padStart(2, '0');
-                    placeCar(SECADO_ZONES[index], `${secMin}:00`, '#f59e0b', 270, type, item.id || `sec-${index}`, item, 'secado');
+                    placeCar(SECADO_ZONES[index], timeSecStr, '#f59e0b', 270, type, item.id || `sec-${index}`, item, 'secado');
                 }
             });
         }
@@ -1018,8 +1022,8 @@ function updateClientBadge(state) {
         if (state.max_eta && state.max_eta > Date.now()) {
             remainingSegundos = Math.ceil((state.max_eta - Date.now()) / 1000);
         } else {
-            const msLav = state.tiempo_lavado_ms || 120000;
-            const msSec = state.tiempo_secado_ms || 180000;
+            const msLav = (state && state.tiempo_lavado_ms) || appState.tiempoLavado || 120000;
+            const msSec = (state && state.tiempo_secado_ms) || appState.tiempoSecado || 180000;
             const turnoSeg = Math.round((msLav + msSec) / 1000);
             remainingSegundos = Math.ceil(autosEsperaCount / 2) * turnoSeg;
         }

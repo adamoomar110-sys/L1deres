@@ -90,6 +90,7 @@ const API_FILES = [
   "push.php",
   "socios_fundadores.php",
   "sponsors.php",
+  "secrets.php",
 ];
 
 async function connectFTP() {

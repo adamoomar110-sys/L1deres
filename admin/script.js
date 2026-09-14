@@ -242,8 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.APP_CONFIG = {
-        tiempoLavado: (parseInt(localStorage.getItem('tiempoLavado')) >= 10000 ? parseInt(localStorage.getItem('tiempoLavado')) : 120000),
-        tiempoSecado: (parseInt(localStorage.getItem('tiempoSecado')) >= 10000 ? parseInt(localStorage.getItem('tiempoSecado')) : 180000),
+        tiempoLavado: (parseInt(localStorage.getItem('tiempoLavado')) > 0 ? parseInt(localStorage.getItem('tiempoLavado')) : 120000),
+        tiempoSecado: (parseInt(localStorage.getItem('tiempoSecado')) > 0 ? parseInt(localStorage.getItem('tiempoSecado')) : 180000),
         precio_express_auto: parseInt(localStorage.getItem('precio_express_auto')) || 0,
         precio_express_camioneta: parseInt(localStorage.getItem('precio_express_camioneta')) || 0,
         precio_completo_auto: parseInt(localStorage.getItem('precio_completo_auto')) || 0,
@@ -405,59 +405,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const configWhatsappInput = document.getElementById('config-whatsapp');
 
     if (btnSaveConfig) {
-        // Populate inputs initially
-        lavadoMin.value = Math.floor(window.APP_CONFIG.tiempoLavado / 60000);
-        lavadoSec.value = (window.APP_CONFIG.tiempoLavado % 60000) / 1000;
-        secadoMin.value = Math.floor(window.APP_CONFIG.tiempoSecado / 60000);
-        secadoSec.value = (window.APP_CONFIG.tiempoSecado % 60000) / 1000;
-        precioExpressAutoInput.value = window.APP_CONFIG.precio_express_auto;
-        precioExpressCamionetaInput.value = window.APP_CONFIG.precio_express_camioneta;
-        precioCompletoAutoInput.value = window.APP_CONFIG.precio_completo_auto;
-        precioCompletoCamionetaInput.value = window.APP_CONFIG.precio_completo_camioneta;
-        configWhatsappInput.value = window.APP_CONFIG.whatsapp || '';
-
-        btnSaveConfig.addEventListener('click', () => {
-            const lMins = parseInt(lavadoMin.value) || 0;
-            const lSecs = parseInt(lavadoSec.value) || 0;
-            window.APP_CONFIG.tiempoLavado = ((lMins * 60) + lSecs) * 1000;
-
-            const sMins = parseInt(secadoMin.value) || 0;
-            const sSecs = parseInt(secadoSec.value) || 0;
-            window.APP_CONFIG.tiempoSecado = ((sMins * 60) + sSecs) * 1000;
-
-            window.APP_CONFIG.precio_express_auto = parseInt(precioExpressAutoInput.value) || 0;
-            window.APP_CONFIG.precio_express_camioneta = parseInt(precioExpressCamionetaInput.value) || 0;
-            window.APP_CONFIG.precio_completo_auto = parseInt(precioCompletoAutoInput.value) || 0;
-            window.APP_CONFIG.precio_completo_camioneta = parseInt(precioCompletoCamionetaInput.value) || 0;
-            
-            window.APP_CONFIG.whatsapp = configWhatsappInput ? configWhatsappInput.value.trim() : '';
-
-            localStorage.setItem('tiempoLavado', window.APP_CONFIG.tiempoLavado);
-            localStorage.setItem('tiempoSecado', window.APP_CONFIG.tiempoSecado);
-            localStorage.setItem('precio_express_auto', window.APP_CONFIG.precio_express_auto);
-            localStorage.setItem('precio_express_camioneta', window.APP_CONFIG.precio_express_camioneta);
-            localStorage.setItem('precio_completo_auto', window.APP_CONFIG.precio_completo_auto);
-            localStorage.setItem('precio_completo_camioneta', window.APP_CONFIG.precio_completo_camioneta);
-            
-            // Sincronizar con DonWeb MySQL
-            fetch(`${API_URL}configuracion.php`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    whatsapp_number: window.APP_CONFIG.whatsapp,
-                    tiempo_lavado: window.APP_CONFIG.tiempoLavado,
-                    tiempo_secado: window.APP_CONFIG.tiempoSecado,
-                    precio_express_auto: window.APP_CONFIG.precio_express_auto,
-                    precio_express_camioneta: window.APP_CONFIG.precio_express_camioneta,
-                    precio_completo_auto: window.APP_CONFIG.precio_completo_auto,
-                    precio_completo_camioneta: window.APP_CONFIG.precio_completo_camioneta
-                })
-            }).then(res => res.json()).then(data => {
-                showToast('¡Configuración guardada en DonWeb!', 'success');
-            }).catch(err => {
-                showToast('Configuración guardada localmente.', 'info');
-            });
-        });
+        // Carga inicial de inputs desde APP_CONFIG
+        if (lavadoMin) lavadoMin.value = Math.floor(window.APP_CONFIG.tiempoLavado / 60000);
+        if (lavadoSec) lavadoSec.value = Math.floor((window.APP_CONFIG.tiempoLavado % 60000) / 1000);
+        if (secadoMin) secadoMin.value = Math.floor(window.APP_CONFIG.tiempoSecado / 60000);
+        if (secadoSec) secadoSec.value = Math.floor((window.APP_CONFIG.tiempoSecado % 60000) / 1000);
+        if (precioExpressAutoInput) precioExpressAutoInput.value = window.APP_CONFIG.precio_express_auto;
+        if (precioExpressCamionetaInput) precioExpressCamionetaInput.value = window.APP_CONFIG.precio_express_camioneta;
+        if (precioCompletoAutoInput) precioCompletoAutoInput.value = window.APP_CONFIG.precio_completo_auto;
+        if (precioCompletoCamionetaInput) precioCompletoCamionetaInput.value = window.APP_CONFIG.precio_completo_camioneta;
+        if (configWhatsappInput) configWhatsappInput.value = window.APP_CONFIG.whatsapp || '';
     }
 
     // Generar layout del plano
@@ -3553,12 +3510,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     window.loadAdminConfig = async function() {
         const defaultCfg = {
-            lavado_min: 0, lavado_sec: 5,
-            secado_min: 0, secado_sec: 5,
+            tiempo_lavado: 120000,
+            tiempo_secado: 180000,
+            lavado_min: 2, lavado_sec: 0,
+            secado_min: 3, secado_sec: 0,
             whatsapp: "5491160473754",
-            precio_lavado: 12000,
-            precio_secado: 12000,
-            precio_completo: 20000,
+            precio_express_auto: 10000,
+            precio_express_camioneta: 12000,
+            precio_completo_auto: 15000,
+            precio_completo_camioneta: 18000,
             dias_atencion: "Lunes a Sábados",
             hora_apertura: "08:00",
             hora_cierre: "20:00",
@@ -3571,10 +3531,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 1. Cargar desde DonWeb API
         try {
-            const res = await fetch(`${API_URL}configuracion.php`);
+            const res = await fetch(`${API_URL}configuracion.php?_t=${Date.now()}`);
             if (res.ok) {
                 const data = await res.json();
                 if (data && !data.error) {
+                    if (data.tiempo_lavado !== undefined && parseInt(data.tiempo_lavado) > 0) {
+                        cfg.tiempo_lavado = parseInt(data.tiempo_lavado);
+                        cfg.lavado_min = Math.floor(cfg.tiempo_lavado / 60000);
+                        cfg.lavado_sec = Math.floor((cfg.tiempo_lavado % 60000) / 1000);
+                    }
+                    if (data.tiempo_secado !== undefined && parseInt(data.tiempo_secado) > 0) {
+                        cfg.tiempo_secado = parseInt(data.tiempo_secado);
+                        cfg.secado_min = Math.floor(cfg.tiempo_secado / 60000);
+                        cfg.secado_sec = Math.floor((cfg.tiempo_secado % 60000) / 1000);
+                    }
                     if (data.precio_express_auto !== undefined) cfg.precio_express_auto = data.precio_express_auto;
                     if (data.precio_express_camioneta !== undefined) cfg.precio_express_camioneta = data.precio_express_camioneta;
                     if (data.precio_completo_auto !== undefined) cfg.precio_completo_auto = data.precio_completo_auto;
@@ -3597,9 +3567,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (localSaved) {
             try {
                 const parsed = JSON.parse(localSaved);
+                if (parsed.tiempo_lavado && !cfg.tiempo_lavado) {
+                    cfg.tiempo_lavado = parsed.tiempo_lavado;
+                    cfg.lavado_min = Math.floor(cfg.tiempo_lavado / 60000);
+                    cfg.lavado_sec = Math.floor((cfg.tiempo_lavado % 60000) / 1000);
+                }
+                if (parsed.tiempo_secado && !cfg.tiempo_secado) {
+                    cfg.tiempo_secado = parsed.tiempo_secado;
+                    cfg.secado_min = Math.floor(cfg.tiempo_secado / 60000);
+                    cfg.secado_sec = Math.floor((cfg.tiempo_secado % 60000) / 1000);
+                }
                 cfg = { ...cfg, ...parsed };
             } catch(e){}
         }
+
+        // Asegurar que window.APP_CONFIG tenga los valores actualizados
+        if (window.APP_CONFIG) {
+            window.APP_CONFIG.tiempoLavado = cfg.tiempo_lavado;
+            window.APP_CONFIG.tiempoSecado = cfg.tiempo_secado;
+            window.APP_CONFIG.precio_express_auto = cfg.precio_express_auto;
+            window.APP_CONFIG.precio_express_camioneta = cfg.precio_express_camioneta;
+            window.APP_CONFIG.precio_completo_auto = cfg.precio_completo_auto;
+            window.APP_CONFIG.precio_completo_camioneta = cfg.precio_completo_camioneta;
+            window.APP_CONFIG.whatsapp = cfg.whatsapp;
+        }
+
+        localStorage.setItem('tiempoLavado', cfg.tiempo_lavado);
+        localStorage.setItem('tiempoSecado', cfg.tiempo_secado);
 
         // 3. Volcar valores en los inputs del formulario
         const elLavMin = document.getElementById('lavado-min');
@@ -3618,10 +3612,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const elFer = document.getElementById('config-atiende-feriados');
         const elMsgFer = document.getElementById('config-mensaje-feriados');
 
-        if (elLavMin) elLavMin.value = cfg.lavado_min;
-        if (elLavSec) elLavSec.value = cfg.lavado_sec;
-        if (elSecMin) elSecMin.value = cfg.secado_min;
-        if (elSecSec) elSecSec.value = cfg.secado_sec;
+        if (elLavMin) elLavMin.value = cfg.lavado_min !== undefined ? cfg.lavado_min : 2;
+        if (elLavSec) elLavSec.value = cfg.lavado_sec !== undefined ? cfg.lavado_sec : 0;
+        if (elSecMin) elSecMin.value = cfg.secado_min !== undefined ? cfg.secado_min : 3;
+        if (elSecSec) elSecSec.value = cfg.secado_sec !== undefined ? cfg.secado_sec : 0;
         if (elWa) elWa.value = cfg.whatsapp;
         if (elPExpAuto) elPExpAuto.value = cfg.precio_express_auto || 0;
         if (elPExpCam) elPExpCam.value = cfg.precio_express_camioneta || 0;
@@ -3643,8 +3637,45 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSave.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Guardando...";
         }
 
+        // Tiempos de Lavado e Interior (Secado)
+        const lMins = parseInt(document.getElementById('lavado-min')?.value) || 0;
+        const lSecs = parseInt(document.getElementById('lavado-sec')?.value) || 0;
+        const sMins = parseInt(document.getElementById('secado-min')?.value) || 0;
+        const sSecs = parseInt(document.getElementById('secado-sec')?.value) || 0;
+
+        let tiempoLavadoMs = ((lMins * 60) + lSecs) * 1000;
+        let tiempoSecadoMs = ((sMins * 60) + sSecs) * 1000;
+        if (tiempoLavadoMs <= 0) tiempoLavadoMs = 120000;
+        if (tiempoSecadoMs <= 0) tiempoSecadoMs = 180000;
+
+        // Actualizar variables en memoria
+        if (window.APP_CONFIG) {
+            window.APP_CONFIG.tiempoLavado = tiempoLavadoMs;
+            window.APP_CONFIG.tiempoSecado = tiempoSecadoMs;
+            window.APP_CONFIG.precio_express_auto = parseFloat(document.getElementById('precio-express-auto')?.value || 0);
+            window.APP_CONFIG.precio_express_camioneta = parseFloat(document.getElementById('precio-express-camioneta')?.value || 0);
+            window.APP_CONFIG.precio_completo_auto = parseFloat(document.getElementById('precio-completo-auto')?.value || 0);
+            window.APP_CONFIG.precio_completo_camioneta = parseFloat(document.getElementById('precio-completo-camioneta')?.value || 0);
+            window.APP_CONFIG.whatsapp = document.getElementById('config-whatsapp')?.value.trim() || '';
+        }
+
+        // Guardar en localStorage
+        localStorage.setItem('tiempoLavado', tiempoLavadoMs);
+        localStorage.setItem('tiempoSecado', tiempoSecadoMs);
+        localStorage.setItem('precio_express_auto', window.APP_CONFIG.precio_express_auto);
+        localStorage.setItem('precio_express_camioneta', window.APP_CONFIG.precio_express_camioneta);
+        localStorage.setItem('precio_completo_auto', window.APP_CONFIG.precio_completo_auto);
+        localStorage.setItem('precio_completo_camioneta', window.APP_CONFIG.precio_completo_camioneta);
+        localStorage.setItem('whatsappNumber', window.APP_CONFIG.whatsapp);
+
         const configPayload = {
             id: 1,
+            tiempo_lavado: tiempoLavadoMs,
+            tiempo_secado: tiempoSecadoMs,
+            lavado_min: lMins,
+            lavado_sec: lSecs,
+            secado_min: sMins,
+            secado_sec: sSecs,
             whatsapp_number: document.getElementById('config-whatsapp')?.value.trim() || "5491160473754",
             precio_express_auto: parseFloat(document.getElementById('precio-express-auto')?.value || 0),
             precio_express_camioneta: parseFloat(document.getElementById('precio-express-camioneta')?.value || 0),
@@ -3658,24 +3689,31 @@ document.addEventListener('DOMContentLoaded', () => {
             mensaje_feriados: document.getElementById('config-mensaje-feriados')?.value.trim() || ""
         };
 
-        // Guardar localmente
+        // Guardar localmente objeto completo
         localStorage.setItem('aura_lavadero_config', JSON.stringify(configPayload));
 
-        // Guardar en DonWeb API
+        // Guardar en DonWeb API MySQL
         try {
-            await fetch(`${API_URL}configuracion.php`, {
+            const res = await fetch(`${API_URL}configuracion.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(configPayload)
             });
-            if (window.showToast) window.showToast('Configuración guardada en DonWeb MySQL', 'success');
+            const data = await res.json();
+            if (window.showToast) window.showToast('¡Configuración guardada exitosamente en DonWeb MySQL!', 'success');
         } catch (err) {
             console.error('Excepción guardando configuración:', err);
+            if (window.showToast) window.showToast('Configuración guardada localmente en navegador.', 'info');
+        }
+
+        // Sincronizar inmediatamente el estado del circuito para que tome los nuevos tiempos ya mismo
+        if (typeof syncLiveState === 'function') {
+            syncLiveState();
         }
 
         if (btnSave) {
             btnSave.disabled = false;
-            btnSave.innerHTML = "<i class='bx bx-check'></i> Guardado Exitoso!";
+            btnSave.innerHTML = "<i class='bx bx-check'></i> ¡Guardado Exitoso!";
             setTimeout(() => {
                 btnSave.innerHTML = origText;
             }, 2000);
@@ -3685,7 +3723,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Vincular botón guardar configuración
     const btnSaveCfg = document.getElementById('save-config');
     if (btnSaveCfg) {
-        btnSaveCfg.addEventListener('click', window.saveAdminConfig);
+        btnSaveCfg.onclick = window.saveAdminConfig;
     }
 
     // Inicializar configuración al cargar

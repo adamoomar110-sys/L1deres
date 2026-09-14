@@ -105,6 +105,32 @@ function updateLandingUI() {
         }
         holidaysBadgeEl.innerHTML = msg;
     }
+
+    // 5. Tiempos de Lavado en Textos de la Landing
+    const msLav = landingConfig.tiempo_lavado || 120000;
+    const minLav = Math.floor(msLav / 60000);
+    const secLav = Math.floor((msLav % 60000) / 1000);
+    let tiempoTextoCompleto = `${minLav} minutos`;
+    let tiempoPill = `${minLav} min`;
+    let trackMin = `${minLav}`;
+    if (minLav === 0 && secLav > 0) {
+        tiempoTextoCompleto = `${secLav} segundos`;
+        tiempoPill = `${secLav} seg`;
+        trackMin = `${secLav} seg`;
+    } else if (secLav > 0) {
+        tiempoTextoCompleto = `${minLav} min ${secLav} seg`;
+        tiempoPill = `${minLav}m ${secLav}s`;
+        trackMin = `${minLav}m ${secLav}s`;
+    }
+
+    const heroWashTimeEl = document.getElementById('landing-hero-wash-time');
+    if (heroWashTimeEl) heroWashTimeEl.textContent = tiempoTextoCompleto;
+
+    const pillWashTimeEl = document.getElementById('landing-pill-wash-time');
+    if (pillWashTimeEl) pillWashTimeEl.textContent = `Lavado Express en ${tiempoPill}`;
+
+    const trackWashTimeEl = document.getElementById('landing-track-wash-min');
+    if (trackWashTimeEl) trackWashTimeEl.textContent = trackMin;
 }
 
 // ============================================================
@@ -521,11 +547,15 @@ function renderLandingCars(state) {
     }
 
     // Tiempos reales desde la configuración del dashboard
-    const msLavado = state.tiempo_lavado_ms || 120000;
-    const msSecado = state.tiempo_secado_ms || 180000;
-    const minLavado = Math.round(msLavado / 60000);
-    const minSecado = Math.round(msSecado / 60000);
-    const minPorTurno = minLavado + minSecado;
+    const msLavado = (state && state.tiempo_lavado_ms) || landingConfig.tiempo_lavado || 120000;
+    const msSecado = (state && state.tiempo_secado_ms) || landingConfig.tiempo_secado || 180000;
+    const minLavado = Math.floor(msLavado / 60000);
+    const secLavado = Math.floor((msLavado % 60000) / 1000);
+    const timeLavStr = `${minLavado.toString().padStart(2, '0')}:${secLavado.toString().padStart(2, '0')}`;
+    const minSecado = Math.floor(msSecado / 60000);
+    const secSecado = Math.floor((msSecado % 60000) / 1000);
+    const timeSecStr = `${minSecado.toString().padStart(2, '0')}:${secSecado.toString().padStart(2, '0')}`;
+    const minPorTurno = Math.max(1, Math.round((msLavado + msSecado) / 60000));
 
     if (state.espera || state.lavado || state.secado || state.terminado) {
         if (Array.isArray(state.espera)) {
@@ -542,16 +572,14 @@ function renderLandingCars(state) {
         if (state.lavado) {
             const item = state.lavado;
             const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
-            const lavMin = minLavado.toString().padStart(2, '0');
-            placeCar(LAVADO_ZONE, `${lavMin}:00`, '#38bdf8', 270, type, item.id || 'lavado-1', item, 'lavado');
+            placeCar(LAVADO_ZONE, timeLavStr, '#38bdf8', 270, type, item.id || 'lavado-1', item, 'lavado');
         }
 
         if (Array.isArray(state.secado)) {
             state.secado.forEach((item, index) => {
                 if (item && SECADO_ZONES[index]) {
                     const type = (item.tipo === 'completo_auto' || item.tipo === 'completo_camioneta' || item.tipo === 'lavado_secado') ? 'completo' : 'solo-lavado';
-                    const secMin = minSecado.toString().padStart(2, '0');
-                    placeCar(SECADO_ZONES[index], `${secMin}:00`, '#f59e0b', 270, type, item.id || `sec-${index}`, item, 'secado');
+                    placeCar(SECADO_ZONES[index], timeSecStr, '#f59e0b', 270, type, item.id || `sec-${index}`, item, 'secado');
                 }
             });
         }
@@ -637,8 +665,8 @@ function updateLandingBadge(state) {
         if (state.max_eta && state.max_eta > Date.now()) {
             remainingSegundos = Math.ceil((state.max_eta - Date.now()) / 1000);
         } else {
-            const msLav = state.tiempo_lavado_ms || 120000;
-            const msSec = state.tiempo_secado_ms || 180000;
+            const msLav = (state && state.tiempo_lavado_ms) || landingConfig.tiempo_lavado || 120000;
+            const msSec = (state && state.tiempo_secado_ms) || landingConfig.tiempo_secado || 180000;
             const minPorTurnoSeg = Math.round((msLav + msSec) / 1000);
             remainingSegundos = Math.ceil(autosEsperaCount / 2) * minPorTurnoSeg;
         }
