@@ -17,12 +17,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $db_host = 'localhost';
 $db_name = 'a0170001_l1deres';
 
+// Cargar secrets externos (no versionados en Git)
+$secretsFile = __DIR__ . '/secrets.php';
+if (file_exists($secretsFile)) {
+    require_once $secretsFile;
+}
+
+// OneSignal Push Notifications (fallback si secrets.php no existe)
+if (!defined('ONESIGNAL_APP_ID'))  define('ONESIGNAL_APP_ID',  '263bf04a-ad7a-4d11-842d-210cea51387c');
+if (!defined('ONESIGNAL_REST_KEY')) define('ONESIGNAL_REST_KEY', '');
+
 $credentials = [
     ['user' => 'a0170001_l1deres', 'pass' => '@Peloymago110Peloymago110'],
     ['user' => 'a0170001_l1deres', 'pass' => 'AuraFTP2025@aura'],
     ['user' => 'a0170001',         'pass' => '@Peloymago110Peloymago110'],
     ['user' => 'a0170001',         'pass' => 'AuraFTP2025@aura']
 ];
+
 
 $pdo = null;
 

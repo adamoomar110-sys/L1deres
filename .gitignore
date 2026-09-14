@@ -9,3 +9,6 @@ node_modules/
 *.log
 # Spinaz Garage - repo independiente
 spinaz_garage_flota/
+# Secrets y backups - NO subir a GitHub
+api/secrets.php
+*.sql

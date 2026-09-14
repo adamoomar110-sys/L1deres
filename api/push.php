@@ -23,10 +23,10 @@ if ($method === 'POST') {
             sendResponse(['error' => 'El mensaje de la notificación es obligatorio'], 400);
         }
 
-        // Obtener credenciales de OneSignal guardadas en DB o valores por defecto
-        $appId = '263bf04a-ad7a-4d11-842d-210cea51387c';
-        $restKey = ''; // Debe configurarse desde el panel admin (Settings > Keys & IDs > REST API Key)
-
+        // Obtener credenciales de OneSignal: primero las constantes de config.php,
+        // luego intentar sobreescribir con valores guardados en MySQL (desde el panel admin)
+        $appId   = defined('ONESIGNAL_APP_ID')   ? ONESIGNAL_APP_ID   : '263bf04a-ad7a-4d11-842d-210cea51387c';
+        $restKey = defined('ONESIGNAL_REST_KEY')  ? ONESIGNAL_REST_KEY : '';
 
         if ($pdo) {
             try {
@@ -34,11 +34,12 @@ if ($method === 'POST') {
                 $cfgRow = $stmt->fetch();
                 if ($cfgRow && !empty($cfgRow['live_state'])) {
                     $state = json_decode($cfgRow['live_state'], true);
-                    if (!empty($state['onesignal_app_id'])) $appId = $state['onesignal_app_id'];
+                    if (!empty($state['onesignal_app_id']))  $appId  = $state['onesignal_app_id'];
                     if (!empty($state['onesignal_rest_key'])) $restKey = $state['onesignal_rest_key'];
                 }
             } catch (Exception $ex) {}
         }
+
 
         // Estructura de notificación OneSignal
         $fields = [
