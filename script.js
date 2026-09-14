@@ -626,11 +626,15 @@ function updateLandingBadge(state) {
     }
 
     let remainingSegundos = 0;
-    if (autosEsperaCount > 0) {
-        if (state.demora_segundos !== undefined && state.ts) {
+    if (state.demora_segundos !== undefined && state.demora_segundos !== null) {
+        if (state.ts) {
             const elapsed = Math.floor((Date.now() - state.ts) / 1000);
             remainingSegundos = Math.max(0, state.demora_segundos - elapsed);
-        } else if (state.max_eta && state.max_eta > Date.now()) {
+        } else {
+            remainingSegundos = Math.max(0, state.demora_segundos);
+        }
+    } else if (autosEsperaCount > 0) {
+        if (state.max_eta && state.max_eta > Date.now()) {
             remainingSegundos = Math.ceil((state.max_eta - Date.now()) / 1000);
         } else {
             const msLav = state.tiempo_lavado_ms || 120000;
@@ -647,19 +651,18 @@ function updateLandingBadge(state) {
 
     if (landingBadgeEl) {
         landingBadgeEl.className = 'status-badge';
-        if (autosEsperaCount === 0 || remainingSegundos === 0) {
+        if (remainingSegundos === 0 && autosEsperaCount === 0) {
             landingBadgeEl.textContent = 'SIN DEMORA';
             landingBadgeEl.className = 'status-badge badge-libre';
-        } else if (autosEsperaCount <= 4) {
+        } else if (autosEsperaCount <= 4 || remainingSegundos <= 600) {
             landingBadgeEl.textContent = 'DEMORA NORMAL';
             landingBadgeEl.className = 'status-badge badge-normal';
-        } else if (autosEsperaCount <= 6) {
+        } else if (autosEsperaCount <= 6 || remainingSegundos <= 1200) {
             landingBadgeEl.textContent = 'DEMORA ALTA';
             landingBadgeEl.className = 'status-badge badge-alta';
         } else {
             landingBadgeEl.textContent = 'CAP. MÁXIMA';
             landingBadgeEl.className = 'status-badge badge-critica';
-        }
         }
     }
 }
