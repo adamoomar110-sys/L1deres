@@ -72,6 +72,7 @@ const CLIENT_FILES = [
   "logo.jpg",
   "logo_horizontal.jpg",
   "logo_icon.jpg",
+  "render_fachada.jpg",
   "f1_car_top_down.png",
   "google9df6cc515d5bd125.html",
   "OneSignalSDKWorker.js",
