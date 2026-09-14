@@ -1506,6 +1506,187 @@
         </div>
     </div>
 
+    <!-- ===== PANEL: NOTIFICACIONES PUSH ===== -->
+    <div id="push-notifications-view" class="view-section" style="display:none; padding: 24px; overflow-y: auto; height: 100%;">
+
+        <!-- Header -->
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:28px;">
+            <div style="width:50px; height:50px; border-radius:14px; background:linear-gradient(135deg,rgba(56,189,248,0.25),rgba(14,165,233,0.1)); border:1px solid rgba(56,189,248,0.4); display:flex; align-items:center; justify-content:center; font-size:1.6rem; color:#38bdf8; flex-shrink:0;">
+                <i class='bx bx-bell'></i>
+            </div>
+            <div>
+                <h2 style="margin:0; font-family:'Montserrat',sans-serif; font-size:1.4rem; font-weight:800; color:#f8fafc;">Notificaciones Push</h2>
+                <p style="margin:4px 0 0; color:#94a3b8; font-size:0.85rem;">Enviá alertas a todos los clientes suscritos o a uno específico</p>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; max-width:1100px;">
+
+            <!-- COLUMNA IZQUIERDA -->
+            <div style="display:flex; flex-direction:column; gap:20px;">
+
+                <!-- Tarjeta: Configuración OneSignal -->
+                <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.2); border-radius:18px; padding:22px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.07);">
+                        <i class='bx bx-cog' style="color:#38bdf8; font-size:1.3rem;"></i>
+                        <h3 style="margin:0; font-size:1rem; font-weight:700; color:#e2e8f0;">Configuración OneSignal</h3>
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block; color:#94a3b8; font-size:0.75rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">App ID</label>
+                        <input type="text" id="push-app-id" placeholder="ej: 263bf04a-ad7a-4d11-842d-210cea51387c"
+                            style="width:100%; box-sizing:border-box; padding:11px 14px; background:#030712; border:1px solid rgba(56,189,248,0.3); border-radius:10px; color:#f8fafc; font-size:0.85rem; font-family:'Inter',sans-serif; outline:none;">
+                    </div>
+
+                    <div style="margin-bottom:18px;">
+                        <label style="display:block; color:#94a3b8; font-size:0.75rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">REST API Key</label>
+                        <div style="position:relative;">
+                            <input type="password" id="push-rest-key" placeholder="Pegá tu REST API Key de OneSignal"
+                                style="width:100%; box-sizing:border-box; padding:11px 42px 11px 14px; background:#030712; border:1px solid rgba(56,189,248,0.3); border-radius:10px; color:#f8fafc; font-size:0.85rem; font-family:'Inter',sans-serif; outline:none;">
+                            <button onclick="togglePushKeyVisibility()" type="button" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:#64748b; cursor:pointer; font-size:1.2rem; padding:2px;">
+                                <i class='bx bx-show' id="push-key-eye-icon"></i>
+                            </button>
+                        </div>
+                        <p style="margin:6px 0 0; font-size:0.72rem; color:#64748b;">
+                            <i class='bx bx-info-circle'></i> Encontrala en <strong style="color:#38bdf8;">onesignal.com → Settings → Keys & IDs → REST API Key</strong>
+                        </p>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; padding:10px 14px; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.06);">
+                        <div id="push-status-dot" style="width:10px; height:10px; border-radius:50%; background:#374151; flex-shrink:0;"></div>
+                        <span id="push-status-text" style="color:#64748b; font-size:0.82rem;">Sin configurar</span>
+                    </div>
+
+                    <button id="btn-save-push-config" onclick="savePushConfig()"
+                        style="width:100%; padding:12px; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:white; border:none; border-radius:10px; font-weight:700; font-size:0.9rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity 0.2s;">
+                        <i class='bx bx-save'></i> Guardar Configuración
+                    </button>
+                </div>
+
+                <!-- Tarjeta: Enviar Notificación -->
+                <div style="background:#0f172a; border:1px solid rgba(56,189,248,0.2); border-radius:18px; padding:22px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.07);">
+                        <i class='bx bx-send' style="color:#10b981; font-size:1.3rem;"></i>
+                        <h3 style="margin:0; font-size:1rem; font-weight:700; color:#e2e8f0;">Enviar Notificación</h3>
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block; color:#94a3b8; font-size:0.75rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Destinatarios</label>
+                        <div style="display:flex; gap:8px;">
+                            <button id="push-seg-all" onclick="setPushSegment('all')"
+                                style="flex:1; padding:10px 8px; border-radius:8px; border:1px solid #0ea5e9; background:rgba(14,165,233,0.2); color:#38bdf8; font-weight:700; font-size:0.82rem; cursor:pointer; transition:all 0.2s;">
+                                <i class='bx bx-group'></i> Todos
+                            </button>
+                            <button id="push-seg-one" onclick="setPushSegment('one')"
+                                style="flex:1; padding:10px 8px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#64748b; font-weight:700; font-size:0.82rem; cursor:pointer; transition:all 0.2s;">
+                                <i class='bx bx-user'></i> Por Teléfono
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="push-phone-field" style="display:none; margin-bottom:14px;">
+                        <label style="display:block; color:#94a3b8; font-size:0.75rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Teléfono del Cliente</label>
+                        <input type="tel" id="push-phone" placeholder="Ej: 2915551234"
+                            style="width:100%; box-sizing:border-box; padding:11px 14px; background:#030712; border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#f8fafc; font-size:0.85rem; outline:none;">
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block; color:#94a3b8; font-size:0.75rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Título</label>
+                        <input type="text" id="push-titulo" placeholder="Ej: Tu turno está listo 🚗"
+                            style="width:100%; box-sizing:border-box; padding:11px 14px; background:#030712; border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#f8fafc; font-size:0.85rem; outline:none;">
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block; color:#94a3b8; font-size:0.75rem; font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em;">Mensaje</label>
+                        <textarea id="push-mensaje" rows="3" placeholder="Ej: Tu vehículo ya está listo para retirar. ¡Gracias por elegir L1deres!"
+                            style="width:100%; box-sizing:border-box; padding:11px 14px; background:#030712; border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#f8fafc; font-size:0.85rem; resize:vertical; outline:none; font-family:'Inter',sans-serif;"></textarea>
+                    </div>
+
+                    <!-- Mensajes rápidos -->
+                    <div style="margin-bottom:18px;">
+                        <label style="display:block; color:#94a3b8; font-size:0.75rem; font-weight:700; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.05em;">Mensajes Rápidos</label>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                            <button onclick="setQuickMsg('Tu turno está listo 🚗','Tu vehículo ya está listo para retirar. ¡Gracias por elegir L1deres AutoWash!')" style="padding:5px 10px; background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.3); border-radius:6px; color:#7dd3fc; font-size:0.72rem; cursor:pointer; white-space:nowrap;">🚗 Listo</button>
+                            <button onclick="setQuickMsg('¡Oferta VIP! 🌟','Esta semana 20% OFF en lavado completo para socios fundadores. ¡Reservá ahora!')" style="padding:5px 10px; background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.3); border-radius:6px; color:#fbbf24; font-size:0.72rem; cursor:pointer; white-space:nowrap;">⭐ Oferta</button>
+                            <button onclick="setQuickMsg('Sin demora ahora ⚡','El lavadero está libre. ¡Pasá ahora sin espera!')" style="padding:5px 10px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:6px; color:#34d399; font-size:0.72rem; cursor:pointer; white-space:nowrap;">⚡ Sin espera</button>
+                            <button onclick="setQuickMsg('Recordatorio de turno 📅','Tenés un turno programado. ¡Te esperamos en L1deres AutoWash!')" style="padding:5px 10px; background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.3); border-radius:6px; color:#a78bfa; font-size:0.72rem; cursor:pointer; white-space:nowrap;">📅 Turno</button>
+                        </div>
+                    </div>
+
+                    <button id="btn-send-push" onclick="sendPushNotification()"
+                        style="width:100%; padding:13px; background:linear-gradient(135deg,#10b981,#059669); color:white; border:none; border-radius:10px; font-weight:800; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:opacity 0.2s; box-shadow:0 4px 15px rgba(16,185,129,0.3);">
+                        <i class='bx bx-send'></i> Enviar Notificación
+                    </button>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA -->
+            <div style="display:flex; flex-direction:column; gap:20px;">
+
+                <!-- Tarjeta: Vista previa -->
+                <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:22px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.07);">
+                        <i class='bx bx-mobile-alt' style="color:#a78bfa; font-size:1.3rem;"></i>
+                        <h3 style="margin:0; font-size:1rem; font-weight:700; color:#e2e8f0;">Vista Previa</h3>
+                    </div>
+                    <!-- Simulador de notificación Android -->
+                    <div style="background:#1c1c1e; border-radius:16px; padding:16px; border:1px solid rgba(255,255,255,0.06);">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+                            <div style="width:20px; height:20px; border-radius:5px; background:linear-gradient(135deg,#0ea5e9,#0284c7); display:flex; align-items:center; justify-content:center;">
+                                <i class='bx bx-droplet' style="color:white; font-size:0.75rem;"></i>
+                            </div>
+                            <span style="font-size:0.7rem; color:#64748b; font-weight:600;">L1deres AutoWash · ahora</span>
+                        </div>
+                        <div id="preview-titulo" style="font-weight:700; font-size:0.88rem; color:#f8fafc; margin-bottom:4px;">Tu turno está listo 🚗</div>
+                        <div id="preview-mensaje" style="font-size:0.8rem; color:#94a3b8; line-height:1.4;">El mensaje de la notificación aparecerá aquí...</div>
+                    </div>
+                    <p style="margin:10px 0 0; font-size:0.72rem; color:#475569; text-align:center;">Así verán la notificación en su celular</p>
+                </div>
+
+                <!-- Tarjeta: Estadísticas -->
+                <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:22px;">
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.07);">
+                        <i class='bx bx-bar-chart-alt-2' style="color:#fbbf24; font-size:1.3rem;"></i>
+                        <h3 style="margin:0; font-size:1rem; font-weight:700; color:#e2e8f0;">Estadísticas de Envíos</h3>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+                        <div style="background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.2); border-radius:12px; padding:14px; text-align:center;">
+                            <div id="push-stat-enviados" style="font-size:1.6rem; font-weight:800; color:#38bdf8;">0</div>
+                            <div style="font-size:0.72rem; color:#64748b; font-weight:600; margin-top:2px;">Enviados hoy</div>
+                        </div>
+                        <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:12px; padding:14px; text-align:center;">
+                            <div id="push-stat-total" style="font-size:1.6rem; font-weight:800; color:#10b981;">0</div>
+                            <div style="font-size:0.72rem; color:#64748b; font-weight:600; margin-top:2px;">Total enviados</div>
+                        </div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid rgba(255,255,255,0.06); padding:12px;">
+                        <p style="margin:0 0 6px; font-size:0.72rem; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Último envío</p>
+                        <p id="push-last-sent" style="margin:0; font-size:0.82rem; color:#94a3b8;">—</p>
+                    </div>
+                </div>
+
+                <!-- Tarjeta: Historial -->
+                <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:22px; flex:1;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.07);">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <i class='bx bx-history' style="color:#94a3b8; font-size:1.3rem;"></i>
+                            <h3 style="margin:0; font-size:1rem; font-weight:700; color:#e2e8f0;">Historial Reciente</h3>
+                        </div>
+                        <button onclick="clearPushHistory()" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); color:#f87171; border-radius:7px; padding:5px 10px; font-size:0.72rem; cursor:pointer; font-weight:700;">
+                            <i class='bx bx-trash'></i> Limpiar
+                        </button>
+                    </div>
+                    <div id="push-history-list" style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto;">
+                        <p style="text-align:center; color:#475569; font-size:0.82rem; padding:20px 0;">Sin envíos recientes</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ===== FIN PANEL NOTIFICACIONES PUSH ===== -->
+
     <!-- Script Dashboard Admin -->
     <script src="script.js?v=1.7"></script>
 

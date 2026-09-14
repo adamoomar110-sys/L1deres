@@ -4433,3 +4433,306 @@ window.handleCarAdvanceAction = handleCarAdvanceAction;
 window.handleCarVipAction = handleCarVipAction;
 window.handleCarFinishAction = handleCarFinishAction;
 window.handleCarCancelAction = handleCarCancelAction;
+
+// ============================================================
+// MÓDULO: NOTIFICACIONES PUSH (Aura v1.8 - Panel Admin)
+// ============================================================
+
+(function() {
+    'use strict';
+
+    const PUSH_HISTORY_KEY = 'aura_push_history';
+    const PUSH_CONFIG_KEY  = 'aura_push_config';
+    let   pushSegmentMode  = 'all'; // 'all' | 'one'
+
+    // ----- Cargar configuración guardada -----
+    function loadPushConfig() {
+        const saved = JSON.parse(localStorage.getItem(PUSH_CONFIG_KEY) || '{}');
+        const appIdInput   = document.getElementById('push-app-id');
+        const restKeyInput = document.getElementById('push-rest-key');
+        if (appIdInput   && saved.appId)   appIdInput.value   = saved.appId;
+        if (restKeyInput && saved.restKey) restKeyInput.value = saved.restKey;
+        updatePushStatusBadge(saved.appId, saved.restKey);
+        updatePushHistoryUI();
+        updatePushStats();
+    }
+
+    function updatePushStatusBadge(appId, restKey) {
+        const dot  = document.getElementById('push-status-dot');
+        const text = document.getElementById('push-status-text');
+        if (!dot || !text) return;
+        const isReady = appId && restKey && appId.length > 10 && restKey.length > 10;
+        dot.style.background  = isReady ? '#10b981' : '#ef4444';
+        dot.style.boxShadow   = isReady ? '0 0 6px #10b981' : 'none';
+        text.style.color      = isReady ? '#34d399' : '#f87171';
+        text.textContent      = isReady ? '✅ Listo para enviar notificaciones' : '⚠️ Ingresá App ID y REST API Key';
+    }
+
+    // ----- Guardar configuración -----
+    window.savePushConfig = async function() {
+        const appId   = (document.getElementById('push-app-id')?.value   || '').trim();
+        const restKey = (document.getElementById('push-rest-key')?.value  || '').trim();
+        const btn     = document.getElementById('btn-save-push-config');
+
+        if (!appId || !restKey) {
+            if (window.showToast) window.showToast('Completá el App ID y la REST API Key', 'error');
+            return;
+        }
+
+        // Guardar en localStorage
+        localStorage.setItem(PUSH_CONFIG_KEY, JSON.stringify({ appId, restKey }));
+        updatePushStatusBadge(appId, restKey);
+
+        // Intentar también guardar en el backend (DonWeb MySQL)
+        try {
+            if (btn) { btn.disabled = true; btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Guardando..."; }
+            const res = await fetch('../api/push.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'save_onesignal_config', app_id: appId, rest_key: restKey })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (window.showToast) window.showToast('✅ Configuración guardada en servidor', 'success');
+            } else {
+                if (window.showToast) window.showToast('Config guardada localmente (sin servidor)', 'info');
+            }
+        } catch (e) {
+            if (window.showToast) window.showToast('Config guardada localmente', 'info');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = "<i class='bx bx-save'></i> Guardar Configuración"; }
+        }
+    };
+
+    // ----- Selector de segmento -----
+    window.setPushSegment = function(mode) {
+        pushSegmentMode = mode;
+        const btnAll   = document.getElementById('push-seg-all');
+        const btnOne   = document.getElementById('push-seg-one');
+        const phoneField = document.getElementById('push-phone-field');
+
+        const activeStyle   = 'border:1px solid #0ea5e9; background:rgba(14,165,233,0.2); color:#38bdf8;';
+        const inactiveStyle = 'border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#64748b;';
+
+        if (mode === 'all') {
+            if (btnAll) btnAll.style.cssText += activeStyle;
+            if (btnOne) btnOne.style.cssText += inactiveStyle;
+            if (phoneField) phoneField.style.display = 'none';
+        } else {
+            if (btnAll) btnAll.style.cssText += inactiveStyle;
+            if (btnOne) btnOne.style.cssText += activeStyle;
+            if (phoneField) phoneField.style.display = 'block';
+        }
+    };
+
+    // ----- Mensajes rápidos -----
+    window.setQuickMsg = function(titulo, mensaje) {
+        const t = document.getElementById('push-titulo');
+        const m = document.getElementById('push-mensaje');
+        if (t) t.value = titulo;
+        if (m) m.value = mensaje;
+        // Actualizar preview
+        updatePreview();
+    };
+
+    // ----- Preview en tiempo real -----
+    function updatePreview() {
+        const titulo  = document.getElementById('push-titulo')?.value  || 'Título de la notificación';
+        const mensaje = document.getElementById('push-mensaje')?.value || 'El mensaje aparecerá aquí...';
+        const previewTit = document.getElementById('preview-titulo');
+        const previewMsg = document.getElementById('preview-mensaje');
+        if (previewTit) previewTit.textContent = titulo;
+        if (previewMsg) previewMsg.textContent = mensaje;
+    }
+
+    // ----- Mostrar / ocultar REST Key -----
+    window.togglePushKeyVisibility = function() {
+        const input = document.getElementById('push-rest-key');
+        const icon  = document.getElementById('push-key-eye-icon');
+        if (!input) return;
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) icon.className = 'bx bx-hide';
+        } else {
+            input.type = 'password';
+            if (icon) icon.className = 'bx bx-show';
+        }
+    };
+
+    // ----- Enviar Notificación -----
+    window.sendPushNotification = async function() {
+        const config = JSON.parse(localStorage.getItem(PUSH_CONFIG_KEY) || '{}');
+        const appId   = (document.getElementById('push-app-id')?.value   || config.appId   || '').trim();
+        const restKey = (document.getElementById('push-rest-key')?.value  || config.restKey || '').trim();
+        const titulo  = (document.getElementById('push-titulo')?.value  || '').trim();
+        const mensaje = (document.getElementById('push-mensaje')?.value  || '').trim();
+        const telefono = pushSegmentMode === 'one' ? (document.getElementById('push-phone')?.value || '').trim() : '';
+        const btn = document.getElementById('btn-send-push');
+
+        if (!titulo || !mensaje) {
+            if (window.showToast) window.showToast('Completá el Título y el Mensaje', 'error');
+            return;
+        }
+        if (!appId || !restKey) {
+            if (window.showToast) window.showToast('Primero guardá la configuración de OneSignal', 'error');
+            return;
+        }
+        if (pushSegmentMode === 'one' && !telefono) {
+            if (window.showToast) window.showToast('Ingresá el teléfono del cliente', 'error');
+            return;
+        }
+
+        if (btn) { btn.disabled = true; btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Enviando..."; }
+
+        try {
+            const res = await fetch('../api/push.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'send_push',
+                    titulo,
+                    mensaje,
+                    telefono,
+                    url: 'https://l1deres.site/cliente/'
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success && data.onesignal_response) {
+                const osResp = data.onesignal_response;
+                const recipients = osResp.recipients || 0;
+                const errors = osResp.errors;
+
+                if (errors && errors.length > 0) {
+                    if (window.showToast) window.showToast(`⚠️ Error OneSignal: ${errors.join(', ')}`, 'error');
+                    addPushHistory(titulo, mensaje, pushSegmentMode, telefono, 'error', errors.join(', '));
+                } else {
+                    if (window.showToast) window.showToast(`✅ Enviado a ${recipients} dispositivo(s)`, 'success');
+                    addPushHistory(titulo, mensaje, pushSegmentMode, telefono, 'success', `${recipients} dispositivos`);
+                    // Limpiar campos
+                    const t = document.getElementById('push-titulo');
+                    const m = document.getElementById('push-mensaje');
+                    if (t) t.value = '';
+                    if (m) m.value = '';
+                    updatePreview();
+                }
+            } else {
+                if (window.showToast) window.showToast('Error al enviar. Verificá las credenciales.', 'error');
+                addPushHistory(titulo, mensaje, pushSegmentMode, telefono, 'error', 'Error de API');
+            }
+        } catch (e) {
+            if (window.showToast) window.showToast('Error de red. Verificá tu conexión.', 'error');
+            addPushHistory(titulo, mensaje, pushSegmentMode, telefono, 'error', e.message);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = "<i class='bx bx-send'></i> Enviar Notificación"; }
+        }
+    };
+
+    // ----- Historial local -----
+    function addPushHistory(titulo, mensaje, segmento, telefono, status, detalle) {
+        const history = JSON.parse(localStorage.getItem(PUSH_HISTORY_KEY) || '[]');
+        history.unshift({
+            titulo,
+            mensaje,
+            segmento,
+            telefono,
+            status,
+            detalle,
+            ts: Date.now()
+        });
+        // Limitar a 50 entradas
+        if (history.length > 50) history.length = 50;
+        localStorage.setItem(PUSH_HISTORY_KEY, JSON.stringify(history));
+        updatePushHistoryUI();
+        updatePushStats();
+    }
+
+    function updatePushHistoryUI() {
+        const container = document.getElementById('push-history-list');
+        if (!container) return;
+        const history = JSON.parse(localStorage.getItem(PUSH_HISTORY_KEY) || '[]');
+        if (history.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#475569; font-size:0.82rem; padding:20px 0;">Sin envíos recientes</p>';
+            return;
+        }
+        container.innerHTML = history.map(item => {
+            const date = new Date(item.ts);
+            const dateStr = date.toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit' }) + ' ' + date.toLocaleTimeString('es-AR', { hour:'2-digit', minute:'2-digit' });
+            const isOk = item.status === 'success';
+            const destLabel = item.segmento === 'one' ? `📱 ${item.telefono}` : '👥 Todos';
+            return `
+                <div style="background:rgba(255,255,255,0.03); border:1px solid ${isOk ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; border-radius:10px; padding:10px 12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                        <div style="flex:1; min-width:0;">
+                            <div style="font-size:0.82rem; font-weight:700; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(item.titulo)}</div>
+                            <div style="font-size:0.72rem; color:#64748b; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(item.mensaje)}</div>
+                            <div style="display:flex; gap:8px; margin-top:5px;">
+                                <span style="font-size:0.68rem; color:#475569;">${destLabel}</span>
+                                <span style="font-size:0.68rem; color:#475569;">·</span>
+                                <span style="font-size:0.68rem; color:#475569;">${dateStr}</span>
+                            </div>
+                        </div>
+                        <div style="flex-shrink:0; padding:3px 8px; border-radius:5px; font-size:0.68rem; font-weight:700; background:${isOk ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color:${isOk ? '#34d399' : '#f87171'};">
+                            ${isOk ? '✓ OK' : '✗ Error'}
+                        </div>
+                    </div>
+                    ${!isOk ? `<div style="margin-top:5px; font-size:0.7rem; color:#ef4444; padding:4px 8px; background:rgba(239,68,68,0.05); border-radius:5px;">${escapeHtml(item.detalle || '')}</div>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updatePushStats() {
+        const history = JSON.parse(localStorage.getItem(PUSH_HISTORY_KEY) || '[]');
+        const today = new Date().toDateString();
+        const hoy = history.filter(h => new Date(h.ts).toDateString() === today && h.status === 'success').length;
+        const total = history.filter(h => h.status === 'success').length;
+        const elHoy = document.getElementById('push-stat-enviados');
+        const elTotal = document.getElementById('push-stat-total');
+        const elLast = document.getElementById('push-last-sent');
+        if (elHoy) elHoy.textContent = hoy;
+        if (elTotal) elTotal.textContent = total;
+        if (elLast && history.length > 0) {
+            const last = history[0];
+            const d = new Date(last.ts);
+            elLast.textContent = `${last.titulo} (${d.toLocaleDateString('es-AR')} ${d.toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'})})`;
+        }
+    }
+
+    window.clearPushHistory = function() {
+        if (!confirm('¿Borrar el historial de notificaciones?')) return;
+        localStorage.removeItem(PUSH_HISTORY_KEY);
+        updatePushHistoryUI();
+        updatePushStats();
+        if (window.showToast) window.showToast('Historial limpiado', 'info');
+    };
+
+    // ----- Helpers -----
+    function escapeHtml(str) {
+        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ----- Init: Eventos de preview en tiempo real y carga inicial -----
+    document.addEventListener('DOMContentLoaded', function() {
+        const t = document.getElementById('push-titulo');
+        const m = document.getElementById('push-mensaje');
+        if (t) t.addEventListener('input', updatePreview);
+        if (m) m.addEventListener('input', updatePreview);
+
+        // Cargar config guardada cuando se abre el panel
+        const navBtns = document.querySelectorAll('.sidebar-nav .nav-btn');
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const span = btn.querySelector('span');
+                if (span && span.textContent.trim() === 'Notificaciones Push') {
+                    setTimeout(loadPushConfig, 50);
+                }
+            });
+        });
+
+        // Cargar de entrada si ya está en vista push
+        loadPushConfig();
+    });
+
+})();

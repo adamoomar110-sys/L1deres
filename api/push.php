@@ -25,7 +25,8 @@ if ($method === 'POST') {
 
         // Obtener credenciales de OneSignal guardadas en DB o valores por defecto
         $appId = '263bf04a-ad7a-4d11-842d-210cea51387c';
-        $restKey = '263bf04a-ad7a-4d11-842d-210cea51387c';
+        $restKey = ''; // Debe configurarse desde el panel admin (Settings > Keys & IDs > REST API Key)
+
 
         if ($pdo) {
             try {
