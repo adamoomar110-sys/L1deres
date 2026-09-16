@@ -80,9 +80,8 @@ if ($method === 'POST') {
 
     $cleanUser = strtolower($userInput);
     
-    // Verificación de credenciales maestras, DNI Administrador Omar (25177943) y claves iniciales
-    $isOmarAdmin = ($cleanUser === '25177943' || strpos($cleanUser, '25177943') !== false);
-    $isMasterPass = ($password === '123456' || $password === '@Peloymago110Peloymago110' || $password === 'AuraFTP2025@aura' || $password === '25177943' || $isOmarAdmin);
+    // Verificación de credenciales maestras y clave inicial de Administrador Omar (25177943)
+    $isMasterPass = ($password === '25177943' || $password === '123456' || $password === '@Peloymago110Peloymago110' || $password === 'AuraFTP2025@aura');
 
     if ($isMasterPass) {
         $role = ($cleanUser === '11111111' || strpos($cleanUser, 'empleado') !== false) ? 'empleado' : 'admin';
@@ -105,29 +104,12 @@ if ($method === 'POST') {
                 'role' => $role,
                 'user_metadata' => ['role' => $role]
             ],
-            'token' => base64_encode(json_encode(['email' => $email, 'role' => $role, 'time' => time()]))
+            'token' => base64_encode(json_encode(['id' => 1, 'email' => $email, 'role' => $role, 'time' => time()]))
         ]);
     }
 
     if (!$pdo) {
-        // En ausencia de DB, validar claves administradoras autorizadas
-        if ($isMasterPass) {
-            $role = ($cleanUser === '11111111' || strpos($cleanUser, 'empleado') !== false) ? 'empleado' : 'admin';
-            $email = strpos($userInput, '@') !== false ? $userInput : "{$userInput}@aura.com";
-
-            sendResponse([
-                'success' => true,
-                'user' => [
-                    'id' => 1,
-                    'email' => $email,
-                    'role' => $role,
-                    'user_metadata' => ['role' => $role]
-                ],
-                'token' => base64_encode(json_encode(['email' => $email, 'role' => $role, 'time' => time()]))
-            ]);
-        } else {
-            sendResponse(['error' => 'Usuario o clave incorrecta'], 401);
-        }
+        sendResponse(['error' => 'Usuario o clave incorrecta'], 401);
     }
 
     try {
@@ -136,7 +118,7 @@ if ($method === 'POST') {
         $stmt->execute([':email' => $email, ':likeUser' => "%{$cleanUser}%"]);
         $user = $stmt->fetch();
 
-        if ($user && (password_verify($password, $user['password_hash']) || $password === '123456' || $password === '@Peloymago110Peloymago110' || $password === 'AuraFTP2025@aura')) {
+        if ($user && (password_verify($password, $user['password_hash']) || $isMasterPass)) {
             sendResponse([
                 'success' => true,
                 'user' => [
@@ -156,6 +138,8 @@ if ($method === 'POST') {
 }
 
 if ($method === 'GET') {
+    // Solo administradores autenticados pueden ver la lista de usuarios
+    $authUser = requireAuth(['admin']);
     if ($pdo) {
         try {
             $stmt = $pdo->query("SELECT id, email, role, created_at FROM `usuarios` ORDER BY id ASC");
@@ -165,7 +149,7 @@ if ($method === 'GET') {
             sendResponse(['status' => 'auth_endpoint_ready', 'users' => []]);
         }
     }
-    sendResponse(['status' => 'auth_endpoint_ready']);
+    sendResponse(['status' => 'auth_endpoint_ready', 'users' => []]);
 }
 
 sendResponse(['error' => 'Método no soportado'], 405);

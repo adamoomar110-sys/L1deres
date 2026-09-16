@@ -98,7 +98,6 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET' && !empty($_GET['check'])) {
     $patente = strtoupper(trim($_GET['check']));
     if ($pdo) {
-        ensureSociosTable($pdo);
         $stmt = $pdo->prepare("SELECT * FROM `socios_fundadores` WHERE UPPER(patente) = :patente LIMIT 1");
         $stmt->execute([':patente' => $patente]);
         $socio = $stmt->fetch();
@@ -121,6 +120,9 @@ if ($method === 'GET' && !empty($_GET['check'])) {
 // 2. LISTAR SOCIOS Y ESTADÍSTICAS (GET)
 // -------------------------------------------------------------
 if ($method === 'GET') {
+    // Proteger datos personales de los socios VIP
+    requireAuth(['admin', 'empleado']);
+
     if (!$pdo) {
         sendResponse([
             'success' => true,
@@ -136,8 +138,6 @@ if ($method === 'GET') {
             'socios' => []
         ]);
     }
-
-    ensureSociosTable($pdo);
 
     $tipoFilter = isset($_GET['tipo']) ? strtolower(trim($_GET['tipo'])) : '';
     $estadoFilter = isset($_GET['estado']) ? strtolower(trim($_GET['estado'])) : '';
@@ -328,6 +328,7 @@ if ($method === 'POST') {
 // 4. ACTUALIZAR SOCIO FUNDADOR (PUT)
 // -------------------------------------------------------------
 if ($method === 'PUT') {
+    requireAuth(['admin']);
     $input = getJsonInput();
     $id = isset($input['id']) ? intval($input['id']) : 0;
 
@@ -338,8 +339,6 @@ if ($method === 'PUT') {
     if (!$pdo) {
         sendResponse(['success' => false, 'error' => 'No hay conexión a la base de datos DonWeb.'], 500);
     }
-
-    ensureSociosTable($pdo);
 
     $nombre = trim($input['nombre'] ?? $input['titular'] ?? '');
     $patente = strtoupper(trim($input['patente'] ?? ''));
@@ -414,6 +413,7 @@ if ($method === 'PUT') {
 // 5. ELIMINAR SOCIO FUNDADOR (DELETE)
 // -------------------------------------------------------------
 if ($method === 'DELETE') {
+    requireAuth(['admin']);
     $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
     if ($id <= 0) {
         $input = getJsonInput();

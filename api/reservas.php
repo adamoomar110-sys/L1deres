@@ -25,6 +25,8 @@ if ($method === 'GET') {
             $stmt->execute([':patente' => $patente]);
             sendResponse($stmt->fetchAll());
         } else {
+            // El listado general de todas las reservas exige estar autenticado como admin o empleado
+            requireAuth(['admin', 'empleado']);
             $stmt = $pdo->query("SELECT * FROM `reservas` ORDER BY `id` DESC LIMIT 200");
             sendResponse($stmt->fetchAll());
         }
@@ -84,6 +86,7 @@ if ($method === 'POST') {
 }
 
 if ($method === 'PUT' || $method === 'PATCH') {
+    requireAuth(['admin', 'empleado']);
     $input = getJsonInput();
     $id = isset($input['id']) ? (int)$input['id'] : 0;
 
@@ -127,6 +130,7 @@ if ($method === 'PUT' || $method === 'PATCH') {
 }
 
 if ($method === 'DELETE') {
+    requireAuth(['admin']);
     $input = getJsonInput();
     $id = isset($input['id']) ? (int)$input['id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
 

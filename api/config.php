@@ -63,3 +63,96 @@ function sendResponse($data, $code = 200) {
     echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit();
 }
+
+/**
+ * Obtener usuario autenticado desde cabeceras HTTP, FastCGI, JSON o query
+ */
+function getAuthUser() {
+    $rawToken = '';
+
+    // 1. Cabeceras HTTP vía getallheaders
+    if (function_exists('getallheaders')) {
+        $headers = getallheaders();
+        foreach (['Authorization', 'authorization', 'X-Auth-Token', 'x-auth-token', 'X-Authorization', 'x-authorization'] as $hKey) {
+            if (!empty($headers[$hKey])) {
+                $rawToken = $headers[$hKey];
+                break;
+            }
+        }
+    }
+
+    // 2. Variables de servidor ($_SERVER)
+    if (empty($rawToken)) {
+        foreach (['HTTP_AUTHORIZATION', 'REDIRECT_HTTP_AUTHORIZATION', 'HTTP_X_AUTHORIZATION', 'HTTP_X_AUTH_TOKEN', 'HTTP_X_TOKEN'] as $sKey) {
+            if (!empty($_SERVER[$sKey])) {
+                $rawToken = $_SERVER[$sKey];
+                break;
+            }
+        }
+    }
+
+    // 3. Parámetro en Query o POST
+    if (empty($rawToken)) {
+        if (!empty($_GET['token'])) $rawToken = $_GET['token'];
+        elseif (!empty($_GET['auth_token'])) $rawToken = $_GET['auth_token'];
+        elseif (!empty($_POST['token'])) $rawToken = $_POST['token'];
+    }
+
+    // 4. Parámetro en cuerpo JSON
+    if (empty($rawToken)) {
+        $json = getJsonInput();
+        if (!empty($json['token'])) $rawToken = $json['token'];
+        elseif (!empty($json['auth_token'])) $rawToken = $json['auth_token'];
+    }
+
+    if (empty($rawToken)) return null;
+
+    if (preg_match('/Bearer\s+(.*)$/i', $rawToken, $matches)) {
+        $rawToken = trim($matches[1]);
+    }
+
+    $decoded = json_decode(base64_decode($rawToken), true);
+    if ($decoded && is_array($decoded) && (!empty($decoded['email']) || !empty($decoded['id']) || !empty($decoded['role']))) {
+        return $decoded;
+    }
+    return null;
+}
+
+/**
+ * Exigir autenticacion con roles permitidos
+ */
+function requireAuth($allowedRoles = ['admin', 'empleado']) {
+    $user = getAuthUser();
+    if (!$user) {
+        sendResponse(['error' => 'No autorizado. Inicie sesión para continuar.'], 401);
+    }
+    if (!empty($allowedRoles)) {
+        $role = strtolower(trim($user['role'] ?? 'empleado'));
+        $valid = false;
+        foreach ($allowedRoles as $allowed) {
+            if (strtolower($allowed) === $role) {
+                $valid = true;
+                break;
+            }
+        }
+        if (!$valid) {
+            sendResponse(['error' => 'Acceso denegado. Permisos insuficientes.'], 403);
+        }
+    }
+    return $user;
+}
+
+/**
+ * Limpiar claves sensibles de live_state para consumo publico
+ */
+function sanitizeLiveState($state) {
+    if (empty($state)) return $state;
+    $isJsonString = is_string($state);
+    $data = $isJsonString ? json_decode($state, true) : $state;
+    if (is_array($data)) {
+        unset($data['onesignal_rest_key']);
+        unset($data['rest_key']);
+        unset($data['db_pass']);
+    }
+    return $isJsonString ? json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $data;
+}

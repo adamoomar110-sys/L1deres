@@ -37,6 +37,7 @@ if ($method === 'GET') {
 }
 
 if ($method === 'POST') {
+    requireAuth(['admin', 'empleado']);
     $input = getJsonInput();
     $imageData = isset($input['image']) ? $input['image'] : null;
 

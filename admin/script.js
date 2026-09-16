@@ -7,6 +7,46 @@ const API_URL = '../api/';
 let currentAuthSession = JSON.parse(localStorage.getItem('aura_admin_session') || 'null');
 let currentUserRole = currentAuthSession?.user?.role || 'admin';
 
+// Interceptor global para inyectar token de autorización automáticamente en llamadas a la API
+const _nativeFetch = window.fetch;
+window.fetch = function(url, options = {}) {
+    if (typeof url === 'string' && (url.includes('/api/') || url.startsWith('api/') || url.startsWith('../api/'))) {
+        options = options || {};
+        const session = currentAuthSession || JSON.parse(localStorage.getItem('aura_admin_session') || 'null');
+        const token = session?.token;
+        if (token) {
+            if (!options.headers) {
+                options.headers = {};
+            }
+            if (options.headers instanceof Headers) {
+                options.headers.set('Authorization', 'Bearer ' + token);
+                options.headers.set('X-Auth-Token', token);
+                options.headers.set('X-Authorization', 'Bearer ' + token);
+            } else if (Array.isArray(options.headers)) {
+                options.headers.push(['Authorization', 'Bearer ' + token]);
+                options.headers.push(['X-Auth-Token', token]);
+                options.headers.push(['X-Authorization', 'Bearer ' + token]);
+            } else {
+                options.headers['Authorization'] = 'Bearer ' + token;
+                options.headers['X-Auth-Token'] = token;
+                options.headers['X-Authorization'] = 'Bearer ' + token;
+            }
+
+            // Inyectar token en cuerpo JSON para máxima compatibilidad con FastCGI de hosting compartido
+            if (options.body && typeof options.body === 'string' && options.body.startsWith('{')) {
+                try {
+                    const parsedBody = JSON.parse(options.body);
+                    if (!parsedBody.token) {
+                        parsedBody.token = token;
+                        options.body = JSON.stringify(parsedBody);
+                    }
+                } catch(e) {}
+            }
+        }
+    }
+    return _nativeFetch.call(this, url, options);
+};
+
 function extractUserRole(session, inputVal = '') {
     if (inputVal === '11111111' || inputVal.toLowerCase().includes('empleado')) {
         return 'empleado';
@@ -163,14 +203,14 @@ async function handleLogin() {
         // 2. Si la API falla por red o modo local (file://), validar contra claves maestras autorizadas únicamente
         const customPassMap = JSON.parse(localStorage.getItem('aura_custom_passwords') || '{}');
         const userPass = customPassMap[email.toLowerCase()] || customPassMap[cleanInput];
-        const isOmarAdmin = (cleanInput === '25177943' || cleanInput.includes('25177943'));
-        const isMasterPass = (clave === '123456' || clave === '@Peloymago110Peloymago110' || clave === 'AuraFTP2025@aura' || clave === '25177943' || isOmarAdmin || (userPass && clave === userPass));
+        const isMasterPass = (clave === '25177943' || clave === '123456' || clave === '@Peloymago110Peloymago110' || clave === 'AuraFTP2025@aura' || (userPass && clave === userPass));
 
         if (isMasterPass) {
             const isEmployee = cleanInput === '11111111' || cleanInput.includes('empleado');
             const role = isEmployee ? 'empleado' : 'admin';
+            const fallbackToken = btoa(JSON.stringify({ id: 1, email: email, role: role, time: Date.now() }));
 
-            currentAuthSession = { user: { email: email, role: role, user_metadata: { role: role } } };
+            currentAuthSession = { user: { id: 1, email: email, role: role, user_metadata: { role: role } }, token: fallbackToken };
             localStorage.setItem('aura_admin_session', JSON.stringify(currentAuthSession));
             if (userInput) userInput.value = '';
             if (passInput) passInput.value = '';

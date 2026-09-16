@@ -81,11 +81,13 @@ const CLIENT_FILES = [
 
 // Archivos API PHP Backend (/api/)
 const API_FILES = [
+  ".htaccess",
   "config.php",
   "configuracion.php",
   "reservas.php",
   "auth.php",
   "resenas.php",
+  "camara.php",
   "setup_db.php",
   "push.php",
   "socios_fundadores.php",

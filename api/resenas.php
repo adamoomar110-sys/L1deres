@@ -45,6 +45,7 @@ if ($method === 'POST') {
 }
 
 if ($method === 'DELETE') {
+    requireAuth(['admin']);
     $input = getJsonInput();
     $id = isset($_GET['id']) ? $_GET['id'] : (isset($input['id']) ? $input['id'] : null);
 
@@ -61,9 +62,7 @@ if ($method === 'DELETE') {
             $stmt->execute([':id' => (int)$id]);
             sendResponse(['success' => true, 'deleted_id' => (int)$id]);
         } else {
-            // Si no especifican ID o viene vacio en DELETE, vaciar todas
-            $pdo->exec("TRUNCATE TABLE `resenas`");
-            sendResponse(['success' => true, 'message' => 'Todas las reseñas fueron eliminadas.']);
+            sendResponse(['error' => 'ID de reseña requerido para eliminar.'], 400);
         }
     } catch (Exception $e) {
         sendResponse(['error' => $e->getMessage()], 500);

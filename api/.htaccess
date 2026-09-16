@@ -1,0 +1,39 @@
+# ============================================================
+# Apache / LiteSpeed Web Server Configuration for API (Aura v1.8)
+# Proteger archivos de datos sensibles y copias de seguridad
+# ============================================================
+
+# Desactivar listado de directorios
+Options -Indexes
+
+# Habilitar paso de cabeceras Authorization a PHP en Apache/LiteSpeed
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP:Authorization} ^(.*)
+    RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+</IfModule>
+<IfModule mod_env.c>
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
+# Bloquear acceso directo a archivos de datos, volcados y configuraciones
+<FilesMatch "\.(json|sql|log|env|md|txt)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Permitir ejecucion de scripts PHP
+<FilesMatch "\.php$">
+    <IfModule mod_authz_core.c>
+        Require all granted
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Allow from all
+    </IfModule>
+</FilesMatch>

@@ -31,22 +31,8 @@ function saveLocalLiveState($path, $state) {
     } catch (Exception $e) {}
 }
 
-// Auto-migración: asegurar que existan las columnas tiempo_lavado y tiempo_secado
-if ($pdo) {
-    try {
-        $cols = $pdo->query("SHOW COLUMNS FROM `configuracion` LIKE 'tiempo_lavado'")->fetchAll();
-        if (empty($cols)) {
-            $pdo->exec("ALTER TABLE `configuracion` ADD COLUMN `tiempo_lavado` INT DEFAULT 120000 AFTER `live_state`");
-        }
-        $cols2 = $pdo->query("SHOW COLUMNS FROM `configuracion` LIKE 'tiempo_secado'")->fetchAll();
-        if (empty($cols2)) {
-            $pdo->exec("ALTER TABLE `configuracion` ADD COLUMN `tiempo_secado` INT DEFAULT 180000 AFTER `tiempo_lavado`");
-        }
-    } catch (Exception $e) {}
-}
-
 if ($method === 'GET') {
-    $cachedLive = getLocalLiveState($liveJsonPath);
+    $cachedLive = sanitizeLiveState(getLocalLiveState($liveJsonPath));
 
     $defaultRow = [
         'id' => 1,
@@ -93,6 +79,9 @@ if ($method === 'GET') {
             }
         }
 
+        // Sanitizar live_state para no exponer credenciales privadas al frontend
+        $row['live_state'] = sanitizeLiveState($row['live_state']);
+
         // Normalizar y calcular campos de tiempo
         $row['tiempo_lavado'] = (isset($row['tiempo_lavado']) && (int)$row['tiempo_lavado'] > 0) ? (int)$row['tiempo_lavado'] : 120000;
         $row['tiempo_secado'] = (isset($row['tiempo_secado']) && (int)$row['tiempo_secado'] > 0) ? (int)$row['tiempo_secado'] : 180000;
@@ -108,6 +97,9 @@ if ($method === 'GET') {
 }
 
 if ($method === 'POST' || $method === 'PUT') {
+    // Exigir autenticacion para modificar configuracion o telemetria
+    requireAuth(['admin', 'empleado']);
+
     $input = getJsonInput();
 
     // Guardar siempre en cache JSON para máxima resiliencia inmediata

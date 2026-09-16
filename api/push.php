@@ -7,6 +7,7 @@ require_once __DIR__ . '/config.php';
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'POST') {
+    requireAuth(['admin']);
     $input = getJsonInput();
     $action = isset($input['action']) ? $input['action'] : 'send_push';
 
@@ -44,25 +45,34 @@ if ($method === 'POST') {
         // Estructura de notificación OneSignal
         $fields = [
             'app_id' => $appId,
+            'target_channel' => 'push',
             'headings' => ['es' => $titulo, 'en' => $titulo],
             'contents' => ['es' => $mensaje, 'en' => $mensaje],
             'url' => $url
         ];
 
         if (!empty($telefono)) {
+            // Filtrar por tag o external_id
+            $cleanTel = preg_replace('/\D/', '', $telefono);
             $fields['filters'] = [
-                ['field' => 'tag', 'key' => 'telefono', 'relation' => '=', 'value' => $telefono]
+                ['field' => 'tag', 'key' => 'telefono', 'relation' => '=', 'value' => $telefono],
+                ['operator' => 'OR'],
+                ['field' => 'tag', 'key' => 'telefono', 'relation' => '=', 'value' => $cleanTel]
             ];
         } else {
-            $fields['included_segments'] = ['Subscribed Users'];
+            // Segmentos nativos de OneSignal
+            $fields['included_segments'] = ['Total Subscriptions', 'Active Subscriptions'];
         }
 
-        // Realizar cURL a OneSignal REST API
+        // Formato de Authorization: Key para claves os_v2_, Basic para claves legadas
+        $authHeader = (strpos($restKey, 'os_v2_') === 0) ? 'Key ' . $restKey : 'Basic ' . $restKey;
+
+        // Realizar cURL a OneSignal REST API oficial
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://onesignal.com/api/v1/notifications");
+        curl_setopt($ch, CURLOPT_URL, "https://api.onesignal.com/notifications");
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json; charset=utf-8',
-            'Authorization: Basic ' . $restKey
+            'Authorization: ' . $authHeader
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($ch, CURLOPT_HEADER, FALSE);
@@ -74,12 +84,15 @@ if ($method === 'POST') {
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
+        $parsedRes = json_decode($response, true) ?: [];
+        $hasErrors = !empty($parsedRes['errors']);
+
         sendResponse([
-            'success' => true,
-            'message' => 'Notificación procesada',
+            'success' => !$hasErrors && ($httpCode >= 200 && $httpCode < 300),
+            'message' => $hasErrors ? ('Aviso OneSignal: ' . implode(', ', (array)$parsedRes['errors'])) : 'Notificación enviada con éxito',
             'http_code' => $httpCode,
-            'onesignal_response' => json_decode($response, true)
-        ]);
+            'onesignal_response' => $parsedRes
+        ], $hasErrors ? 400 : 200);
     }
 
     // ----------------------------------------------------

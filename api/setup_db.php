@@ -4,6 +4,14 @@
 // ============================================================
 header("Content-Type: application/json; charset=UTF-8");
 
+// Candado de seguridad: solo ejecutable con clave secreta explícita
+$secretKey = isset($_GET['key']) ? $_GET['key'] : (isset($_POST['key']) ? $_POST['key'] : '');
+if ($secretKey !== 'AuraSetupL1deres2026!') {
+    http_response_code(403);
+    echo json_encode(['error' => 'Acceso denegado. Script de instalación bloqueado por seguridad.'], JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
 $host = 'localhost';
 $db_name = 'a0170001_l1deres';
 
@@ -45,8 +53,7 @@ if (!$pdo) {
 
 // Ejecutar DDL
 $sql = "
-DROP TABLE IF EXISTS `configuracion`;
-CREATE TABLE `configuracion` (
+CREATE TABLE IF NOT EXISTS `configuracion` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `live_state` LONGTEXT NULL,
   `tiempo_lavado` INT DEFAULT 120000,

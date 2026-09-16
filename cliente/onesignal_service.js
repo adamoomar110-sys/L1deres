@@ -103,18 +103,21 @@ class OneSignalService {
             `;
 
             modal.innerHTML = `
-                <div style="background: #0f172a; border: 1px solid #38bdf8; border-radius: 20px; padding: 28px 24px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); animation: onesignalPop 0.4s ease;">
-                    <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(56,189,248,0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 16px;">
-                        <i class='bx bx-check-shield'></i>
+                <div style="background: #0f172a; border: 1px solid rgba(56,189,248,0.4); border-radius: 20px; padding: 28px 24px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.85); animation: onesignalPop 0.4s ease;">
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(56,189,248,0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 16px; border: 1px solid rgba(56,189,248,0.3);">
+                        <i class='bx bx-bell-ring'></i>
                     </div>
-                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.25rem; font-weight: 800; color: #ffffff; margin-bottom: 12px;">
-                        Your OneSignal SDK integration is complete!
+                    <h3 style="font-family: 'Montserrat', sans-serif; font-size: 1.25rem; font-weight: 800; color: #ffffff; margin-bottom: 12px; letter-spacing: 0.5px;">
+                        ¡Seguí tu Lavado en Vivo!
                     </h3>
-                    <p style="font-size: 0.92rem; color: #94a3b8; line-height: 1.5; margin-bottom: 24px;">
-                        You can now send Push Notifications & In-App Messages through OneSignal. Tap below to enable push notifications.
+                    <p style="font-size: 0.92rem; color: #94a3b8; line-height: 1.5; margin-bottom: 22px;">
+                        Activá los avisos para saber cuándo tu auto entra al box y el instante exacto en que esté listo e impecable para retirar.
                     </p>
-                    <button id="onesignal-dialog-btn" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(14,165,233,0.4);">
-                        Got it
+                    <button id="onesignal-dialog-btn" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 0.98rem; cursor: pointer; box-shadow: 0 4px 20px rgba(14,165,233,0.4); display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
+                        <i class='bx bx-check-circle' style="font-size: 1.2rem;"></i> ACTIVAR AVISOS EN TIEMPO REAL
+                    </button>
+                    <button id="onesignal-dialog-skip" style="background: transparent; border: none; color: #64748b; font-size: 0.84rem; margin-top: 12px; cursor: pointer; padding: 6px 12px;">
+                        Quizás más tarde
                     </button>
                 </div>
             `;
@@ -126,6 +129,13 @@ class OneSignalService {
                 modal.remove();
                 await this.requestPermission();
             };
+
+            const btnSkip = document.getElementById('onesignal-dialog-skip');
+            if (btnSkip) {
+                btnSkip.onclick = () => {
+                    modal.remove();
+                };
+            }
         }
     }
 
