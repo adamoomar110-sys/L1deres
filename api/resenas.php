@@ -22,6 +22,29 @@ if ($method === 'GET') {
 if ($method === 'POST') {
     $input = getJsonInput();
 
+    // Soporte para acciones administrativas vía POST (por si el servidor/proxy filtra DELETE)
+    if (isset($input['action']) && in_array($input['action'], ['delete', 'delete_all', 'clear_all'])) {
+        requireAuth(['admin']);
+        $id = isset($_GET['id']) ? $_GET['id'] : (isset($input['id']) ? $input['id'] : null);
+        if ($input['action'] === 'delete_all' || $input['action'] === 'clear_all' || $id === 'all' || $id === 'ALL') {
+            if ($pdo) {
+                $pdo->exec("TRUNCATE TABLE `resenas`");
+            }
+            sendResponse(['success' => true, 'message' => 'Todas las reseñas fueron eliminadas correctamente.']);
+        }
+
+        $idInt = (int)$id;
+        if ($idInt <= 0) {
+            sendResponse(['error' => 'ID de reseña requerido para eliminar.'], 400);
+        }
+
+        if ($pdo) {
+            $stmt = $pdo->prepare("DELETE FROM `resenas` WHERE `id` = :id");
+            $stmt->execute([':id' => $idInt]);
+        }
+        sendResponse(['success' => true, 'deleted_id' => $idInt]);
+    }
+
     if (!$pdo) {
         sendResponse(['success' => true, 'id' => rand(1, 100)]);
     }

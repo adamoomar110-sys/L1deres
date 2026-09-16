@@ -317,7 +317,9 @@
                     </select>
                 </label>
                 <button class="btn btn-primary" id="btn-apply-filters">Filtrar</button>
-                <button class="btn btn-danger" id="btn-clear-history" style="margin-left: auto; background: #ef4444; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer;">Borrar Historial</button>
+                <button class="btn btn-danger" id="btn-clear-history" onclick="if(window.clearAllHistory) window.clearAllHistory()" style="margin-left: auto; background: #ef4444; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <i class='bx bx-trash'></i> Borrar Historial
+                </button>
             </div>
             
             <div class="metrics-table-container">
@@ -459,6 +461,9 @@
                     <input type="text" id="review-filter" placeholder="Buscar patente o teléfono..." class="price-input" style="padding: 8px 12px; width: 250px;" onkeyup="if(window.filterReviews) window.filterReviews(this.value)">
                     <button class="btn btn-primary" onclick="if(window.fetchClientReviews) window.fetchClientReviews()" style="display: flex; align-items: center; gap: 5px;">
                         <i class='bx bx-refresh'></i> Actualizar
+                    </button>
+                    <button class="btn btn-danger" onclick="if(window.deleteAllReviews) window.deleteAllReviews()" style="display: flex; align-items: center; gap: 5px; background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                        <i class='bx bx-trash'></i> Borrar Todas
                     </button>
                 </div>
             </div>

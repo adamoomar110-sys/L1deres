@@ -703,15 +703,43 @@ document.addEventListener('DOMContentLoaded', () => {
     window.deleteReview = async function(id) {
         if (!confirm('¿Estás seguro que deseas borrar esta reseña?')) return;
         try {
-            const res = await fetch(`${API_URL}resenas.php`, {
-                method: 'DELETE',
+            const res = await fetch(`${API_URL}resenas.php?id=${id}`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: id })
+                body: JSON.stringify({ action: 'delete', id: id })
             });
-            window.fetchClientReviews();
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && (data.success || !data.error)) {
+                if (window.showToast) window.showToast('Reseña eliminada correctamente', 'success');
+            } else {
+                if (window.showToast) window.showToast(data.error || 'Error al eliminar reseña', 'error');
+            }
         } catch (err) {
             console.error("Error borrando reseña:", err);
+            if (window.showToast) window.showToast('Error al conectar con el servidor', 'error');
         }
+        if (window.fetchClientReviews) window.fetchClientReviews();
+    };
+
+    window.deleteAllReviews = async function() {
+        if (!confirm('¿Estás seguro de que quieres borrar TODAS las reseñas y comentarios? Esta acción no se puede deshacer.')) return;
+        try {
+            const res = await fetch(`${API_URL}resenas.php?id=all`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete_all', id: 'all' })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && (data.success || !data.error)) {
+                if (window.showToast) window.showToast('Todas las reseñas fueron eliminadas', 'success');
+            } else {
+                if (window.showToast) window.showToast(data.error || 'Error al eliminar reseñas', 'error');
+            }
+        } catch (err) {
+            console.error("Error borrando reseñas:", err);
+            if (window.showToast) window.showToast('Error al conectar con el servidor', 'error');
+        }
+        if (window.fetchClientReviews) window.fetchClientReviews();
     };
 
     // --- Motor de Simulación Videojuego ---
@@ -2294,15 +2322,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Borrar Historial
+    // Borrar Historial de Métricas y Reservas en MySQL
+    window.clearAllHistory = async function() {
+        if (!confirm("¿Estás seguro de que deseas borrar TODO el historial de métricas y registros de lavados? Esta acción no se puede deshacer.")) {
+            return;
+        }
+
+        // 1. Limpiar métricas locales en memoria y localStorage
+        metricsHistory = [];
+        try {
+            localStorage.setItem('metricsHistory', JSON.stringify([]));
+            localStorage.removeItem('metricsHistory');
+        } catch (e) {
+            console.error('Error al limpiar localStorage de métricas:', e);
+        }
+
+        // 2. Refrescar interfaz de Métricas de inmediato
+        if (window.updateMetricsUI) {
+            window.updateMetricsUI();
+        }
+
+        // 3. Limpiar historial en la Base de Datos DonWeb MySQL (tabla reservas)
+        try {
+            const res = await fetch(`${API_URL}reservas.php?action=clear_all`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'clear_all' })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && (data.success || !data.error)) {
+                if (window.showToast) {
+                    window.showToast('Historial de métricas y lavados eliminado por completo', 'success');
+                } else {
+                    alert('Historial de métricas y lavados eliminado por completo.');
+                }
+            } else {
+                if (window.showToast) {
+                    window.showToast(data.error || 'Historial local borrado, aviso de servidor recibido', 'info');
+                }
+            }
+        } catch (err) {
+            console.error('Error al borrar reservas en servidor:', err);
+            if (window.showToast) {
+                window.showToast('Historial local limpiado (sin conexión al servidor)', 'warning');
+            }
+        }
+
+        // 4. Si hay lista de reservas cargadas, recargar
+        if (typeof loadReservations === 'function') {
+            loadReservations();
+        }
+    };
+
     const btnClearHistory = document.getElementById('btn-clear-history');
     if (btnClearHistory) {
-        btnClearHistory.addEventListener('click', () => {
-            if(confirm("¿Estás seguro de que quieres borrar TODAS las métricas? Esta acción no se puede deshacer.")) {
-                metricsHistory = [];
-                localStorage.setItem('metricsHistory', JSON.stringify([]));
-                window.updateMetricsUI();
-            }
+        btnClearHistory.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.clearAllHistory();
         });
     }
     

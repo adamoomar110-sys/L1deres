@@ -129,12 +129,21 @@ if ($method === 'PUT' || $method === 'PATCH') {
     }
 }
 
-if ($method === 'DELETE') {
+if ($method === 'DELETE' || ($method === 'POST' && isset($input['action']) && in_array($input['action'], ['clear_all', 'delete_history', 'delete']))) {
     requireAuth(['admin']);
-    $input = getJsonInput();
-    $id = isset($input['id']) ? (int)$input['id'] : (isset($_GET['id']) ? (int)$_GET['id'] : 0);
+    $id = isset($input['id']) ? $input['id'] : (isset($_GET['id']) ? $_GET['id'] : null);
+    $action = isset($input['action']) ? $input['action'] : (isset($_GET['action']) ? $_GET['action'] : '');
 
-    if ($id <= 0) {
+    // Limpiar todo el historial
+    if ($id === 'all' || $action === 'clear_all' || $action === 'delete_history') {
+        if ($pdo) {
+            $pdo->exec("TRUNCATE TABLE `reservas`");
+        }
+        sendResponse(['success' => true, 'message' => 'Historial de reservas eliminado por completo']);
+    }
+
+    $idInt = (int)$id;
+    if ($idInt <= 0) {
         sendResponse(['error' => 'ID requerido'], 400);
     }
 
@@ -144,8 +153,8 @@ if ($method === 'DELETE') {
 
     try {
         $stmt = $pdo->prepare("DELETE FROM `reservas` WHERE `id` = :id");
-        $stmt->execute([':id' => $id]);
-        sendResponse(['success' => true]);
+        $stmt->execute([':id' => $idInt]);
+        sendResponse(['success' => true, 'deleted_id' => $idInt]);
     } catch (Exception $e) {
         sendResponse(['error' => $e->getMessage()], 500);
     }
