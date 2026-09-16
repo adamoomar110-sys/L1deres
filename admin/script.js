@@ -574,20 +574,45 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     img.src = carImageSrc;
 
-    // Event listener para retirar autos terminados con un clic
+    // Event listener unificado para controlar, avanzar o eliminar cualquier auto de la pista con un clic
     document.addEventListener('click', (e) => {
         const car = e.target.closest('.car-wrapper');
         if (car) {
+            e.stopPropagation();
             const clickedId = parseInt(car.dataset.id);
-            for (let i = 0; i < estadoTerminado.length; i++) {
-                const auto = estadoTerminado[i];
-                if (auto && auto.id === clickedId) {
-                    estadoTerminado[i] = null;
-                    advanceQueueTerminado();
-                    updateVisuals();
-                    checkMovement();
-                    return;
+            
+            // Buscar el auto en todas las zonas del circuito
+            let foundAuto = null;
+            let foundBoxNum = null;
+
+            if (Array.isArray(estadoEspera)) {
+                const idx = estadoEspera.findIndex(a => a && a.id === clickedId);
+                if (idx !== -1) {
+                    foundAuto = estadoEspera[idx];
+                    foundBoxNum = idx + 1;
                 }
+            }
+            if (!foundAuto && estadoLavado && estadoLavado.id === clickedId) {
+                foundAuto = estadoLavado;
+                foundBoxNum = 'Túnel de Lavado';
+            }
+            if (!foundAuto && Array.isArray(estadoSecado)) {
+                const idx = estadoSecado.findIndex(a => a && a.id === clickedId);
+                if (idx !== -1) {
+                    foundAuto = estadoSecado[idx];
+                    foundBoxNum = `Interior ${idx + 1}`;
+                }
+            }
+            if (!foundAuto && Array.isArray(estadoTerminado)) {
+                const idx = estadoTerminado.findIndex(a => a && a.id === clickedId);
+                if (idx !== -1) {
+                    foundAuto = estadoTerminado[idx];
+                    foundBoxNum = `Terminado ${idx + 1}`;
+                }
+            }
+
+            if (foundAuto && typeof openCarActionModal === 'function') {
+                openCarActionModal(foundAuto, foundBoxNum);
             }
         }
     });
@@ -1894,17 +1919,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Procesar Terminado (simulando retiro automático)
+        // Procesar Terminado: NO borrar automáticamente para que los relojes y autos no salten solos.
+        // Los vehículos quedan visibles con '¡Listo!' hasta que el operador decida entregarlos o quitarlos.
         for (let i = 0; i < estadoTerminado.length; i++) {
             const auto = estadoTerminado[i];
             if (auto && auto.endTime && now >= auto.endTime) {
-                recordMetric(auto); // Registrar métrica antes de borrarlo
-                estadoTerminado[i] = null;
-                setTimeout(() => {
-                    advanceQueueTerminado();
+                if (!auto.isMarkedReady) {
+                    auto.isMarkedReady = true;
+                    recordMetric(auto); // Registrar métrica una sola vez al terminar
                     updateVisuals();
-                    checkMovement();
-                }, 100);
+                }
             }
         }
 
@@ -3568,13 +3592,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         let cfg = { ...defaultCfg };
+        let apiLoaded = false;
 
-        // 1. Cargar desde DonWeb API
+        // 1. Cargar desde DonWeb API (Base de Datos MySQL oficial)
         try {
             const res = await fetch(`${API_URL}configuracion.php?_t=${Date.now()}`);
             if (res.ok) {
                 const data = await res.json();
                 if (data && !data.error) {
+                    apiLoaded = true;
                     if (data.tiempo_lavado !== undefined && parseInt(data.tiempo_lavado) > 0) {
                         cfg.tiempo_lavado = parseInt(data.tiempo_lavado);
                         cfg.lavado_min = Math.floor(cfg.tiempo_lavado / 60000);
@@ -3599,25 +3625,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (err) {
-            console.warn('Usando respaldo de configuración:', err);
+            console.warn('Usando respaldo de configuración por error de red:', err);
         }
 
-        // 2. Fallback localStorage si hay datos guardados previamente
-        const localSaved = localStorage.getItem('aura_lavadero_config');
-        if (localSaved) {
+        // 2. Solo usar localStorage si la API falló por completo (offline fallback)
+        if (!apiLoaded) {
+            const localSaved = localStorage.getItem('aura_lavadero_config');
+            if (localSaved) {
+                try {
+                    const parsed = JSON.parse(localSaved);
+                    cfg = { ...cfg, ...parsed };
+                } catch(e){}
+            }
+        } else {
+            // Mantener localStorage sincronizado con la verdad de la base de datos
             try {
-                const parsed = JSON.parse(localSaved);
-                if (parsed.tiempo_lavado && !cfg.tiempo_lavado) {
-                    cfg.tiempo_lavado = parsed.tiempo_lavado;
-                    cfg.lavado_min = Math.floor(cfg.tiempo_lavado / 60000);
-                    cfg.lavado_sec = Math.floor((cfg.tiempo_lavado % 60000) / 1000);
-                }
-                if (parsed.tiempo_secado && !cfg.tiempo_secado) {
-                    cfg.tiempo_secado = parsed.tiempo_secado;
-                    cfg.secado_min = Math.floor(cfg.tiempo_secado / 60000);
-                    cfg.secado_sec = Math.floor((cfg.tiempo_secado % 60000) / 1000);
-                }
-                cfg = { ...cfg, ...parsed };
+                localStorage.setItem('aura_lavadero_config', JSON.stringify(cfg));
             } catch(e){}
         }
 
@@ -4505,6 +4528,43 @@ function handleCarCancelAction() {
     if (typeof syncLiveState === 'function') syncLiveState();
 }
 
+// 🧹 Eliminar todos los autos de la pista (Función de Emergencia / Reseteo)
+function confirmarVaciarPista() {
+    let totalAutos = (Array.isArray(estadoEspera) ? estadoEspera.filter(Boolean).length : 0) +
+                     (estadoLavado ? 1 : 0) +
+                     (Array.isArray(estadoSecado) ? estadoSecado.filter(Boolean).length : 0) +
+                     (Array.isArray(estadoTerminado) ? estadoTerminado.filter(Boolean).length : 0);
+
+    if (totalAutos === 0) {
+        if (window.showToast) window.showToast('La pista ya está libre sin vehículos', 'info');
+        return;
+    }
+
+    if (confirm(`¿Confirmás eliminar los ${totalAutos} vehículo(s) de la pista y dejar todos los boxes libres?`)) {
+        estadoEspera = [null, null, null, null, null, null, null, null];
+        estadoLavado = null;
+        estadoSecado = [null];
+        estadoTerminado = [null, null, null, null];
+
+        if (typeof simCars !== 'undefined' && simCars.size > 0) {
+            simCars.forEach((val, id) => {
+                let wrapper = document.querySelector(`.car-wrapper[data-id="${id}"]`);
+                if (wrapper && wrapper.parentNode) wrapper.remove();
+            });
+            simCars.clear();
+        }
+
+        document.querySelectorAll('.car-wrapper').forEach(w => w.remove());
+
+        updateVisuals();
+        checkMovement();
+        if (typeof renderBoxesManagementList === 'function') renderBoxesManagementList();
+        if (typeof syncLiveState === 'function') syncLiveState();
+        if (window.showToast) window.showToast(`Pista vaciada: ${totalAutos} vehículos eliminados`, 'success');
+    }
+}
+
+window.confirmarVaciarPista = confirmarVaciarPista;
 window.openCarActionModal = openCarActionModal;
 window.closeCarActionModal = closeCarActionModal;
 window.handleCarAdvanceAction = handleCarAdvanceAction;

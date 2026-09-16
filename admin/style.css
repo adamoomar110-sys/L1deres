@@ -548,7 +548,13 @@ body {
     height: 1.6cm;
     z-index: 100;
     transform: translate(-50%, -50%); 
-    pointer-events: none;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: filter 0.2s ease, transform 0.15s ease;
+}
+
+.car-wrapper:hover {
+    filter: drop-shadow(0 0 16px rgba(56, 189, 248, 1)) brightness(1.2);
 }
 
 .track-line {

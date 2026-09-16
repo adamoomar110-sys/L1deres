@@ -27,13 +27,15 @@ if (file_exists($secretsFile)) {
 if (!defined('ONESIGNAL_APP_ID'))  define('ONESIGNAL_APP_ID',  '263bf04a-ad7a-4d11-842d-210cea51387c');
 if (!defined('ONESIGNAL_REST_KEY')) define('ONESIGNAL_REST_KEY', '');
 
+// Zona horaria oficial unificada de Argentina
+date_default_timezone_set('America/Argentina/Buenos_Aires');
+
 $credentials = [
     ['user' => 'a0170001_l1deres', 'pass' => '@Peloymago110Peloymago110'],
     ['user' => 'a0170001_l1deres', 'pass' => 'AuraFTP2025@aura'],
     ['user' => 'a0170001',         'pass' => '@Peloymago110Peloymago110'],
     ['user' => 'a0170001',         'pass' => 'AuraFTP2025@aura']
 ];
-
 
 $pdo = null;
 
@@ -45,6 +47,9 @@ foreach ($credentials as $cred) {
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
         $pdo = $testPdo;
+        try {
+            $pdo->exec("SET time_zone = '-03:00'");
+        } catch (Exception $tzEx) {}
         break;
     } catch (PDOException $e) {
         continue;
