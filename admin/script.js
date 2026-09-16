@@ -1032,7 +1032,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (Array.isArray(ls.espera) && ls.espera.length === 8) estadoEspera = ls.espera;
                         if (ls.lavado !== undefined) estadoLavado = ls.lavado;
                         if (Array.isArray(ls.secado) && ls.secado.length >= 1) estadoSecado = ls.secado.slice(0, 1);
-                        if (Array.isArray(ls.terminado) && ls.terminado.length === 4) estadoTerminado = ls.terminado;
+                        if (Array.isArray(ls.terminado) && ls.terminado.length === 4) {
+                            estadoTerminado = ls.terminado;
+                            estadoTerminado.forEach(a => {
+                                if (a && !a.terminadoAt) a.terminadoAt = Date.now();
+                            });
+                        }
 
                         // Restaurar id max counter y sanitizar tipo de servicio
                         const allCars = [
@@ -1187,8 +1192,10 @@ document.addEventListener('DOMContentLoaded', () => {
             remainingSecs: estadoSecado[0] && estadoSecado[0].endTime ? Math.max(0, Math.ceil((estadoSecado[0].endTime - now) / 1000)) : 0
         });
 
-        // 3. Boxes Terminado 1 al 4
+        // 3. Boxes Terminado 1 al 4 (auto-salida en 20s)
         for (let i = 0; i < 4; i++) {
+            const auto = estadoTerminado[i];
+            const remaining = auto && auto.terminadoAt ? Math.max(0, Math.ceil((auto.terminadoAt + 20000 - now) / 1000)) : (auto ? 20 : 0);
             boxes.push({
                 id: `terminado_${i}`,
                 zone: 'terminado',
@@ -1196,8 +1203,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: `Box Terminado ${i + 1}`,
                 icon: 'bx-check-double',
                 occupiedClass: 'occupied-terminado',
-                auto: estadoTerminado[i],
-                remainingSecs: 0
+                auto: auto,
+                remainingSecs: remaining
             });
         }
 
@@ -1262,7 +1269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const auto = b.auto;
                 const plateVal = auto.patente || `AUTO-${auto.id}`;
                 const srv = auto.tipo || 'express_auto';
-                const timeDisplay = (b.zone === 'terminado') ? '¡Listo para Salir!' : formatTimeMmSs(b.remainingSecs);
+                const timeDisplay = (b.zone === 'terminado') ? (b.remainingSecs > 0 ? `¡Listo! (Sale en ${b.remainingSecs}s)` : 'Saliendo...') : formatTimeMmSs(b.remainingSecs);
 
                 html += `
                 <div class="box-card ${b.occupiedClass}" id="box-card-${b.id}">
@@ -1433,10 +1440,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     let termIdx = estadoTerminado.indexOf(null);
                     if (termIdx !== -1) {
+                        auto.terminadoAt = Date.now();
+                        auto.endTime = Date.now() + 20000;
                         estadoTerminado[termIdx] = auto;
                         estadoLavado = null;
                         advanceQueueTerminado();
-                        showToast(`Auto ${auto.patente} pasó a Terminado`, 'success');
+                        showToast(`Auto ${auto.patente} pasó a Terminado (sale en 20s)`, 'success');
                     } else {
                         showToast('La zona de Terminado está llena', 'error');
                         return;
@@ -1448,10 +1457,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (auto) {
                 let termIdx = estadoTerminado.indexOf(null);
                 if (termIdx !== -1) {
+                    auto.terminadoAt = Date.now();
+                    auto.endTime = Date.now() + 20000;
                     estadoTerminado[termIdx] = auto;
                     estadoSecado[index] = null;
                     advanceQueueTerminado();
-                    showToast(`Auto ${auto.patente} pasó a Terminado`, 'success');
+                    showToast(`Auto ${auto.patente} pasó a Terminado (sale en 20s)`, 'success');
                 } else {
                     showToast('La zona de Terminado está llena', 'error');
                     return;
@@ -1572,6 +1583,8 @@ document.addEventListener('DOMContentLoaded', () => {
             newCar.endTime = Date.now() + (window.APP_CONFIG.tiempoSecado || 180000);
             estadoSecado[index] = newCar;
         } else if (zone === 'terminado') {
+            newCar.terminadoAt = Date.now();
+            newCar.endTime = Date.now() + 20000;
             estadoTerminado[index] = newCar;
             advanceQueueTerminado();
         } else if (zone === 'espera') {
@@ -1903,7 +1916,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         isMoving = true;
                         estadoTerminado[freeIdx] = estadoLavado;
                         estadoLavado = null;
-                        estadoTerminado[freeIdx].endTime = Date.now() + 5000;
+                        estadoTerminado[freeIdx].terminadoAt = Date.now();
+                        estadoTerminado[freeIdx].endTime = Date.now() + 20000;
                         if (advanceQueue()) {}
                         if (advanceQueueTerminado()) {}
                         updateVisuals();
@@ -1930,7 +1944,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             isMoving = true;
                             estadoTerminado[freeIdx] = auto;
                             estadoSecado[i] = null;
-                            estadoTerminado[freeIdx].endTime = Date.now() + 5000;
+                            estadoTerminado[freeIdx].terminadoAt = Date.now();
+                            estadoTerminado[freeIdx].endTime = Date.now() + 20000;
                             if (advanceQueueTerminado()) {}
                             updateVisuals();
                             
@@ -1947,15 +1962,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Procesar Terminado: NO borrar automáticamente para que los relojes y autos no salten solos.
-        // Los vehículos quedan visibles con '¡Listo!' hasta que el operador decida entregarlos o quitarlos.
+        // Procesar Terminado: Autos esperan 20 segundos y se van solos automáticamente
         for (let i = 0; i < estadoTerminado.length; i++) {
             const auto = estadoTerminado[i];
-            if (auto && auto.endTime && now >= auto.endTime) {
+            if (auto) {
+                if (!auto.terminadoAt) {
+                    auto.terminadoAt = now;
+                    auto.endTime = now + 20000;
+                }
                 if (!auto.isMarkedReady) {
                     auto.isMarkedReady = true;
                     recordMetric(auto); // Registrar métrica una sola vez al terminar
                     updateVisuals();
+                }
+                // Si pasaron 20 segundos (20.000 ms), el auto se retira automáticamente
+                if (now - auto.terminadoAt >= 20000) {
+                    estadoTerminado[i] = null;
+                    advanceQueueTerminado();
+                    updateVisuals();
+                    if (typeof renderBoxesManagementList === 'function') {
+                        renderBoxesManagementList();
+                    }
                 }
             }
         }
