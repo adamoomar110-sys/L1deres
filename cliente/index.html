@@ -228,7 +228,7 @@
 
                 <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 10px; margin-bottom: 16px;">
                     <span style="color: #94a3b8; font-size: 0.78rem;">Valor Membresía Plan Black:</span>
-                    <div style="color: #fbbf24; font-size: 1.4rem; font-weight: 900; font-family: 'Racing Sans One', sans-serif;">$ 210.000</div>
+                    <div style="color: #fbbf24; font-size: 1.4rem; font-weight: 900; font-family: 'Racing Sans One', sans-serif;">$ 2</div>
                 </div>
 
                 <button class="btn btn-socio-black" onclick="startSocioCheckout('black')" style="width: 100%; padding: 14px; font-size: 0.95rem; font-weight: 900; justify-content: center; text-transform: uppercase;">
@@ -288,7 +288,7 @@
 
                 <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 10px; margin-bottom: 16px;">
                     <span style="color: #94a3b8; font-size: 0.78rem;">Valor Membresía Plan Gold:</span>
-                    <div style="color: #f59e0b; font-size: 1.4rem; font-weight: 900; font-family: 'Racing Sans One', sans-serif;">$ 140.000</div>
+                    <div style="color: #f59e0b; font-size: 1.4rem; font-weight: 900; font-family: 'Racing Sans One', sans-serif;">$ 1</div>
                 </div>
 
                 <button class="btn btn-socio-gold" onclick="startSocioCheckout('gold')" style="width: 100%; padding: 14px; font-size: 0.95rem; font-weight: 900; justify-content: center; text-transform: uppercase;">
@@ -335,7 +335,7 @@
                     <h3 style="font-size: 0.8rem; color: #38bdf8; text-transform: uppercase; margin-bottom: 4px;">Resumen del Registro</h3>
                     <p style="margin: 2px 0; font-size: 0.82rem;">Membresía: <strong id="summary-socio-tipo" style="color: #fbbf24;">Socio Black VIP</strong></p>
                     <p style="margin: 2px 0; font-size: 0.82rem;">Cupo Asignado: <strong style="color: #34d399;">Padrón Oficial (1 a 100)</strong></p>
-                    <p style="margin: 2px 0; font-size: 0.82rem;">Total a pagar: <strong id="summary-socio-monto" style="color: #009ee3;">$ 210.000</strong></p>
+                    <p style="margin: 2px 0; font-size: 0.82rem;">Total a pagar: <strong id="summary-socio-monto" style="color: #009ee3;">$ 2</strong></p>
                 </div>
 
                 <button class="btn btn-mp" onclick="processSocioPayment()" style="width: 100%; padding: 13px; font-weight: 900; font-size: 0.95rem;">
@@ -349,25 +349,38 @@
         <div id="screen-socio-pago" class="screen">
             <div class="card slide-in" style="text-align: center;">
                 <button class="back-btn" onclick="prevScreen('screen-socio-checkout')" title="Volver" aria-label="Volver"><i class='bx bx-arrow-back'></i></button>
-                <div style="margin-bottom: 16px;">
-                    <i class='bx bx-credit-card' id="pago-icon" style="font-size: 3rem; color: #009ee3; filter: drop-shadow(0 0 12px rgba(0,158,227,0.5));"></i>
+                <div style="margin-bottom: 12px;">
+                    <i class='bx bx-credit-card' id="pago-icon" style="font-size: 2.6rem; color: #009ee3; filter: drop-shadow(0 0 12px rgba(0,158,227,0.5));"></i>
                 </div>
                 <h2 class="racing-font" style="font-size: 1.25rem; margin-bottom: 4px;">CONFIRMÁ TU PAGO</h2>
-                <p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 20px;">Estás a un paso de convertirte en Socio Fundador</p>
+                <p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 14px;">Estás a un paso de convertirte en Socio Fundador</p>
 
-                <div class="order-summary" style="margin-bottom: 20px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0,158,227,0.3); border-radius: 12px; padding: 12px 14px; text-align: left;">
-                    <h3 style="font-size: 0.8rem; color: #38bdf8; text-transform: uppercase; margin-bottom: 8px;">Detalle del Pago</h3>
-                    <p style="margin: 4px 0; font-size: 0.85rem;">Membresía: <strong id="pago-tipo-label" style="color: #fbbf24;">Socio Black VIP</strong></p>
-                    <p style="margin: 4px 0; font-size: 0.85rem;">Nombre: <strong id="pago-nombre-label" style="color: #fff;">-</strong></p>
-                    <p style="margin: 4px 0; font-size: 0.85rem;">Patente: <strong id="pago-patente-label" style="color: #38bdf8;">-</strong></p>
-                    <hr style="border-color: rgba(255,255,255,0.08); margin: 10px 0;">
-                    <p style="margin: 4px 0; font-size: 1rem;">Total: <strong id="pago-monto-label" style="color: #009ee3; font-size: 1.1rem;">$ 210.000</strong></p>
+                <!-- Código QR para Escanear desde el celular / App Mercado Pago -->
+                <div id="pago-qr-wrapper" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(0, 158, 227, 0.4); border-radius: 14px; padding: 14px; margin-bottom: 14px; text-align: center;">
+                    <div style="color: #38bdf8; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class='bx bx-qr-scan' style="font-size: 1.2rem;"></i> Escaneá con tu celular para pagar
+                    </div>
+                    <div style="background: #ffffff; padding: 8px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                        <img id="pago-qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Fmpago.la%2F2RGdF3K&margin=4" alt="Código QR Mercado Pago" style="width: 150px; height: 150px; display: block; border-radius: 6px;">
+                    </div>
+                    <div id="pago-qr-info" style="color: #94a3b8; font-size: 0.75rem; margin-top: 6px;">
+                        Apuntá tu cámara o la app de Mercado Pago al código QR
+                    </div>
+                </div>
+
+                <div class="order-summary" style="margin-bottom: 16px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0,158,227,0.3); border-radius: 12px; padding: 12px 14px; text-align: left;">
+                    <h3 style="font-size: 0.8rem; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px;">Detalle del Pago</h3>
+                    <p style="margin: 3px 0; font-size: 0.82rem;">Membresía: <strong id="pago-tipo-label" style="color: #fbbf24;">Socio Black VIP</strong></p>
+                    <p style="margin: 3px 0; font-size: 0.82rem;">Nombre: <strong id="pago-nombre-label" style="color: #fff;">-</strong></p>
+                    <p style="margin: 3px 0; font-size: 0.82rem;">Patente: <strong id="pago-patente-label" style="color: #38bdf8;">-</strong></p>
+                    <hr style="border-color: rgba(255,255,255,0.08); margin: 8px 0;">
+                    <p style="margin: 3px 0; font-size: 0.95rem;">Total: <strong id="pago-monto-label" style="color: #009ee3; font-size: 1.15rem;">$ 2</strong></p>
                 </div>
 
                 <!-- Botón Oficial de Mercado Pago -->
                 <button class="btn btn-mp" id="btn-simular-pago" onclick="iniciarPagoMercadoPagoReal()" style="width: 100%; padding: 14px; font-weight: 900; font-size: 1rem; margin-bottom: 8px;">
                     <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="MP" style="height: 18px;">
-                    PAGAR CON MERCADO PAGO
+                    PAGAR DIRECTO CON MERCADO PAGO
                 </button>
                 <div style="margin-bottom: 12px;">
                     <a id="btn-abrir-link-directo-mp" href="https://mpago.la/2RGdF3K" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; font-size: 0.82rem; text-decoration: underline; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">

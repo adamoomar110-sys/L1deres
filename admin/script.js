@@ -4491,7 +4491,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('form-socio-email').value = '';
         document.getElementById('form-socio-fecha-nac').value = '';
         document.getElementById('form-socio-estado').value = 'PAGADO';
-        document.getElementById('form-socio-monto').value = '210000';
+        document.getElementById('form-socio-monto').value = '2';
         document.getElementById('form-socio-notas').value = 'Socio Fundador Inauguración';
 
         const modal = document.getElementById('modal-socio-form');
@@ -4530,11 +4530,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const tipo = document.getElementById('form-socio-tipo')?.value;
         const montoInput = document.getElementById('form-socio-monto');
         if (montoInput && !montoInput.value) {
-            montoInput.value = tipo === 'GOLD' ? '140000' : '210000';
+            montoInput.value = tipo === 'GOLD' ? '1' : '2';
         }
     };
 
-    // Funciones de gestión de Enlaces de Cobro Mercado Pago
+    // Funciones de gestión de Enlaces de Cobro Mercado Pago y Códigos QR
+    window.actualizarQRAdmin = function(tipo, url) {
+        if (!url) return;
+        const qrImg = document.getElementById(tipo === 'gold' ? 'admin-qr-gold' : 'admin-qr-black');
+        const btnAbrir = document.getElementById(tipo === 'gold' ? 'admin-btn-abrir-gold' : 'admin-btn-abrir-black');
+        if (qrImg) {
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(url)}&margin=4`;
+        }
+        if (btnAbrir) {
+            btnAbrir.href = url;
+        }
+    };
+
     window.abrirModalLinksMP = function() {
         const modal = document.getElementById('modal-links-mp');
         if (modal) modal.style.display = 'flex';
@@ -4565,14 +4577,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.copiarLinkMPActual = function() {
         const tipo = document.getElementById('form-socio-tipo')?.value || 'BLACK';
-        const link = (tipo === 'GOLD') ? 'https://mpago.la/1HFxTZG' : 'https://mpago.la/2RGdF3K';
+        const inputCustom = document.getElementById(tipo === 'GOLD' ? 'admin-input-link-gold' : 'admin-input-link-black');
+        const defaultLink = (tipo === 'GOLD') ? 'https://mpago.la/1HFxTZG' : 'https://mpago.la/2RGdF3K';
+        const link = (inputCustom && inputCustom.value.trim()) ? inputCustom.value.trim() : defaultLink;
         window.copiarTextoGenerico(link, `Link de Mercado Pago (${tipo}) copiado`);
     };
 
     window.enviarLinkMPWhatsApp = function() {
         const tipo = document.getElementById('form-socio-tipo')?.value || 'BLACK';
-        const link = (tipo === 'GOLD') ? 'https://mpago.la/1HFxTZG' : 'https://mpago.la/2RGdF3K';
-        const monto = (tipo === 'GOLD') ? 140000 : 210000;
+        const inputCustom = document.getElementById(tipo === 'GOLD' ? 'admin-input-link-gold' : 'admin-input-link-black');
+        const defaultLink = (tipo === 'GOLD') ? 'https://mpago.la/1HFxTZG' : 'https://mpago.la/2RGdF3K';
+        const link = (inputCustom && inputCustom.value.trim()) ? inputCustom.value.trim() : defaultLink;
+        const monto = (tipo === 'GOLD') ? 1 : 2;
         const tel = document.getElementById('form-socio-telefono')?.value || '';
         window.compartirWhatsAppMP(tipo, link, monto, tel);
     };

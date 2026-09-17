@@ -283,7 +283,7 @@ function selectMPMethod(labelElem) {
 function startSocioCheckout(tipo) {
     appState.isSocioCheckout = true;
     appState.socioTipo = tipo === 'gold' ? 'gold' : 'black';
-    appState.price = appState.socioTipo === 'black' ? 210000 : 140000;
+    appState.price = appState.socioTipo === 'black' ? 2 : 1;
     appState.washType = appState.socioTipo === 'black' ? 'Membresía Socio Fundador Black' : 'Membresía Socio Fundador Gold';
 
     const titleElem = document.getElementById('socio-checkout-title');
@@ -298,7 +298,7 @@ function startSocioCheckout(tipo) {
         tipoSummary.style.color = appState.socioTipo === 'black' ? '#fbbf24' : '#f59e0b';
     }
     if (montoSummary) {
-        montoSummary.innerText = `$ ${appState.price.toLocaleString('es-AR')}`;
+        montoSummary.innerText = `$ ${appState.price}`;
     }
 
     const inputPatente = document.getElementById('input-socio-patente');
@@ -339,7 +339,7 @@ function processSocioPayment() {
     }
     if (pagoNombre) pagoNombre.innerText = nombre;
     if (pagoPatente) pagoPatente.innerText = patente;
-    if (pagoMonto) pagoMonto.innerText = `$ ${appState.price.toLocaleString('es-AR')}`;
+    if (pagoMonto) pagoMonto.innerText = `$ ${appState.price}`;
 
     // Enlaces Oficiales de Cobro Mercado Pago (L1deres Autowash)
     const MP_LINKS = {
@@ -351,6 +351,12 @@ function processSocioPayment() {
     const directLink = document.getElementById('btn-abrir-link-directo-mp');
     if (directLink) {
         directLink.href = mpUrl;
+    }
+
+    // Actualizar código QR para escaneo con app de Mercado Pago o cámara
+    const qrImg = document.getElementById('pago-qr-image');
+    if (qrImg) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(mpUrl)}&margin=4`;
     }
 
     // Ir a pantalla de pago
