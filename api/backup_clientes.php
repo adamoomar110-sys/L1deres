@@ -111,11 +111,13 @@ function registrarClienteResguardoDonWeb($datos) {
 // Endpoint HTTP si se accede directamente a api/backup_clientes.php
 if (basename($_SERVER['SCRIPT_FILENAME']) === basename(__FILE__)) {
     require_once __DIR__ . '/config.php';
-    require_once __DIR__ . '/auth.php';
 
     $action = $_GET['action'] ?? 'stats';
 
     if ($action === 'download') {
+        if (isset($_GET['token']) && !isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $_GET['token'];
+        }
         requireAuth(['admin', 'empleado']);
         $csvFile = __DIR__ . '/backups/clientes_resguardo.csv';
         if (!file_exists($csvFile)) {

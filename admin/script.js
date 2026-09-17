@@ -6592,7 +6592,10 @@ window.handleCarCancelAction = handleCarCancelAction;
 
     // Descargar archivo de DonWeb directamente
     window.descargarBackupDonWeb = function() {
-        window.open(`${API_URL}backup_clientes.php?action=download`, '_blank');
+        const session = currentAuthSession || JSON.parse(localStorage.getItem('aura_admin_session') || 'null');
+        const token = session?.token || '';
+        const url = `${API_URL}backup_clientes.php?action=download${token ? '&token=' + encodeURIComponent(token) : ''}`;
+        window.open(url, '_blank');
         if (window.showToast) window.showToast('Iniciando descarga del resguardo desde DonWeb...', 'info');
     };
 
