@@ -353,6 +353,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Switch views
             const spanText = btn.querySelector('span').textContent.trim();
             
+            // Cerrar menú drawer en tablets/móviles al hacer click
+            toggleMobileSidebar(false);
+            updateDockActiveState(spanText);
+            
             // Hide all
             if (dashboardView) dashboardView.style.display = 'none';
             if (metricsView) metricsView.style.display = 'none';
@@ -429,6 +433,65 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // Control de Drawer Menú Lateral y Barra Inferior para Tablet/Móvil
+    function updateDockActiveState(viewTitle) {
+        const dockBtns = document.querySelectorAll('.mobile-bottom-dock .dock-btn');
+        dockBtns.forEach(db => {
+            db.classList.remove('active');
+            const dt = db.getAttribute('data-view');
+            const vt = (viewTitle || '').toLowerCase();
+            if ((vt.includes('panel') || vt === 'dashboard') && dt === 'panel') db.classList.add('active');
+            else if (vt.includes('reserva') && dt === 'reservas') db.classList.add('active');
+            else if (vt.includes('métrica') && dt === 'metricas') db.classList.add('active');
+            else if (vt.includes('config') && dt === 'config') db.classList.add('active');
+        });
+    }
+
+    function toggleMobileSidebar(force) {
+        const sidebar = document.getElementById('app-sidebar') || document.querySelector('.sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar) return;
+        const isOpen = sidebar.classList.contains('open');
+        const targetState = (force !== undefined) ? force : !isOpen;
+        if (targetState) {
+            sidebar.classList.add('open');
+            if (backdrop) backdrop.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } else {
+            sidebar.classList.remove('open');
+            if (backdrop) backdrop.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+    window.toggleMobileSidebar = toggleMobileSidebar;
+
+    function openAdminView(viewName) {
+        toggleMobileSidebar(false);
+        const navBtns = document.querySelectorAll('.sidebar-nav .nav-btn');
+        let matched = false;
+        for (let btn of navBtns) {
+            const span = btn.querySelector('span');
+            if (span && span.textContent.trim().toLowerCase() === viewName.trim().toLowerCase()) {
+                btn.click();
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) {
+            const vn = viewName.toLowerCase();
+            for (let btn of navBtns) {
+                const span = btn.querySelector('span');
+                if (span && (span.textContent.toLowerCase().includes(vn) || vn.includes(span.textContent.toLowerCase()))) {
+                    btn.click();
+                    matched = true;
+                    break;
+                }
+            }
+        }
+        updateDockActiveState(viewName);
+    }
+    window.openAdminView = openAdminView;
 
     // Lógica de Configuración (Ahora es una pestaña/view)
     const btnSaveConfig = document.getElementById('save-config');
@@ -2016,6 +2079,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let mins = Math.floor(remainingSegundos / 60);
         let secs = remainingSegundos % 60;
         timeEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        
+        // Sincronizar indicador de Demora en barra superior móvil/tablet
+        const mobileTimeEl = document.getElementById('mobile-status-text');
+        const mobilePillEl = document.getElementById('mobile-status-pill');
+        if (mobileTimeEl) mobileTimeEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        if (mobilePillEl) {
+            mobilePillEl.className = 'mobile-status-pill ' + (autos === 0 ? 'status-free' : (autos <= 4 ? 'status-normal' : 'status-high'));
+        }
         
         // Actualizar Etiqueta y Colores
         badgeEl.className = 'status-badge';
