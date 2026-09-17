@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&family=Racing+Sans+One&display=swap" rel="stylesheet">
     <!-- Boxicons -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="style.css?v=1.8.8">
+    <link rel="stylesheet" href="style.css?v=1.8.9">
     
     <!-- Configuración PWA App de Turnos -->
     <link rel="manifest" href="cliente/manifest.json">
@@ -88,10 +88,10 @@
             
             <!-- Barra Superior Informativa -->
             <div class="hero-render-top-bar">
-                <div class="hero-render-location-badge">
+                <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank" rel="noopener noreferrer" class="hero-render-location-badge" title="Ver ubicación en Google Maps">
                     <i class='bx bx-map-pin'></i>
                     <span>Ramal Pilar km 45,5 · Acceso Los Lagartos C.C.</span>
-                </div>
+                </a>
                 <div class="hero-render-top-right">
                     <span class="hero-status-pill hero-status-inauguracion">
                         <span class="badge-pulse-gold"></span> PRÓXIMA INAUGURACIÓN
@@ -561,7 +561,7 @@
     </footer>
 
     <!-- Script Landing -->
-    <script src="script.js?v=1.8.8"></script>
+    <script src="script.js?v=1.8.9"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

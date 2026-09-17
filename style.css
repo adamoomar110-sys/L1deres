@@ -240,6 +240,17 @@ body {
     font-size: 0.76rem;
     font-weight: 700;
     color: #38bdf8;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.hero-render-location-badge:hover {
+    background: rgba(14, 165, 233, 0.25);
+    border-color: rgba(56, 189, 248, 0.85);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
 }
 
 .hero-render-top-right {

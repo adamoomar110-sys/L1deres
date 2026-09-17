@@ -15,12 +15,12 @@
     
     <!-- OneSignal Web Push SDK & Centralized Wrapper -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script src="onesignal_service.js?v=1.8.8" defer></script>
+    <script src="onesignal_service.js?v=1.8.9" defer></script>
     
     <!-- Google Fonts para estilo Racing (F1) -->
     <link href="https://fonts.googleapis.com/css2?family=Racing+Sans+One&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="style.css?v=1.8.8">
+    <link rel="stylesheet" href="style.css?v=1.8.9">
     <style>
         #app-container {
             margin: auto !important;
@@ -152,12 +152,10 @@
                 <!-- Footer Integrado de forma fluida (Sin barras negras superpuestas ni cortes) -->
                 <div class="welcome-footer-info" style="margin-top: 4px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); text-align: center;">
                     <p style="margin: 0; font-size: 0.68rem; color: #94a3b8; display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap: wrap;">
-                        <span style="display: inline-flex; align-items: center; gap: 3px;">
-                            <i class='bx bx-map-pin' style="color: #fde047;"></i> Ramal Pilar km 45,5 · Los Lagartos C.C.
-                        </span>
-                        <span>·</span>
-                        <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 2px;">
-                            <i class='bx bx-navigation'></i> ¿Cómo llegar?
+                        <a href="https://maps.google.com/?q=-34.435089,-58.824375" target="_blank" rel="noopener noreferrer" class="cliente-location-badge" title="Abrir ubicación en Google Maps">
+                            <i class='bx bx-map-pin' style="color: #fde047; font-size: 0.85rem;"></i>
+                            <span>Ramal Pilar km 45,5 · Los Lagartos C.C.</span>
+                            <span style="color: #38bdf8; font-weight: 700; margin-left: 2px;">· ¿Cómo llegar?</span>
                         </a>
                     </p>
                     <p style="font-size: 0.64rem; color: #64748b; margin: 3px 0 0 0;">&copy; 2026 Aura · L1deres. Todos los derechos reservados.</p>
@@ -680,7 +678,7 @@
     </div>
 
     <!-- App Script -->
-    <script src="app.js?v=1.8.8"></script>
+    <script src="app.js?v=1.8.9"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(reg => {
