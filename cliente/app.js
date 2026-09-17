@@ -283,7 +283,7 @@ function selectMPMethod(labelElem) {
 function startSocioCheckout(tipo) {
     appState.isSocioCheckout = true;
     appState.socioTipo = tipo === 'gold' ? 'gold' : 'black';
-    appState.price = appState.socioTipo === 'black' ? 2 : 1;
+    appState.price = appState.socioTipo === 'black' ? 210000 : 140000;
     appState.washType = appState.socioTipo === 'black' ? 'Membresía Socio Fundador Black' : 'Membresía Socio Fundador Gold';
 
     const titleElem = document.getElementById('socio-checkout-title');
@@ -298,7 +298,7 @@ function startSocioCheckout(tipo) {
         tipoSummary.style.color = appState.socioTipo === 'black' ? '#fbbf24' : '#f59e0b';
     }
     if (montoSummary) {
-        montoSummary.innerText = `$ ${appState.price}`;
+        montoSummary.innerText = `$ ${appState.price.toLocaleString('es-AR')}`;
     }
 
     const inputPatente = document.getElementById('input-socio-patente');
@@ -339,7 +339,7 @@ function processSocioPayment() {
     }
     if (pagoNombre) pagoNombre.innerText = nombre;
     if (pagoPatente) pagoPatente.innerText = patente;
-    if (pagoMonto) pagoMonto.innerText = `$ ${appState.price}`;
+    if (pagoMonto) pagoMonto.innerText = `$ ${appState.price.toLocaleString('es-AR')}`;
 
     // Enlaces Oficiales de Cobro Mercado Pago (L1deres Autowash)
     const MP_LINKS = {

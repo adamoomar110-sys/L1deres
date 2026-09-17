@@ -4491,7 +4491,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('form-socio-email').value = '';
         document.getElementById('form-socio-fecha-nac').value = '';
         document.getElementById('form-socio-estado').value = 'PAGADO';
-        document.getElementById('form-socio-monto').value = '2';
+        document.getElementById('form-socio-monto').value = '210000';
         document.getElementById('form-socio-notas').value = 'Socio Fundador Inauguración';
 
         const modal = document.getElementById('modal-socio-form');
@@ -4530,7 +4530,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tipo = document.getElementById('form-socio-tipo')?.value;
         const montoInput = document.getElementById('form-socio-monto');
         if (montoInput && !montoInput.value) {
-            montoInput.value = tipo === 'GOLD' ? '1' : '2';
+            montoInput.value = tipo === 'GOLD' ? '140000' : '210000';
         }
     };
 
@@ -4588,7 +4588,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputCustom = document.getElementById(tipo === 'GOLD' ? 'admin-input-link-gold' : 'admin-input-link-black');
         const defaultLink = (tipo === 'GOLD') ? 'https://mpago.la/1HFxTZG' : 'https://mpago.la/2RGdF3K';
         const link = (inputCustom && inputCustom.value.trim()) ? inputCustom.value.trim() : defaultLink;
-        const monto = (tipo === 'GOLD') ? 1 : 2;
+        const monto = (tipo === 'GOLD') ? 140000 : 210000;
         const tel = document.getElementById('form-socio-telefono')?.value || '';
         window.compartirWhatsAppMP(tipo, link, monto, tel);
     };
