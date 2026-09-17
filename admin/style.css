@@ -2215,3 +2215,205 @@ input:checked + .slider:before {
     border-color: rgba(251, 191, 36, 0.6);
     color: #fbbf24;
 }
+
+/* ============================================================
+   LPR CAMERA HUD & RECONOCIMIENTO DE PATENTES
+   ============================================================ */
+.lpr-video-container {
+    position: relative;
+    width: 100%;
+    min-height: 380px;
+    max-height: 520px;
+    background: #030712;
+    border-radius: 16px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+}
+
+.lpr-video-container video {
+    width: 100%;
+    height: 100%;
+    min-height: 380px;
+    max-height: 520px;
+    object-fit: cover;
+    display: block;
+}
+
+.lpr-hud-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.lpr-hud-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #f8fafc;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.hud-status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 10px #10b981;
+    animation: status-blink 2s infinite ease-in-out;
+}
+
+@keyframes status-blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Bounding Box / Mira de Enfoque de Patente */
+.plate-target-box {
+    position: relative;
+    width: 320px;
+    height: 120px;
+    max-width: 85%;
+    border: 1px dashed rgba(56, 189, 248, 0.4);
+    background: rgba(56, 189, 248, 0.04);
+    box-shadow: inset 0 0 25px rgba(56, 189, 248, 0.15), 0 0 30px rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+}
+
+/* Esquinas Reforzadas de la Mira */
+.target-corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: #38bdf8;
+    border-style: solid;
+    border-width: 0;
+}
+
+.target-corner.top-left {
+    top: -2px;
+    left: -2px;
+    border-top-width: 3px;
+    border-left-width: 3px;
+    border-top-left-radius: 8px;
+}
+
+.target-corner.top-right {
+    top: -2px;
+    right: -2px;
+    border-top-width: 3px;
+    border-right-width: 3px;
+    border-top-right-radius: 8px;
+}
+
+.target-corner.bottom-left {
+    bottom: -2px;
+    left: -2px;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+    border-bottom-left-radius: 8px;
+}
+
+.target-corner.bottom-right {
+    bottom: -2px;
+    right: -2px;
+    border-bottom-width: 3px;
+    border-right-width: 3px;
+    border-bottom-right-radius: 8px;
+}
+
+/* Línea Láser de Escaneo Vertical */
+.target-laser-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #38bdf8, #67e8f9, #38bdf8, transparent);
+    box-shadow: 0 0 12px #38bdf8, 0 0 20px #0ea5e9;
+    animation: laser-sweep 2.2s infinite ease-in-out;
+}
+
+@keyframes laser-sweep {
+    0% { top: 4%; opacity: 0.3; }
+    50% { top: 92%; opacity: 1; }
+    100% { top: 4%; opacity: 0.3; }
+}
+
+.target-guide-text {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 1.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+    background: rgba(3, 7, 18, 0.75);
+    padding: 3px 10px;
+    border-radius: 6px;
+}
+
+.lpr-scanning-indicator {
+    position: absolute;
+    bottom: 18px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid #38bdf8;
+    color: #38bdf8;
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7), 0 0 15px rgba(56, 189, 248, 0.3);
+}
+
+.lpr-camera-offline {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px 20px;
+    width: 100%;
+    min-height: 380px;
+    background: radial-gradient(circle at center, rgba(15, 23, 42, 0.95) 0%, rgba(3, 7, 18, 0.98) 100%);
+}
+
+/* Tarjeta de Diagnóstico LPR */
+.lpr-result-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 16px;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .lpr-result-grid {
+        grid-template-columns: 1fr;
+    }
+}
+

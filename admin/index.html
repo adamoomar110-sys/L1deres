@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <!-- Boxicons for icons -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Tesseract.js OCR Neuronal Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 
@@ -426,72 +428,111 @@
             </div>
         </main>
 
-        <!-- Vista de Cámara de Ingreso & Transmisión en Vivo -->
+        <!-- Vista de Cámara de Ingreso Vehicular & Lector LPR con IA -->
         <main class="main-content" id="camara-view" style="display: none;">
-            <div class="metrics-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                <div>
-                    <h2><i class='bx bx-camera' style="color: #38bdf8;"></i> Cámara Real de Espera & Transmisión Web</h2>
-                    <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Transmití automáticamente una foto cada 3 minutos a l1deres.site para mostrar la fila de espera sin patentes ni caras de personas.</p>
+            <div class="metrics-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                    <button class="btn-back-to-panel" onclick="openAdminView('Panel Principal')" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.88rem; transition: all 0.2s;">
+                        <i class='bx bx-arrow-back'></i> Volver al Panel
+                    </button>
+                    <div>
+                        <h2><i class='bx bx-camera' style="color: #38bdf8;"></i> Cámara de Ingreso & Lector LPR con IA</h2>
+                        <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Detección y lectura automática de patentes en la entrada del lavadero con cruce inmediato al Padrón de Socios y Reservas.</p>
+                    </div>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <select id="camera-device-select" class="price-input" style="padding: 9px 12px; font-size: 0.85rem; max-width: 220px; background: rgba(15,23,42,0.9); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4); border-radius: 8px; display: none;" onchange="switchCameraDevice(this.value)">
                         <option value="">Cargando cámaras de la PC...</option>
                     </select>
-                    <input type="file" id="camera-file-input" accept="image/*" style="display: none;" onchange="uploadManualCamaraPhoto(this)">
-                    <button class="btn btn-primary" onclick="document.getElementById('camera-file-input').click()" style="padding: 10px 16px; background: rgba(14,165,233,0.2); border: 1px solid rgba(14,165,233,0.5); color: #38bdf8; font-weight: 700;">
-                        <i class='bx bx-upload'></i> 📁 Subir Foto Manual
+                    <input type="file" id="camera-file-input" accept="image/*" style="display: none;" onchange="handleManualPlateImage(this)">
+                    <button class="btn btn-primary" onclick="document.getElementById('camera-file-input').click()" style="padding: 10px 16px; background: rgba(14,165,233,0.15); border: 1px solid rgba(14,165,233,0.4); color: #38bdf8; font-weight: 700;">
+                        <i class='bx bx-upload'></i> Subir Foto
                     </button>
-                    <button class="btn btn-primary" id="btn-snap-now" onclick="captureAndSendCamaraFrame()" style="display: none; padding: 10px 18px; background: #10b981; font-weight: 700;">
-                        <i class='bx bx-camera'></i> 📸 Transmitir Foto Ahora
+                    <button class="btn btn-primary" id="btn-snap-plate-now" onclick="captureAndOcrPlateNow()" style="display: none; padding: 10px 18px; background: #10b981; font-weight: 700; box-shadow: 0 0 15px rgba(16,185,129,0.3);">
+                        <i class='bx bx-scan'></i> 📸 Escanear Patente Ahora
                     </button>
                     <button class="btn btn-primary" id="btn-start-camera" style="padding: 10px 18px;">
-                        <i class='bx bx-power-off'></i> Encender Cámara PC
+                        <i class='bx bx-power-off'></i> Encender Cámara Entrada
                     </button>
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 65vh; background: #0a0a0a; border-radius: 14px; border: 1px solid rgba(56,189,248,0.3); box-shadow: inset 0 0 50px rgba(0,0,0,0.5); overflow: hidden; position: relative;">
-                <video id="camera-stream" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
+            <!-- Visor de Video de Entrada con HUD de Escaneo -->
+            <div class="lpr-video-container" id="lpr-video-wrapper">
+                <video id="camera-stream" autoplay playsinline></video>
+                <canvas id="camera-ocr-canvas" style="display: none;"></canvas>
                 
-                <div id="camera-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; border: 4px solid rgba(56, 189, 248, 0.3);">
-                    <div style="position: absolute; top: 16px; left: 16px; background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
-                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px #ef4444; display: inline-block;"></span>
-                        TRANSMITIENDO A WEB L1DERES (CADA 3 MIN)
+                <!-- HUD Overlay con Mira de Escaneo -->
+                <div id="camera-overlay" class="lpr-hud-overlay" style="display: none;">
+                    <!-- Badge de Estado de la Cámara -->
+                    <div class="lpr-hud-badge" id="lpr-hud-badge">
+                        <span class="hud-status-dot" id="lpr-status-dot"></span>
+                        <span id="lpr-status-text">Cámara Entrada Activa</span>
+                    </div>
+
+                    <!-- Cuadro Objetivo de la Patente (Bounding Box) -->
+                    <div class="plate-target-box" id="plate-target-box">
+                        <div class="target-corner top-left"></div>
+                        <div class="target-corner top-right"></div>
+                        <div class="target-corner bottom-left"></div>
+                        <div class="target-corner bottom-right"></div>
+                        <div class="target-laser-line" id="target-laser-line"></div>
+                        <div class="target-guide-text">
+                            <i class='bx bx-scan'></i> ENFOCAR PATENTE AQUÍ
+                        </div>
+                    </div>
+
+                    <!-- Indicador de Lectura en Progreso -->
+                    <div id="lpr-scanning-indicator" class="lpr-scanning-indicator" style="display: none;">
+                        <i class='bx bx-loader-alt bx-spin'></i> Leyendo caracteres con IA...
                     </div>
                 </div>
 
-                <div id="camera-loading" style="display: flex; flex-direction: column; align-items: center; padding: 20px; text-align: center;">
+                <!-- Pantalla Inicial de Cámara Desconectada -->
+                <div id="camera-loading" class="lpr-camera-offline">
                     <i class='bx bx-cctv' style="font-size: 5rem; color: #38bdf8; margin-bottom: 16px;"></i>
-                    <h3 style="color: #f8fafc; font-size: 1.4rem; margin: 0 0 6px 0;">Cámara de PC Desconectada</h3>
-                    <p style="color: #94a3b8; font-size: 0.9rem; max-width: 420px; margin: 0 0 20px 0;">Hacé clic en 'Encender Cámara PC' para iniciar la transmisión periódica a la portada de la web.</p>
+                    <h3 style="color: #f8fafc; font-size: 1.4rem; margin: 0 0 6px 0;">Cámara de Entrada Desconectada</h3>
+                    <p style="color: #94a3b8; font-size: 0.9rem; max-width: 460px; margin: 0 0 20px 0;">Hacé clic en 'Encender Cámara Entrada' para activar el visor con reconocimiento automático de patentes por IA.</p>
                 </div>
             </div>
 
-            <!-- Panel LPR Inteligente: Detección, Socios Fundadores y Reservas -->
+            <!-- Barra de Controles y Toggles LPR -->
+            <div class="lpr-controls-bar" style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: rgba(15,23,42,0.85); border: 1px solid rgba(56,189,248,0.25); border-radius: 12px; padding: 12px 18px;">
+                <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #e2e8f0; font-size: 0.85rem; font-weight: 600;">
+                        <input type="checkbox" id="lpr-auto-scan-toggle" checked style="width: 18px; height: 18px; accent-color: #38bdf8; cursor: pointer;">
+                        <span><i class='bx bx-radar' style="color: #38bdf8;"></i> Auto-Escaneo Continuo (cada 2.5s)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #e2e8f0; font-size: 0.85rem; font-weight: 600;">
+                        <input type="checkbox" id="lpr-auto-assign-toggle" checked style="width: 18px; height: 18px; accent-color: #10b981; cursor: pointer;">
+                        <span style="color: #4ade80;"><i class='bx bx-bolt-circle'></i> Auto-Crear en Pista si es Socio o Reserva</span>
+                    </label>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.78rem; color: #94a3b8; font-weight: 600;">Motor IA:</span>
+                    <span class="badge-ai-ready" id="badge-ai-status" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #34d399; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class='bx bx-check-circle'></i> Tesseract OCR Neuronal
+                    </span>
+                </div>
+            </div>
+
+            <!-- Panel LPR: Tarjeta de Diagnóstico y Validación en Vivo -->
             <div class="lpr-detection-hub" style="margin-top: 20px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 14px;">
                     <div>
                         <h3 style="margin: 0; color: #38bdf8; font-size: 1.2rem; display: flex; align-items: center; gap: 8px;">
-                            <i class='bx bx-scan' style="font-size: 1.5rem;"></i> Sistema LPR de Reconocimiento y Asignación Automática
+                            <i class='bx bx-scan' style="font-size: 1.5rem;"></i> Resultado del Escaneo & Padrón de Socios
                         </h3>
                         <p style="margin: 3px 0 0; color: #94a3b8; font-size: 0.85rem;">
-                            Detecta automáticamente socios del Club 100 (Black/Gold) o reservas del día al ingresar al predio.
+                            Cruce automático contra el Club 100 Socios Fundadores (Black & Gold) y reservas pagadas en el día.
                         </p>
                     </div>
-                    
-                    <!-- Toggle de Auto-Ingreso a Pista -->
-                    <label class="lpr-toggle-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(3, 7, 18, 0.7); padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(16, 185, 129, 0.4);">
-                        <input type="checkbox" id="lpr-auto-assign-toggle" checked style="width: 18px; height: 18px; accent-color: #10b981; cursor: pointer;">
-                        <span style="color: #4ade80; font-size: 0.85rem; font-weight: 700;">
-                            <i class='bx bx-bolt-circle'></i> Auto-Crear en Pista si es Socio o Reserva
-                        </span>
-                    </label>
                 </div>
 
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <!-- Input de Escaneo / Tipeo de Patente -->
+                    <!-- Input de Escaneo / Tipeo de Patente de Respaldo -->
                     <div style="flex: 1; min-width: 280px;">
-                        <label style="display: block; color: #94a3b8; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px;">PATENTE DETECTADA / ESCANEADA EN CÁMARA</label>
+                        <label style="display: block; color: #94a3b8; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px;">PATENTE ESCANEADA O CONSULTA MANUAL</label>
                         <div style="display: flex; gap: 8px;">
                             <input type="text" id="lpr-scan-input" placeholder="Ej: AB123CD o AE456GH" maxlength="10" style="flex: 1; text-transform: uppercase; font-family: 'Racing Sans One', sans-serif; font-size: 1.3rem; letter-spacing: 2px; padding: 10px 14px; background: #030712; border: 1px solid rgba(56, 189, 248, 0.5); border-radius: 10px; color: #38bdf8; text-align: center;">
                             <button class="btn btn-primary" onclick="triggerLprScanManual()" style="padding: 10px 18px; font-weight: 800; display: flex; align-items: center; gap: 6px;">
@@ -502,7 +543,7 @@
 
                     <!-- Botones de Detección de Prueba Rápida -->
                     <div style="min-width: 260px; display: flex; flex-direction: column; justify-content: flex-end;">
-                        <span style="color: #64748b; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px;">SIMULACIÓN DE DETECCIÓN:</span>
+                        <span style="color: #64748b; font-size: 0.75rem; font-weight: 700; margin-bottom: 6px;">PRUEBAS RÁPIDAS:</span>
                         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                             <button class="btn-lpr-demo" onclick="simulateLprDetection('AE123CD')">🚗 Test AE123CD</button>
                             <button class="btn-lpr-demo gold" onclick="simulateLprDetection('GOLD999')">🏆 Test Socio Gold</button>
@@ -511,9 +552,37 @@
                     </div>
                 </div>
 
-                <!-- Resultado de Detección LPR -->
+                <!-- Tarjeta Dinámica de Diagnóstico LPR -->
                 <div id="lpr-detection-result" style="display: none; margin-top: 18px; padding: 16px; border-radius: 12px; background: rgba(3, 7, 18, 0.85); border: 1px solid rgba(255,255,255,0.1);">
                     <!-- Contenido dinámico del diagnóstico -->
+                </div>
+            </div>
+
+            <!-- Historial de Ingresos Detectados en el Día -->
+            <div style="margin-top: 24px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h4 style="margin: 0; color: #f8fafc; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-history' style="color: #38bdf8;"></i> Últimos Ingresos Registrados por Cámara Hoy
+                    </h4>
+                    <span id="lpr-history-count" style="font-size: 0.78rem; color: #94a3b8;">0 ingresos</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="metrics-table" style="width: 100%; min-width: 520px;">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Patente</th>
+                                <th>Tipo de Cliente</th>
+                                <th>Titular / Datos</th>
+                                <th>Box Asignado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lpr-history-tbody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #64748b; padding: 16px;">Sin ingresos detectados hoy</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -1761,7 +1830,10 @@
                 </div>
 
             </div>
-        </div>
+        <!-- Footer de la Aplicación Aura -->
+        <footer class="aura-app-footer" style="text-align: center; padding: 24px 16px 50px; color: #64748b; font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 40px;">
+            <p style="margin: 0;">&copy; 2026 Aura. Todos los derechos reservados. | Sistema de Gestión Operativa v1.8</p>
+        </footer>
 
     </div>
     <!-- ===== FIN PANEL NOTIFICACIONES PUSH ===== -->

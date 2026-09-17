@@ -2483,74 +2483,570 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // SISTEMA DE CÁMARA LPR (Webcam)
     // ==========================================
+    // ==========================================
+    // CÁMARA DE INGRESO VEHICULAR & LECTOR LPR CON IA (Aura v1.8)
+    // ==========================================
     const btnStartCamera = document.getElementById('btn-start-camera');
+    const btnSnapPlateNow = document.getElementById('btn-snap-plate-now');
     const videoElement = document.getElementById('camera-stream');
     const cameraLoading = document.getElementById('camera-loading');
     const cameraOverlay = document.getElementById('camera-overlay');
+    const cameraDeviceSelect = document.getElementById('camera-device-select');
 
-    let camaraTransmitTimer = null;
+    let tesseractWorker = null;
+    let isTesseractInitializing = false;
+    let isOcrProcessing = false;
+    let lprAutoScanInterval = null;
+    let activeCameraStream = null;
+    let lastScannedPlate = null;
+    let lastScannedTime = 0;
+    let pendingAlertCar = null;
 
-    window.captureAndSendCamaraFrame = async function() {
+    // Inicialización del Worker Tesseract con whitelist alfanumérica y modo línea única
+    async function getTesseractWorker() {
+        if (tesseractWorker) return tesseractWorker;
+        if (typeof Tesseract === 'undefined') {
+            console.warn("Tesseract.js no está disponible aún.");
+            return null;
+        }
+        if (isTesseractInitializing) {
+            while (isTesseractInitializing) {
+                await new Promise(r => setTimeout(r, 150));
+            }
+            return tesseractWorker;
+        }
+
+        try {
+            isTesseractInitializing = true;
+            const badge = document.getElementById('badge-ai-status');
+            if (badge) {
+                badge.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Inicializando IA...";
+            }
+
+            const worker = await Tesseract.createWorker('eng');
+            await worker.setParameters({
+                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+                tessedit_pageseg_mode: '7' // Single text line
+            });
+
+            tesseractWorker = worker;
+            if (badge) {
+                badge.innerHTML = "<i class='bx bx-check-circle'></i> Tesseract OCR Neuronal Listo";
+                badge.style.background = 'rgba(16,185,129,0.2)';
+                badge.style.color = '#34d399';
+            }
+            return tesseractWorker;
+        } catch (err) {
+            console.error("Error al inicializar Tesseract.js:", err);
+            const badge = document.getElementById('badge-ai-status');
+            if (badge) {
+                badge.innerHTML = "<i class='bx bx-error'></i> Error IA";
+                badge.style.color = '#f87171';
+            }
+            return null;
+        } finally {
+            isTesseractInitializing = false;
+        }
+    }
+
+    // Inicializar el worker en background al cargar el script si la librería está lista
+    setTimeout(() => {
+        if (typeof Tesseract !== 'undefined') {
+            getTesseractWorker();
+        }
+    }, 1200);
+
+    // Audio Chime con sintetizador Web Audio (sin dependencias de archivos externos)
+    function playLprChime(type = 'success') {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            if (type === 'vip') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+                osc.frequency.setValueAtTime(880, ctx.currentTime + 0.12); // A5
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } else {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.25);
+            }
+        } catch (e) {}
+    }
+
+    // Extracción y Normalización de Patentes Argentinas
+    function parseArgentinePlate(rawText) {
+        if (!rawText) return null;
+        const clean = rawText.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        
+        // 1. Mercosur Autos: 2 Letras + 3 Números + 2 Letras (Ej: AB123CD, AE456GH)
+        const mercosurMatch = clean.match(/[A-Z]{2}[0-9]{3}[A-Z]{2}/);
+        if (mercosurMatch) return mercosurMatch[0];
+
+        // 2. Tradicional Autos: 3 Letras + 3 Números (Ej: ABC123, PQR789)
+        const tradMatch = clean.match(/[A-Z]{3}[0-9]{3}/);
+        if (tradMatch) return tradMatch[0];
+
+        // 3. Mercosur Motos: 1 Letra + 3 Números + 3 Letras (Ej: A123BCD)
+        const motoMatch = clean.match(/[A-Z]{1}[0-9]{3}[A-Z]{3}/);
+        if (motoMatch) return motoMatch[0];
+
+        // 4. Si tiene 6 o 7 caracteres alfanuméricos directos
+        if (clean.length === 6 || clean.length === 7) {
+            return clean;
+        }
+
+        return null;
+    }
+
+    // Preprocesamiento de Imagen en Canvas: Recorte focal y Binarización de alto contraste
+    function preprocessTargetImage(source, targetCanvas, isVideo = true) {
+        if (!targetCanvas) return false;
+        const ctx = targetCanvas.getContext('2d');
+
+        let srcW = isVideo ? (source.videoWidth || 640) : (source.naturalWidth || source.width || 640);
+        let srcH = isVideo ? (source.videoHeight || 480) : (source.naturalHeight || source.height || 480);
+
+        if (srcW === 0 || srcH === 0) return false;
+
+        let cropX = 0, cropY = 0, cropW = srcW, cropH = srcH;
+
+        // Si es video y está el cuadro de mira enfocado
+        if (isVideo) {
+            const wrapper = document.getElementById('lpr-video-wrapper');
+            const targetBox = document.getElementById('plate-target-box');
+            if (wrapper && targetBox) {
+                const wRect = wrapper.getBoundingClientRect();
+                const tRect = targetBox.getBoundingClientRect();
+                if (wRect.width > 0 && wRect.height > 0) {
+                    const scaleX = srcW / wRect.width;
+                    const scaleY = srcH / wRect.height;
+                    cropX = Math.max(0, (tRect.left - wRect.left) * scaleX);
+                    cropY = Math.max(0, (tRect.top - wRect.top) * scaleY);
+                    cropW = Math.min(srcW - cropX, tRect.width * scaleX);
+                    cropH = Math.min(srcH - cropY, tRect.height * scaleY);
+                }
+            }
+        }
+
+        // Resolución óptima para OCR de patentes: ancho 480px proporcional
+        const finalW = 480;
+        const finalH = Math.round((cropH / cropW) * finalW) || 160;
+        targetCanvas.width = finalW;
+        targetCanvas.height = finalH;
+
+        // Dibujar recorte en canvas
+        ctx.drawImage(source, cropX, cropY, cropW, cropH, 0, 0, finalW, finalH);
+
+        // Binarización y aumento de contraste para lectura nítida de patentes
+        try {
+            const imgData = ctx.getImageData(0, 0, finalW, finalH);
+            const d = imgData.data;
+            
+            // Paso 1: cálculo de luminancia media
+            let totalLum = 0;
+            for (let i = 0; i < d.length; i += 4) {
+                totalLum += (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+            }
+            const avgLum = totalLum / (d.length / 4);
+            const threshold = Math.min(Math.max(avgLum, 90), 160);
+
+            // Paso 2: binarización nítida blanco/negro
+            for (let i = 0; i < d.length; i += 4) {
+                const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+                const val = lum > threshold ? 255 : 0;
+                d[i] = val;
+                d[i + 1] = val;
+                d[i + 2] = val;
+            }
+            ctx.putImageData(imgData, 0, 0);
+        } catch (e) {
+            console.warn("No se pudo aplicar binarización (posible CORS en imagen externa):", e);
+        }
+
+        return true;
+    }
+
+    // Escanear ahora desde la cámara en vivo
+    window.captureAndOcrPlateNow = async function() {
+        if (isOcrProcessing) return;
         const video = document.getElementById('camera-stream');
         if (!video || video.paused || video.ended || video.readyState < 2) return;
 
-        let canvas = document.getElementById('camera-canvas');
+        let canvas = document.getElementById('camera-ocr-canvas');
         if (!canvas) {
             canvas = document.createElement('canvas');
-            canvas.id = 'camera-canvas';
+            canvas.id = 'camera-ocr-canvas';
             canvas.style.display = 'none';
             document.body.appendChild(canvas);
         }
 
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-
+        const indicator = document.getElementById('lpr-scanning-indicator');
         try {
-            const res = await fetch(`${API_URL}camara.php`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: dataUrl })
-            });
-            const data = await res.json();
-            if (data.success && window.showToast) {
-                window.showToast('📸 Captura transmitida a l1deres.site', 'success');
+            isOcrProcessing = true;
+            if (indicator) indicator.style.display = 'flex';
+
+            const ok = preprocessTargetImage(video, canvas, true);
+            if (!ok) return;
+
+            const worker = await getTesseractWorker();
+            if (!worker) return;
+
+            const result = await worker.recognize(canvas);
+            const rawText = result && result.data ? result.data.text : '';
+            const detectedPlate = parseArgentinePlate(rawText);
+
+            if (detectedPlate) {
+                await processDetectedPlate(detectedPlate);
             }
-        } catch (e) {
-            console.warn('Error al transmitir captura de cámara:', e);
+        } catch (err) {
+            console.warn("Error en escaneo OCR LPR:", err);
+        } finally {
+            isOcrProcessing = false;
+            if (indicator) indicator.style.display = 'none';
         }
     };
 
-    window.uploadManualCamaraPhoto = function(input) {
+    // Subida de Foto Manual de Patente para Diagnóstico y Prueba
+    window.handleManualPlateImage = async function(input) {
         if (!input || !input.files || !input.files[0]) return;
         const file = input.files[0];
+        const img = new Image();
         const reader = new FileReader();
 
-        reader.onload = async function(e) {
-            const dataUrl = e.target.result;
-            try {
-                const res = await fetch(`${API_URL}camara.php`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: dataUrl })
-                });
-                const data = await res.json();
-                if (data.success && window.showToast) {
-                    window.showToast('📸 Foto subida manualmente a l1deres.site', 'success');
+        reader.onload = function(e) {
+            img.onload = async function() {
+                let canvas = document.getElementById('camera-ocr-canvas');
+                if (!canvas) {
+                    canvas = document.createElement('canvas');
+                    canvas.id = 'camera-ocr-canvas';
+                    canvas.style.display = 'none';
+                    document.body.appendChild(canvas);
                 }
-            } catch (err) {
-                alert('Error al subir la foto.');
-            }
-        };
 
+                preprocessTargetImage(img, canvas, false);
+
+                if (window.showToast) window.showToast('Analizando foto con IA...', 'info');
+                const worker = await getTesseractWorker();
+                if (!worker) {
+                    alert("El motor de IA OCR aún no está listo.");
+                    return;
+                }
+
+                const result = await worker.recognize(canvas);
+                const rawText = result && result.data ? result.data.text : '';
+                const detectedPlate = parseArgentinePlate(rawText);
+
+                if (detectedPlate) {
+                    await processDetectedPlate(detectedPlate, true);
+                } else {
+                    alert(`No se detectó un patrón de patente claro en la foto.\nTexto leído: "${rawText.trim() || 'vacío'}"\nPodés ingresar la patente manualmente.`);
+                    const inputManual = document.getElementById('lpr-scan-input');
+                    if (inputManual) inputManual.focus();
+                }
+            };
+            img.src = e.target.result;
+        };
         reader.readAsDataURL(file);
     };
 
-    let activeCameraStream = null;
+    // Consulta manual desde el input de texto
+    window.triggerLprScanManual = async function() {
+        const input = document.getElementById('lpr-scan-input');
+        if (!input) return;
+        const plate = input.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (!plate || plate.length < 5) {
+            alert("Por favor ingresá una patente válida (mínimo 5 caracteres).");
+            return;
+        }
+        await processDetectedPlate(plate, true);
+    };
 
+    // Test directo simulado (AE123CD, GOLD999, BLACK001)
+    window.simulateLprDetection = async function(plate) {
+        const input = document.getElementById('lpr-scan-input');
+        if (input) input.value = plate;
+        await processDetectedPlate(plate, true);
+    };
+
+    // Procesamiento Central de Patente Detectada: Cruce con Socios y Reservas
+    async function processDetectedPlate(plate, forceBypassCooldown = false) {
+        const now = Date.now();
+        // Cooldown de 15 segundos para la misma patente para evitar spam si el auto sigue frente a la cámara
+        if (!forceBypassCooldown && plate === lastScannedPlate && (now - lastScannedTime) < 15000) {
+            return;
+        }
+
+        lastScannedPlate = plate;
+        lastScannedTime = now;
+
+        const input = document.getElementById('lpr-scan-input');
+        if (input) input.value = plate;
+
+        let socioData = null;
+        let reservaData = null;
+
+        // 1. Consultar Padrón de Socios Fundadores
+        try {
+            const resSocio = await fetch(`${API_URL}socios_fundadores.php?check=${encodeURIComponent(plate)}`);
+            const dataSocio = await resSocio.json();
+            if (dataSocio && dataSocio.success && dataSocio.es_socio && dataSocio.socio) {
+                socioData = dataSocio.socio;
+            }
+        } catch (e) {
+            console.warn("Error consultando padrón de socios:", e);
+        }
+
+        // 2. Consultar Reservas del día
+        try {
+            const resReserva = await fetch(`${API_URL}reservas.php?patente=${encodeURIComponent(plate)}`);
+            const dataReserva = await resReserva.json();
+            if (Array.isArray(dataReserva) && dataReserva.length > 0) {
+                reservaData = dataReserva[0];
+            }
+        } catch (e) {
+            console.warn("Error consultando reservas:", e);
+        }
+
+        // Determinar categoría y servicio recomendado
+        let category = 'GENERAL';
+        let categoryLabel = '🚗 Cliente General / Espontáneo';
+        let categoryBadgeClass = 'badge-general';
+        let titular = 'Cliente Ocasional';
+        let modelo = 'Auto / Camioneta';
+        let service = 'express_auto';
+        let serviceLabel = 'Lavado Express Auto';
+        let isVip = false;
+
+        if (socioData) {
+            const tipo = (socioData.tipo_membresia || socioData.tipo || 'black').toLowerCase();
+            if (tipo.includes('black')) {
+                category = 'BLACK';
+                categoryLabel = `👑 Socio Fundador BLACK ${socioData.numero || ''}`;
+                categoryBadgeClass = 'badge-socio-black';
+            } else {
+                category = 'GOLD';
+                categoryLabel = `🏆 Socio Fundador GOLD ${socioData.numero || ''}`;
+                categoryBadgeClass = 'badge-socio-gold';
+            }
+            titular = socioData.titular || socioData.nombre || 'Socio Club 100';
+            modelo = socioData.modelo_auto || socioData.modelo || 'Vehículo Registrado';
+            service = (modelo.toLowerCase().includes('camioneta') || modelo.toLowerCase().includes('hilux') || modelo.toLowerCase().includes('amarok') || modelo.toLowerCase().includes('ranger')) 
+                ? 'completo_camioneta' 
+                : 'completo_auto';
+            serviceLabel = (service === 'completo_camioneta') ? '⭐ Completo Camioneta (VIP)' : '⭐ Completo Auto (VIP)';
+            isVip = true;
+        } else if (reservaData) {
+            category = 'RESERVA';
+            categoryLabel = `📅 Reserva Web Confirmada`;
+            categoryBadgeClass = 'badge-reserva';
+            titular = reservaData.nombre || 'Reserva Online';
+            modelo = reservaData.modelo || 'Auto / Camioneta';
+            service = reservaData.tipo_lavado || 'express_auto';
+            serviceLabel = reservaData.tipo_lavado ? reservaData.tipo_lavado.replace(/_/g, ' ').toUpperCase() : 'Lavado Reservado';
+        }
+
+        const lprPayload = {
+            plate,
+            category,
+            categoryLabel,
+            titular,
+            modelo,
+            service,
+            serviceLabel,
+            isVip,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        };
+
+        pendingAlertCar = lprPayload;
+
+        // Renderizar Tarjeta de Diagnóstico
+        renderLprDiagnosisCard(lprPayload);
+
+        // Sonido de alerta
+        playLprChime(isVip ? 'vip' : 'success');
+
+        // Mostrar Banner Flotante en el Dashboard Principal
+        showDashboardLprAlert(lprPayload);
+
+        // Auto-creación en pista si está habilitado el toggle
+        const autoAssignToggle = document.getElementById('lpr-auto-assign-toggle');
+        const shouldAutoAssign = autoAssignToggle ? autoAssignToggle.checked : true;
+
+        if (shouldAutoAssign && (category === 'BLACK' || category === 'GOLD' || category === 'RESERVA')) {
+            assignLprCarToTrack(lprPayload, true);
+        } else if (forceBypassCooldown && !shouldAutoAssign) {
+            if (window.showToast) window.showToast(`Patente ${plate} diagnosticada. Hacé clic en "Asignar a Pista"`, 'info');
+        }
+    }
+
+    // Renderizar Tarjeta de Diagnóstico LPR
+    function renderLprDiagnosisCard(lpr) {
+        const container = document.getElementById('lpr-detection-result');
+        if (!container) return;
+
+        let badgeBg = 'rgba(56, 189, 248, 0.15)';
+        let badgeColor = '#38bdf8';
+        let badgeBorder = 'rgba(56, 189, 248, 0.4)';
+
+        if (lpr.category === 'BLACK') {
+            badgeBg = 'linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(0,0,0,0.8))';
+            badgeColor = '#fbbf24';
+            badgeBorder = 'rgba(251, 191, 36, 0.6)';
+        } else if (lpr.category === 'GOLD') {
+            badgeBg = 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(0,0,0,0.8))';
+            badgeColor = '#f59e0b';
+            badgeBorder = 'rgba(245, 158, 11, 0.6)';
+        } else if (lpr.category === 'RESERVA') {
+            badgeBg = 'rgba(16, 185, 129, 0.2)';
+            badgeColor = '#34d399';
+            badgeBorder = 'rgba(16, 185, 129, 0.5)';
+        }
+
+        container.style.display = 'block';
+        container.innerHTML = `
+            <div class="lpr-result-grid">
+                <!-- Placa Patente Estilo Argentino/Mercosur -->
+                <div style="background: #ffffff; border-radius: 8px; border: 2px solid #1e293b; width: 170px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); overflow: hidden; text-align: center;">
+                    <div style="background: #0284c7; color: #fff; font-size: 0.65rem; font-weight: 800; letter-spacing: 2px; padding: 2px 4px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>ARGENTINA</span>
+                        <span>🇦🇷</span>
+                    </div>
+                    <div style="font-family: 'Racing Sans One', sans-serif; font-size: 1.6rem; color: #0f172a; padding: 4px 6px; letter-spacing: 2px; font-weight: 800;">
+                        ${lpr.plate}
+                    </div>
+                </div>
+
+                <!-- Datos del Cliente y Servicio -->
+                <div>
+                    <div style="margin-bottom: 6px;">
+                        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder};">
+                            ${lpr.categoryLabel}
+                        </span>
+                    </div>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: #f8fafc; margin-bottom: 2px;">
+                        ${lpr.titular} <span style="font-weight: 400; color: #94a3b8; font-size: 0.88rem;">— ${lpr.modelo}</span>
+                    </div>
+                    <div style="color: #38bdf8; font-size: 0.84rem; font-weight: 600;">
+                        <i class='bx bx-check-double'></i> Servicio Sugerido: <strong>${lpr.serviceLabel}</strong>
+                    </div>
+                </div>
+
+                <!-- Botón de Ingreso Directo a Pista -->
+                <div>
+                    <button class="btn btn-primary" onclick="assignLprCarToTrack(pendingAlertCar, false)" style="padding: 12px 20px; font-weight: 800; font-size: 0.95rem; background: linear-gradient(135deg, #0ea5e9, #10b981); border: none; border-radius: 10px; box-shadow: 0 4px 15px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-play-circle' style="font-size: 1.2rem;"></i> Dar Ingreso a Pista
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Asignar Auto Detectado a la Pista de Boxes
+    window.assignLprCarToTrack = function(lpr, wasAuto = false) {
+        if (!lpr) return;
+        
+        // Llamar a ingresarAuto con el servicio y la patente
+        if (typeof window.ingresarAuto === 'function') {
+            window.ingresarAuto(lpr.service, lpr.plate);
+        }
+
+        // Agregar al historial visual de hoy
+        addLprHistoryEntry(lpr);
+
+        if (window.showToast) {
+            window.showToast(`🚗 Ingreso registrado: ${lpr.plate} (${lpr.category}) en Pista`, 'success');
+        }
+
+        // Ocultar banner flotante del dashboard si estaba abierto
+        const alertBanner = document.getElementById('dashboard-lpr-alert');
+        if (alertBanner) alertBanner.style.display = 'none';
+
+        // Actualizar tarjeta de resultado para mostrar estado ingresado
+        const resContainer = document.getElementById('lpr-detection-result');
+        if (resContainer) {
+            const btn = resContainer.querySelector('button');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-check'></i> Asignado a Pista";
+                btn.style.background = '#059669';
+                btn.style.boxShadow = 'none';
+            }
+        }
+    };
+
+    // Agregar entrada a la tabla de historial LPR de hoy
+    function addLprHistoryEntry(lpr) {
+        const tbody = document.getElementById('lpr-history-tbody');
+        const countSpan = document.getElementById('lpr-history-count');
+        if (!tbody) return;
+
+        // Quitar fila vacía si existe
+        if (tbody.querySelector('td[colspan]')) {
+            tbody.innerHTML = '';
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-weight: 700; color: #94a3b8;">${lpr.time}</td>
+            <td>
+                <span style="font-family: 'Racing Sans One', sans-serif; font-size: 1rem; color: #38bdf8; letter-spacing: 1px; background: rgba(56,189,248,0.1); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(56,189,248,0.3);">
+                    ${lpr.plate}
+                </span>
+            </td>
+            <td>
+                <span style="font-size: 0.78rem; font-weight: 700; color: ${lpr.isVip ? '#fbbf24' : '#e2e8f0'};">
+                    ${lpr.categoryLabel}
+                </span>
+            </td>
+            <td style="color: #cbd5e1; font-size: 0.85rem;">
+                ${lpr.titular} <span style="color: #64748b;">(${lpr.modelo})</span>
+            </td>
+            <td>
+                <span style="background: rgba(16,185,129,0.15); color: #34d399; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">
+                    ${lpr.serviceLabel}
+                </span>
+            </td>
+        `;
+
+        tbody.insertBefore(tr, tbody.firstChild);
+
+        if (countSpan) {
+            const rows = tbody.querySelectorAll('tr').length;
+            countSpan.textContent = `${rows} ingreso${rows > 1 ? 's' : ''}`;
+        }
+    }
+
+    // Mostrar Banner Flotante en el Dashboard Principal
+    function showDashboardLprAlert(lpr) {
+        const banner = document.getElementById('dashboard-lpr-alert');
+        const plateEl = document.getElementById('alert-plate-text');
+        const infoEl = document.getElementById('alert-plate-info');
+        if (!banner || !plateEl || !infoEl) return;
+
+        plateEl.textContent = lpr.plate;
+        infoEl.textContent = `${lpr.categoryLabel} — ${lpr.titular} (${lpr.serviceLabel})`;
+        banner.style.display = 'flex';
+    }
+
+    // Acción del botón en el banner flotante del Dashboard
+    window.handleQuickAlertAssign = function() {
+        if (pendingAlertCar) {
+            assignLprCarToTrack(pendingAlertCar, false);
+        }
+    };
+
+    // Listar Dispositivos de Cámara Web en PC
     async function populateCameraDevices() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
         try {
@@ -2560,7 +3056,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (select && videoDevices.length > 0) {
                 select.style.display = 'inline-block';
                 select.innerHTML = videoDevices.map((d, i) => `
-                    <option value="${d.deviceId}">📷 ${d.label || `Cámara de PC #${i + 1}`}</option>
+                    <option value="${d.deviceId}">📷 ${d.label || `Cámara de Entrada #${i + 1}`}</option>
                 `).join('');
                 
                 const savedId = localStorage.getItem('aura_selected_camera_id');
@@ -2580,22 +3076,31 @@ document.addEventListener('DOMContentLoaded', () => {
             activeCameraStream.getTracks().forEach(track => track.stop());
             activeCameraStream = null;
         }
+        if (lprAutoScanInterval) {
+            clearInterval(lprAutoScanInterval);
+            lprAutoScanInterval = null;
+        }
         const btn = document.getElementById('btn-start-camera');
         if (btn) btn.click();
     };
 
+    // Encendido de la Cámara de Entrada y Activación del Bucle de Escaneo
     if (btnStartCamera) {
         btnStartCamera.addEventListener('click', async () => {
             try {
-                btnStartCamera.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Conectando...";
+                btnStartCamera.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Conectando Cámara...";
                 
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error("El navegador no soporta el acceso a la cámara. Asegúrate de usar HTTPS o acceder vía localhost.");
+                    throw new Error("El navegador no soporta acceso a la cámara. Asegúrate de usar HTTPS o acceder vía localhost.");
                 }
 
                 if (activeCameraStream) {
                     activeCameraStream.getTracks().forEach(track => track.stop());
                     activeCameraStream = null;
+                }
+                if (lprAutoScanInterval) {
+                    clearInterval(lprAutoScanInterval);
+                    lprAutoScanInterval = null;
                 }
 
                 const savedDeviceId = localStorage.getItem('aura_selected_camera_id');
@@ -2608,12 +3113,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
                 } catch (e1) {
-                    console.warn("Fallo con restricción guardada, probando video: true...", e1);
-                    try {
-                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    } catch (e2) {
-                        throw e1;
-                    }
+                    console.warn("Fallo con dispositivo específico, reintentando modo genérico video: true...", e1);
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 }
                 
                 activeCameraStream = stream;
@@ -2621,30 +3122,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 videoElement.onloadedmetadata = () => {
                     videoElement.style.display = 'block';
-                    if (cameraOverlay) cameraOverlay.style.display = 'block';
+                    if (cameraOverlay) cameraOverlay.style.display = 'flex';
                     if (cameraLoading) cameraLoading.style.display = 'none';
                     btnStartCamera.style.display = 'none';
 
-                    const snapBtn = document.getElementById('btn-snap-now');
+                    const snapBtn = document.getElementById('btn-snap-plate-now');
                     if (snapBtn) snapBtn.style.display = 'inline-flex';
 
                     populateCameraDevices();
 
-                    // Primera captura inmediata y programar cada 3 minutos (180.000 ms)
-                    setTimeout(window.captureAndSendCamaraFrame, 1500);
-                    if (camaraTransmitTimer) clearInterval(camaraTransmitTimer);
-                    camaraTransmitTimer = setInterval(window.captureAndSendCamaraFrame, 180000);
+                    // Precalentar motor Tesseract
+                    getTesseractWorker();
+
+                    // Iniciar bucle de auto-escaneo cada 2.5 segundos (2500ms)
+                    if (lprAutoScanInterval) clearInterval(lprAutoScanInterval);
+                    lprAutoScanInterval = setInterval(() => {
+                        const toggle = document.getElementById('lpr-auto-scan-toggle');
+                        if (toggle && toggle.checked) {
+                            window.captureAndOcrPlateNow();
+                        }
+                    }, 2500);
+
+                    if (window.showToast) {
+                        window.showToast('📷 Cámara de Entrada activa con Lector LPR Inteligente', 'success');
+                    }
                 };
 
             } catch (err) {
                 console.error("Error al acceder a la cámara:", err);
                 let msg = "No se pudo acceder a la cámara.";
                 if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-                    msg = "🔒 Permiso denegado. Haz clic en el ícono del candado en la barra de direcciones del navegador y autoriza el uso de la cámara.";
+                    msg = "🔒 Permiso denegado. Hacé clic en el ícono del candado en la barra de direcciones del navegador y autorizá el uso de la cámara.";
                 } else if (err.name === "NotReadableError" || err.name === "TrackStartError" || (err.message && err.message.includes("Could not start video source"))) {
-                    msg = "📷 La cámara de la PC está ocupada por otro programa (como Zoom, Teams, WhatsApp Web o la App de Cámara de Windows).\n\nPor favor, cerrá esos programas e intentá presionar 'Encender Cámara PC' nuevamente.";
+                    msg = "📷 La cámara de la PC está ocupada por otro programa (como Zoom, Teams o la App de Cámara).\n\nPor favor, cerrá esos programas y volvé a presionar 'Encender Cámara Entrada'.";
                 } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-                    msg = "🔌 No se detectó ninguna cámara web conectada a la computadora.";
+                    msg = "🔌 No se detectó ninguna cámara conectada a la PC.";
                 } else if (err.message) {
                     msg = err.message;
                 }
