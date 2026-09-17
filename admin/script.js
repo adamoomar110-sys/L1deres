@@ -2584,44 +2584,199 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
     }
 
-    // Extracción y Normalización de Patentes Argentinas
-    function parseArgentinePlate(rawText) {
+    // ============================================================
+    // MOTOR DE ALTA PRECISIÓN LPR: GRAMÁTICA SINTÁCTICA & OTSU
+    // ============================================================
+
+    // Diccionarios de desambiguación de caracteres típicos de OCR en patentes
+    const OCR_TO_DIGIT = {
+        'O': '0', 'D': '0', 'Q': '0', 'U': '0',
+        'I': '1', 'L': '1', 'J': '1',
+        'Z': '2',
+        'E': '3',
+        'A': '4',
+        'S': '5',
+        'G': '6', 'B': '8',
+        'T': '7',
+        'P': '9'
+    };
+
+    const OCR_TO_LETTER = {
+        '0': 'O',
+        '1': 'I',
+        '2': 'Z',
+        '3': 'E',
+        '4': 'A',
+        '5': 'S',
+        '6': 'G',
+        '7': 'T',
+        '8': 'B',
+        '9': 'P'
+    };
+
+    function forceLetter(ch) {
+        if (!ch) return '';
+        const c = ch.toUpperCase();
+        if (c >= 'A' && c <= 'Z') return c;
+        return OCR_TO_LETTER[c] || c;
+    }
+
+    function forceDigit(ch) {
+        if (!ch) return '';
+        const c = ch.toUpperCase();
+        if (c >= '0' && c <= '9') return c;
+        return OCR_TO_DIGIT[c] || c;
+    }
+
+    // Analizador y Corrector Sintáctico Gramatical de Patentes Argentinas
+    function analyzeAndCorrectPlate(rawText) {
         if (!rawText) return null;
         const clean = rawText.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        
-        // 1. Mercosur Autos: 2 Letras + 3 Números + 2 Letras (Ej: AB123CD, AE456GH)
-        const mercosurMatch = clean.match(/[A-Z]{2}[0-9]{3}[A-Z]{2}/);
-        if (mercosurMatch) return mercosurMatch[0];
+        if (clean.length < 5) return null;
 
-        // 2. Tradicional Autos: 3 Letras + 3 Números (Ej: ABC123, PQR789)
-        const tradMatch = clean.match(/[A-Z]{3}[0-9]{3}/);
-        if (tradMatch) return tradMatch[0];
+        let bestCandidate = null;
+        let bestScore = -999;
+        let rawFound = '';
+        let patternName = '';
+        let wasCorrected = false;
 
-        // 3. Mercosur Motos: 1 Letra + 3 Números + 3 Letras (Ej: A123BCD)
-        const motoMatch = clean.match(/[A-Z]{1}[0-9]{3}[A-Z]{3}/);
-        if (motoMatch) return motoMatch[0];
+        function testCandidate(chunk) {
+            // Caso 1: Mercosur Automotores (7 caracteres: LL NNN LL) Ej: AB123CD, AE456GH
+            if (chunk.length === 7) {
+                const mercAuto = (
+                    forceLetter(chunk[0]) +
+                    forceLetter(chunk[1]) +
+                    forceDigit(chunk[2]) +
+                    forceDigit(chunk[3]) +
+                    forceDigit(chunk[4]) +
+                    forceLetter(chunk[5]) +
+                    forceLetter(chunk[6])
+                );
 
-        // 4. Si tiene 6 o 7 caracteres alfanuméricos directos
+                if (/^[A-Z]{2}[0-9]{3}[A-Z]{2}$/.test(mercAuto)) {
+                    let score = 100;
+                    let diffs = 0;
+                    for (let i = 0; i < 7; i++) {
+                        if (chunk[i] !== mercAuto[i]) {
+                            score -= 12;
+                            diffs++;
+                        }
+                    }
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestCandidate = mercAuto;
+                        rawFound = chunk;
+                        patternName = 'Mercosur Auto (AA 123 AA)';
+                        wasCorrected = diffs > 0;
+                    }
+                }
+
+                // Caso 2: Mercosur Motos (7 caracteres: L NNN LLL) Ej: A123BCD
+                const mercMoto = (
+                    forceLetter(chunk[0]) +
+                    forceDigit(chunk[1]) +
+                    forceDigit(chunk[2]) +
+                    forceDigit(chunk[3]) +
+                    forceLetter(chunk[4]) +
+                    forceLetter(chunk[5]) +
+                    forceLetter(chunk[6])
+                );
+
+                if (/^[A-Z]{1}[0-9]{3}[A-Z]{3}$/.test(mercMoto)) {
+                    let score = 92;
+                    let diffs = 0;
+                    for (let i = 0; i < 7; i++) {
+                        if (chunk[i] !== mercMoto[i]) {
+                            score -= 12;
+                            diffs++;
+                        }
+                    }
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestCandidate = mercMoto;
+                        rawFound = chunk;
+                        patternName = 'Mercosur Moto (A 123 BCD)';
+                        wasCorrected = diffs > 0;
+                    }
+                }
+            }
+
+            // Caso 3: Tradicional Automotores (6 caracteres: LLL NNN) Ej: ABC123, PQR789
+            if (chunk.length === 6) {
+                const tradAuto = (
+                    forceLetter(chunk[0]) +
+                    forceLetter(chunk[1]) +
+                    forceLetter(chunk[2]) +
+                    forceDigit(chunk[3]) +
+                    forceDigit(chunk[4]) +
+                    forceDigit(chunk[5])
+                );
+
+                if (/^[A-Z]{3}[0-9]{3}$/.test(tradAuto)) {
+                    let score = 95;
+                    let diffs = 0;
+                    for (let i = 0; i < 6; i++) {
+                        if (chunk[i] !== tradAuto[i]) {
+                            score -= 12;
+                            diffs++;
+                        }
+                    }
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestCandidate = tradAuto;
+                        rawFound = chunk;
+                        patternName = 'Tradicional (AAA 123)';
+                        wasCorrected = diffs > 0;
+                    }
+                }
+            }
+        }
+
+        // Probar ventanas deslizantes de longitud 7 (Mercosur)
+        for (let i = 0; i <= clean.length - 7; i++) {
+            testCandidate(clean.substring(i, i + 7));
+        }
+
+        // Probar ventanas deslizantes de longitud 6 (Tradicional)
+        for (let i = 0; i <= clean.length - 6; i++) {
+            testCandidate(clean.substring(i, i + 6));
+        }
+
+        if (bestCandidate) {
+            return {
+                plate: bestCandidate,
+                raw: rawFound || clean,
+                score: Math.max(bestScore, 50),
+                pattern: patternName,
+                wasCorrected: wasCorrected
+            };
+        }
+
+        // Respaldo para cadenas de 6 o 7 alfanuméricos limpios sin encaje exacto
         if (clean.length === 6 || clean.length === 7) {
-            return clean;
+            return {
+                plate: clean,
+                raw: clean,
+                score: 40,
+                pattern: 'Alfanumérico Genérico',
+                wasCorrected: false
+            };
         }
 
         return null;
     }
 
-    // Preprocesamiento de Imagen en Canvas: Recorte focal y Binarización de alto contraste
+    // Preprocesamiento de Imagen en Canvas: Recorte exacto object-fit y Binarización Otsu
     function preprocessTargetImage(source, targetCanvas, isVideo = true) {
         if (!targetCanvas) return false;
-        const ctx = targetCanvas.getContext('2d');
+        const ctx = targetCanvas.getContext('2d', { willReadFrequently: true });
 
         let srcW = isVideo ? (source.videoWidth || 640) : (source.naturalWidth || source.width || 640);
         let srcH = isVideo ? (source.videoHeight || 480) : (source.naturalHeight || source.height || 480);
-
         if (srcW === 0 || srcH === 0) return false;
 
         let cropX = 0, cropY = 0, cropW = srcW, cropH = srcH;
 
-        // Si es video y está el cuadro de mira enfocado
         if (isVideo) {
             const wrapper = document.getElementById('lpr-video-wrapper');
             const targetBox = document.getElementById('plate-target-box');
@@ -2629,52 +2784,138 @@ document.addEventListener('DOMContentLoaded', () => {
                 const wRect = wrapper.getBoundingClientRect();
                 const tRect = targetBox.getBoundingClientRect();
                 if (wRect.width > 0 && wRect.height > 0) {
-                    const scaleX = srcW / wRect.width;
-                    const scaleY = srcH / wRect.height;
-                    cropX = Math.max(0, (tRect.left - wRect.left) * scaleX);
-                    cropY = Math.max(0, (tRect.top - wRect.top) * scaleY);
-                    cropW = Math.min(srcW - cropX, tRect.width * scaleX);
-                    cropH = Math.min(srcH - cropY, tRect.height * scaleY);
+                    // Compensación exacta de escala y recorte según object-fit: cover
+                    const videoRatio = srcW / srcH;
+                    const containerRatio = wRect.width / wRect.height;
+                    let renderW, renderH, offsetX, offsetY;
+
+                    if (containerRatio > videoRatio) {
+                        renderW = wRect.width;
+                        renderH = wRect.width / videoRatio;
+                        offsetX = 0;
+                        offsetY = (wRect.height - renderH) / 2;
+                    } else {
+                        renderH = wRect.height;
+                        renderW = wRect.height * videoRatio;
+                        offsetX = (wRect.width - renderW) / 2;
+                        offsetY = 0;
+                    }
+
+                    const scale = srcW / renderW;
+                    cropX = Math.max(0, Math.round((tRect.left - (wRect.left + offsetX)) * scale));
+                    cropY = Math.max(0, Math.round((tRect.top - (wRect.top + offsetY)) * scale));
+                    cropW = Math.min(srcW - cropX, Math.round(tRect.width * scale));
+                    cropH = Math.min(srcH - cropY, Math.round(tRect.height * scale));
                 }
             }
+        } else {
+            // Para fotos cargadas manualmente (centro del encuadre vehicular)
+            cropX = Math.round(srcW * 0.10);
+            cropY = Math.round(srcH * 0.30);
+            cropW = Math.round(srcW * 0.80);
+            cropH = Math.round(srcH * 0.45);
         }
 
-        // Resolución óptima para OCR de patentes: ancho 480px proporcional
-        const finalW = 480;
+        if (cropW <= 20 || cropH <= 10) return false;
+
+        // Ancho óptimo de 520px para el modelo neuronal Tesseract
+        const finalW = 520;
         const finalH = Math.round((cropH / cropW) * finalW) || 160;
         targetCanvas.width = finalW;
         targetCanvas.height = finalH;
 
-        // Dibujar recorte en canvas
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(source, cropX, cropY, cropW, cropH, 0, 0, finalW, finalH);
 
-        // Binarización y aumento de contraste para lectura nítida de patentes
+        // Algoritmo de Umbralización Global Óptima de Otsu
         try {
             const imgData = ctx.getImageData(0, 0, finalW, finalH);
             const d = imgData.data;
-            
-            // Paso 1: cálculo de luminancia media
-            let totalLum = 0;
-            for (let i = 0; i < d.length; i += 4) {
-                totalLum += (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
-            }
-            const avgLum = totalLum / (d.length / 4);
-            const threshold = Math.min(Math.max(avgLum, 90), 160);
+            const totalPixels = finalW * finalH;
 
-            // Paso 2: binarización nítida blanco/negro
-            for (let i = 0; i < d.length; i += 4) {
-                const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-                const val = lum > threshold ? 255 : 0;
+            const histogram = new Array(256).fill(0);
+            const grays = new Uint8Array(totalPixels);
+
+            for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+                const gray = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
+                grays[p] = gray;
+                histogram[gray]++;
+            }
+
+            let sum = 0;
+            for (let t = 0; t < 256; t++) sum += t * histogram[t];
+
+            let sumB = 0;
+            let wB = 0;
+            let wF = 0;
+            let varMax = 0;
+            let optimalThreshold = 128;
+
+            for (let t = 0; t < 256; t++) {
+                wB += histogram[t];
+                if (wB === 0) continue;
+                wF = totalPixels - wB;
+                if (wF === 0) break;
+
+                sumB += t * histogram[t];
+                const mB = sumB / wB;
+                const mF = (sum - sumB) / wF;
+
+                const varBetween = wB * wF * (mB - mF) * (mB - mF);
+                if (varBetween > varMax) {
+                    varMax = varBetween;
+                    optimalThreshold = t;
+                }
+            }
+
+            // Evitar extremos oscuros o claros por reflejos de chapa
+            optimalThreshold = Math.min(Math.max(optimalThreshold, 75), 185);
+
+            for (let i = 0, p = 0; i < d.length; i += 4, p++) {
+                const val = grays[p] > optimalThreshold ? 255 : 0;
                 d[i] = val;
                 d[i + 1] = val;
                 d[i + 2] = val;
             }
+
             ctx.putImageData(imgData, 0, 0);
+
+            // Sincronizar con el canvas de depuración visual si existe
+            const debugCanvas = document.getElementById('lpr-debug-canvas');
+            if (debugCanvas) {
+                debugCanvas.width = finalW;
+                debugCanvas.height = finalH;
+                const dCtx = debugCanvas.getContext('2d');
+                dCtx.drawImage(targetCanvas, 0, 0);
+            }
         } catch (e) {
-            console.warn("No se pudo aplicar binarización (posible CORS en imagen externa):", e);
+            console.warn("Fallo al aplicar algoritmo Otsu:", e);
         }
 
         return true;
+    }
+
+    // Búfer de votación temporal (Consenso de 3 cuadros para evitar lecturas fugaces)
+    let plateVotingBuffer = [];
+
+    function registerPlateVote(plateData) {
+        const now = Date.now();
+        plateVotingBuffer = plateVotingBuffer.filter(v => (now - v.timestamp) < 4500);
+        plateVotingBuffer.push({ ...plateData, timestamp: now });
+
+        const counts = {};
+        for (const v of plateVotingBuffer) {
+            counts[v.plate] = (counts[v.plate] || 0) + 1;
+        }
+
+        for (const [p, count] of Object.entries(counts)) {
+            // Confirmar si se repite en 2 cuadros o si la confianza del primer cuadro fue altísima
+            if (count >= 2 || plateData.score >= 88) {
+                return plateVotingBuffer.find(v => v.plate === p);
+            }
+        }
+        return null;
     }
 
     // Escanear ahora desde la cámara en vivo
@@ -2704,10 +2945,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const result = await worker.recognize(canvas);
             const rawText = result && result.data ? result.data.text : '';
-            const detectedPlate = parseArgentinePlate(rawText);
+            const analyzed = analyzeAndCorrectPlate(rawText);
 
-            if (detectedPlate) {
-                await processDetectedPlate(detectedPlate);
+            if (analyzed) {
+                const confirmed = registerPlateVote(analyzed);
+                if (confirmed) {
+                    await processDetectedPlate(confirmed);
+                }
             }
         } catch (err) {
             console.warn("Error en escaneo OCR LPR:", err);
@@ -2745,12 +2989,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const result = await worker.recognize(canvas);
                 const rawText = result && result.data ? result.data.text : '';
-                const detectedPlate = parseArgentinePlate(rawText);
+                const analyzed = analyzeAndCorrectPlate(rawText);
 
-                if (detectedPlate) {
-                    await processDetectedPlate(detectedPlate, true);
+                if (analyzed) {
+                    await processDetectedPlate(analyzed, true);
                 } else {
-                    alert(`No se detectó un patrón de patente claro en la foto.\nTexto leído: "${rawText.trim() || 'vacío'}"\nPodés ingresar la patente manualmente.`);
+                    alert(`No se detectó un patrón de patente claro en la foto.\nTexto crudo leído: "${rawText.trim() || 'vacío'}"\nPodés ingresar la patente manualmente.`);
                     const inputManual = document.getElementById('lpr-scan-input');
                     if (inputManual) inputManual.focus();
                 }
@@ -2769,18 +3013,34 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Por favor ingresá una patente válida (mínimo 5 caracteres).");
             return;
         }
-        await processDetectedPlate(plate, true);
+        await processDetectedPlate({ plate: plate, raw: plate, score: 100, wasCorrected: false, pattern: 'Ingreso Manual' }, true);
     };
 
     // Test directo simulado (AE123CD, GOLD999, BLACK001)
     window.simulateLprDetection = async function(plate) {
         const input = document.getElementById('lpr-scan-input');
         if (input) input.value = plate;
-        await processDetectedPlate(plate, true);
+        await processDetectedPlate({ plate: plate, raw: plate, score: 100, wasCorrected: false, pattern: 'Simulación' }, true);
+    };
+
+    // Modificar rápidamente una patente detectada si hubo error
+    window.editLprPlatePrompt = function() {
+        if (!pendingAlertCar) return;
+        const newPlate = prompt("Modificar patente detectada:", pendingAlertCar.plate);
+        if (newPlate && newPlate.trim().length >= 5) {
+            const clean = newPlate.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+            processDetectedPlate({ plate: clean, raw: clean, score: 100, wasCorrected: false, pattern: 'Edición Manual' }, true);
+        }
     };
 
     // Procesamiento Central de Patente Detectada: Cruce con Socios y Reservas
-    async function processDetectedPlate(plate, forceBypassCooldown = false) {
+    async function processDetectedPlate(plateInput, forceBypassCooldown = false) {
+        let plate = typeof plateInput === 'object' ? plateInput.plate : plateInput;
+        const rawText = typeof plateInput === 'object' ? plateInput.raw : plate;
+        const score = typeof plateInput === 'object' ? plateInput.score : 90;
+        const wasCorrected = typeof plateInput === 'object' ? plateInput.wasCorrected : false;
+        const patternName = typeof plateInput === 'object' ? (plateInput.pattern || 'Mercosur') : 'Mercosur';
+
         const now = Date.now();
         // Cooldown de 15 segundos para la misma patente para evitar spam si el auto sigue frente a la cámara
         if (!forceBypassCooldown && plate === lastScannedPlate && (now - lastScannedTime) < 15000) {
@@ -2802,6 +3062,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const dataSocio = await resSocio.json();
             if (dataSocio && dataSocio.success && dataSocio.es_socio && dataSocio.socio) {
                 socioData = dataSocio.socio;
+            } else if (plate.includes('O')) {
+                // Fallback inteligente: si contiene 'O', probar con 'D' (confusión común de OCR)
+                const altPlate = plate.replace(/O/g, 'D');
+                const resAlt = await fetch(`${API_URL}socios_fundadores.php?check=${encodeURIComponent(altPlate)}`);
+                const dataAlt = await resAlt.json();
+                if (dataAlt && dataAlt.success && dataAlt.es_socio && dataAlt.socio) {
+                    socioData = dataAlt.socio;
+                    plate = altPlate;
+                }
             }
         } catch (e) {
             console.warn("Error consultando padrón de socios:", e);
@@ -2858,6 +3127,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const lprPayload = {
             plate,
+            rawText,
+            score,
+            wasCorrected,
+            patternName,
             category,
             categoryLabel,
             titular,
@@ -2890,7 +3163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Renderizar Tarjeta de Diagnóstico LPR
+    // Renderizar Tarjeta de Diagnóstico LPR con Miniatura IA
     function renderLprDiagnosisCard(lpr) {
         const container = document.getElementById('lpr-detection-result');
         if (!container) return;
@@ -2916,29 +3189,50 @@ document.addEventListener('DOMContentLoaded', () => {
         container.style.display = 'block';
         container.innerHTML = `
             <div class="lpr-result-grid">
-                <!-- Placa Patente Estilo Argentino/Mercosur -->
-                <div style="background: #ffffff; border-radius: 8px; border: 2px solid #1e293b; width: 170px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); overflow: hidden; text-align: center;">
-                    <div style="background: #0284c7; color: #fff; font-size: 0.65rem; font-weight: 800; letter-spacing: 2px; padding: 2px 4px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>ARGENTINA</span>
-                        <span>🇦🇷</span>
+                <!-- Placa Patente Estilo Argentino/Mercosur con opción de editar -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                    <div style="background: #ffffff; border-radius: 8px; border: 2px solid #1e293b; width: 175px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); overflow: hidden; text-align: center;">
+                        <div style="background: #0284c7; color: #fff; font-size: 0.65rem; font-weight: 800; letter-spacing: 2px; padding: 2px 4px; display: flex; justify-content: space-between; align-items: center;">
+                            <span>ARGENTINA</span>
+                            <span>🇦🇷</span>
+                        </div>
+                        <div style="font-family: 'Racing Sans One', sans-serif; font-size: 1.6rem; color: #0f172a; padding: 4px 6px; letter-spacing: 2px; font-weight: 800;">
+                            ${lpr.plate}
+                        </div>
                     </div>
-                    <div style="font-family: 'Racing Sans One', sans-serif; font-size: 1.6rem; color: #0f172a; padding: 4px 6px; letter-spacing: 2px; font-weight: 800;">
-                        ${lpr.plate}
-                    </div>
+                    <button onclick="editLprPlatePrompt()" style="background: none; border: none; color: #94a3b8; font-size: 0.72rem; cursor: pointer; text-decoration: underline;">
+                        <i class='bx bx-edit'></i> Corregir si difiere
+                    </button>
                 </div>
 
-                <!-- Datos del Cliente y Servicio -->
+                <!-- Datos del Cliente, Servicio y Diagnóstico de IA -->
                 <div>
-                    <div style="margin-bottom: 6px;">
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px; flex-wrap: wrap;">
                         <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; background: ${badgeBg}; color: ${badgeColor}; border: 1px solid ${badgeBorder};">
                             ${lpr.categoryLabel}
                         </span>
+                        ${lpr.wasCorrected ? `
+                            <span style="background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;" title="Texto crudo leído: ${lpr.rawText}">
+                                <i class='bx bx-check-shield'></i> Auto-corregido por sintaxis (${lpr.patternName || 'Mercosur'})
+                            </span>
+                        ` : `
+                            <span style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;">
+                                <i class='bx bx-check'></i> Lectura Directa (${lpr.score || 95}%)
+                            </span>
+                        `}
                     </div>
                     <div style="font-size: 1.05rem; font-weight: 700; color: #f8fafc; margin-bottom: 2px;">
                         ${lpr.titular} <span style="font-weight: 400; color: #94a3b8; font-size: 0.88rem;">— ${lpr.modelo}</span>
                     </div>
-                    <div style="color: #38bdf8; font-size: 0.84rem; font-weight: 600;">
-                        <i class='bx bx-check-double'></i> Servicio Sugerido: <strong>${lpr.serviceLabel}</strong>
+                    <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 4px;">
+                        <div style="color: #38bdf8; font-size: 0.84rem; font-weight: 600;">
+                            <i class='bx bx-check-double'></i> Servicio Sugerido: <strong>${lpr.serviceLabel}</strong>
+                        </div>
+                        <!-- Miniatura procesada por la IA -->
+                        <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                            <span style="font-size: 0.7rem; color: #94a3b8;"><i class='bx bx-image-alt'></i> Recorte IA:</span>
+                            <canvas id="lpr-debug-canvas" style="height: 24px; max-width: 110px; border-radius: 3px; border: 1px solid #0284c7; background: #000; vertical-align: middle;"></canvas>
+                        </div>
                     </div>
                 </div>
 
@@ -2950,6 +3244,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
+
+        // Renderizar el frame recortado en la miniatura de depuración
+        setTimeout(() => {
+            const debugCanvas = document.getElementById('lpr-debug-canvas');
+            const ocrCanvas = document.getElementById('camera-ocr-canvas');
+            if (debugCanvas && ocrCanvas && ocrCanvas.width > 0) {
+                debugCanvas.width = ocrCanvas.width;
+                debugCanvas.height = ocrCanvas.height;
+                const dCtx = debugCanvas.getContext('2d');
+                dCtx.drawImage(ocrCanvas, 0, 0);
+            }
+        }, 30);
     }
 
     // Asignar Auto Detectado a la Pista de Boxes
