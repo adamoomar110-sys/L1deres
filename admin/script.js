@@ -3751,6 +3751,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }).catch(e => console.warn('Error en persistencia de cobro:', e));
         } catch(e) {}
 
+        // Resguardo Físico en Archivo Local de esta PC (.csv y .jsonl)
+        try {
+            if (typeof window.guardarClienteEnArchivoLocalPC === 'function') {
+                window.guardarClienteEnArchivoLocalPC({
+                    tipo_registro: 'COBRO_PISTA_SUPERVISOR',
+                    numero_socio: (currentCheckoutContext.category === 'BLACK' || currentCheckoutContext.category === 'GOLD') ? (currentCheckoutContext.car?.numero || currentCheckoutContext.lpr?.numero || 'SOCIO') : '',
+                    patente: finalPlate,
+                    titular: currentCheckoutContext.titular || 'Cliente en Pista',
+                    telefono: 'S/D',
+                    email: '',
+                    modelo: currentCheckoutContext.modelo || (finalService.includes('camioneta') ? 'Camioneta' : 'Auto'),
+                    servicio: finalService,
+                    precio: finalAmount,
+                    metodo_pago: method,
+                    estado: (method === 'socio') ? 'socio_bonificado' : (method === 'reserva_online' ? 'reserva_online' : 'pagado'),
+                    notas: `Cobrado por Supervisor (${method.toUpperCase()})`
+                });
+            }
+        } catch (e) {
+            console.warn('Error al resguardar localmente en PC:', e);
+        }
+
         // Sincronizar estado en vivo
         if (typeof syncLiveState === 'function') syncLiveState();
         if (typeof updateVisuals === 'function') updateVisuals();
@@ -4574,6 +4596,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.closeSocioModal();
                 await loadSociosFundadoresData(true);
                 if (window.showToast) window.showToast(data.message || `Socio ${numero} (${titular}) guardado con éxito`, 'success');
+
+                // Resguardo Físico en Archivo Local de esta PC (.csv y .jsonl)
+                try {
+                    if (typeof window.guardarClienteEnArchivoLocalPC === 'function') {
+                        window.guardarClienteEnArchivoLocalPC({
+                            tipo_registro: isEdit ? 'SOCIO_EDIT_' + tipo.toUpperCase() : 'SOCIO_NUEVO_' + tipo.toUpperCase(),
+                            numero_socio: numero,
+                            patente: patente,
+                            titular: titular,
+                            telefono: telefono,
+                            email: email,
+                            modelo: modelo,
+                            servicio: 'Membresía ' + tipo.toUpperCase(),
+                            precio: monto,
+                            metodo_pago: 'mercadopago',
+                            estado: estado,
+                            notas: notas
+                        });
+                    }
+                } catch(e) {
+                    console.warn('Error en resguardo local del socio:', e);
+                }
+
                 return;
             } else {
                 const msg = (data && data.error) ? data.error : 'Error al guardar socio en el servidor';
@@ -6283,4 +6328,378 @@ window.handleCarCancelAction = handleCarCancelAction;
         loadPushConfig();
     });
 
+})();
+
+// ============================================================
+// SISTEMA DE RESGUARDO AUTOMÁTICO DE CLIENTES (AURA / DONWEB / PC LOCAL)
+// Guarda cada cliente en archivo físico en DonWeb y en el disco de la PC
+// ============================================================
+(function() {
+    const IDB_NAME = 'aura_l1deres_resguardo_db';
+    const IDB_STORE = 'handles';
+    const CACHE_KEY = 'aura_local_clients_backup_cache';
+    let localBackupDirHandle = null;
+
+    // Helper IndexedDB para almacenar DirectoryHandle persistente
+    function openBackupIDB() {
+        return new Promise((resolve, reject) => {
+            const req = indexedDB.open(IDB_NAME, 1);
+            req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    async function setStoredHandle(key, val) {
+        try {
+            const db = await openBackupIDB();
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).put(val, key);
+            return new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+        } catch(e) {
+            console.warn('IDB put error:', e);
+        }
+    }
+
+    async function getStoredHandle(key) {
+        try {
+            const db = await openBackupIDB();
+            const tx = db.transaction(IDB_STORE, 'readonly');
+            const req = tx.objectStore(IDB_STORE).get(key);
+            return new Promise((res) => { req.onsuccess = () => res(req.result); req.onerror = () => res(null); });
+        } catch(e) {
+            return null;
+        }
+    }
+
+    // Sanitizar y formatear fila CSV estilo Excel con UTF-8 BOM
+    function sanitizeCsvCell(val) {
+        const s = String(val ?? '').trim().replace(/[\r\n\t]/g, ' ');
+        if (s.includes(';') || s.includes('"')) {
+            return `"${s.replace(/"/g, '""')}"`;
+        }
+        return s;
+    }
+
+    function formatCsvRow(cliente) {
+        const fechaHora = cliente.timestamp || new Date().toISOString().replace('T', ' ').substring(0, 19);
+        const tipo = sanitizeCsvCell(cliente.tipo_registro || 'CLIENTE_GENERAL');
+        const numSocio = sanitizeCsvCell(cliente.numero_socio || cliente.numero || '');
+        const patente = sanitizeCsvCell((cliente.patente || 'S/D').toUpperCase());
+        const titular = sanitizeCsvCell(cliente.titular || cliente.nombre || 'Cliente General');
+        const tel = sanitizeCsvCell(cliente.telefono || '');
+        const email = sanitizeCsvCell(cliente.email || '');
+        const modelo = sanitizeCsvCell(cliente.modelo || cliente.modelo_auto || 'Auto / Camioneta');
+        const servicio = sanitizeCsvCell(cliente.servicio || cliente.tipo_lavado || 'Lavado');
+        const precio = sanitizeCsvCell(cliente.precio || cliente.monto || '0');
+        const metodo = sanitizeCsvCell(cliente.metodo_pago || cliente.metodo || 'efectivo');
+        const estado = sanitizeCsvCell(cliente.estado || cliente.estado_pago || 'pagado');
+        const notas = sanitizeCsvCell(cliente.notas || cliente.observaciones || '');
+
+        return `${fechaHora};${tipo};${numSocio};${patente};${titular};${tel};${email};${modelo};${servicio};${precio};${metodo};${estado};${notas}\r\n`;
+    }
+
+    // Actualizar UI en la pestaña de configuración
+    function updateBackupUI(folderName = null, isGranted = false) {
+        const folderLabel = document.getElementById('backup-pc-folder-label');
+        const statusText = document.getElementById('backup-pc-status-text');
+        const storedName = folderName || localStorage.getItem('aura_backup_folder_name');
+
+        if (storedName && folderLabel) {
+            folderLabel.textContent = `📁 ${storedName}`;
+            folderLabel.style.color = '#34d399';
+        } else if (folderLabel) {
+            folderLabel.textContent = 'Sin carpeta vinculada';
+            folderLabel.style.color = '#fbbf24';
+        }
+
+        if (statusText) {
+            if (storedName && isGranted) {
+                statusText.innerHTML = `<span style="color:#34d399;">🟢 Conectado y listo (${storedName})</span>`;
+            } else if (storedName && !isGranted) {
+                statusText.innerHTML = `<span style="color:#fbbf24;">🟡 Permiso pendiente en "${storedName}" (hacé clic en Vincular)</span>`;
+            } else {
+                statusText.innerHTML = `<span style="color:#94a3b8;">⚪ Sin vincular (usar botón Vincular Carpeta)</span>`;
+            }
+        }
+    }
+
+    // Inicializar o verificar directorio al cargar la app
+    async function initLocalBackupDirectory() {
+        try {
+            const handle = await getStoredHandle('backup_dir_handle');
+            if (handle) {
+                localBackupDirHandle = handle;
+                const perm = await handle.queryPermission({ mode: 'readwrite' });
+                const isGranted = (perm === 'granted');
+                updateBackupUI(handle.name, isGranted);
+            } else {
+                updateBackupUI();
+            }
+        } catch(e) {
+            console.warn('initLocalBackupDirectory error:', e);
+            updateBackupUI();
+        }
+
+        // Consultar estadísticas de DonWeb
+        window.actualizarStatsDonWebBackup();
+    }
+
+    // Escribir registro en la carpeta local de la PC
+    async function escribirEnDiscoPC(cliente) {
+        if (!localBackupDirHandle) return false;
+
+        try {
+            let perm = await localBackupDirHandle.queryPermission({ mode: 'readwrite' });
+            if (perm !== 'granted') {
+                perm = await localBackupDirHandle.requestPermission({ mode: 'readwrite' });
+                if (perm !== 'granted') return false;
+            }
+
+            // 1. Escribir/Anexar a clientes_l1deres.csv
+            const csvHandle = await localBackupDirHandle.getFileHandle('clientes_l1deres.csv', { create: true });
+            const csvFile = await csvHandle.getFile();
+            const isNewCsv = (csvFile.size === 0);
+            const csvWritable = await csvHandle.createWritable({ keepExistingData: true });
+
+            if (isNewCsv) {
+                // Escribir UTF-8 BOM y cabeceras
+                const header = '\uFEFF' + "FECHA Y HORA;TIPO REGISTRO;NUMERO SOCIO;PATENTE;TITULAR;TELEFONO;EMAIL;MODELO;SERVICIO;PRECIO;METODO PAGO;ESTADO;NOTAS\r\n";
+                await csvWritable.write(header);
+            } else {
+                await csvWritable.seek(csvFile.size);
+            }
+
+            const rowStr = formatCsvRow(cliente);
+            await csvWritable.write(rowStr);
+            await csvWritable.close();
+
+            // 2. Escribir/Anexar a clientes_l1deres.jsonl para formato estructurado
+            const jsonlHandle = await localBackupDirHandle.getFileHandle('clientes_l1deres.jsonl', { create: true });
+            const jsonlFile = await jsonlHandle.getFile();
+            const jsonlWritable = await jsonlHandle.createWritable({ keepExistingData: true });
+            if (jsonlFile.size > 0) {
+                await jsonlWritable.seek(jsonlFile.size);
+            }
+            const jsonStr = JSON.stringify({
+                timestamp: cliente.timestamp || new Date().toISOString(),
+                tipo_registro: cliente.tipo_registro || 'CLIENTE_GENERAL',
+                numero_socio: cliente.numero_socio || '',
+                patente: (cliente.patente || 'S/D').toUpperCase(),
+                titular: cliente.titular || cliente.nombre || '',
+                telefono: cliente.telefono || '',
+                email: cliente.email || '',
+                modelo: cliente.modelo || '',
+                servicio: cliente.servicio || '',
+                precio: cliente.precio || 0,
+                metodo_pago: cliente.metodo_pago || 'efectivo',
+                estado: cliente.estado || 'pagado',
+                notas: cliente.notas || ''
+            }) + "\n";
+            await jsonlWritable.write(jsonStr);
+            await jsonlWritable.close();
+
+            updateBackupUI(localBackupDirHandle.name, true);
+            return true;
+        } catch (err) {
+            console.warn('Error escribiendo en disco local PC:', err);
+            return false;
+        }
+    }
+
+    // Función global para registrar un cliente en el resguardo local
+    window.guardarClienteEnArchivoLocalPC = async function(cliente) {
+        if (!cliente) return;
+        if (!cliente.timestamp) {
+            cliente.timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        }
+
+        // Guardar en el historial de caché local de respaldo
+        try {
+            const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '[]');
+            cache.unshift(cliente);
+            if (cache.length > 2000) cache.pop();
+            localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+        } catch(e) {}
+
+        // Intentar escribir en el disco local si la carpeta está vinculada
+        const ok = await escribirEnDiscoPC(cliente);
+        if (ok) {
+            if (window.showToast) {
+                window.showToast(`💾 Cliente ${cliente.patente || ''} resguardado en archivo de tu PC`, 'success');
+            }
+        } else if (!localBackupDirHandle) {
+            // Recordatorio discreto si aún no vinculó la carpeta
+            const yaAvisado = sessionStorage.getItem('aura_pc_backup_notified');
+            if (!yaAvisado && window.showToast) {
+                window.showToast(`ℹ️ Puedes vincular una carpeta en Configuración para guardar copia automática en esta PC`, 'info');
+                sessionStorage.setItem('aura_pc_backup_notified', '1');
+            }
+        }
+
+        // Actualizar estadísticas de DonWeb periódicamente
+        setTimeout(() => window.actualizarStatsDonWebBackup(), 2000);
+    };
+
+    // Vincular carpeta local mediante Native File System Access API
+    window.vincularCarpetaLocalPC = async function() {
+        if (!('showDirectoryPicker' in window)) {
+            alert('Tu navegador no cuenta con la función File System Access para elegir carpetas directamente. Puedes usar el botón "Guardar Copia" para descargar el archivo Excel.');
+            return;
+        }
+
+        try {
+            const dirHandle = await window.showDirectoryPicker({
+                mode: 'readwrite',
+                startIn: 'documents'
+            });
+
+            if (dirHandle) {
+                localBackupDirHandle = dirHandle;
+                await setStoredHandle('backup_dir_handle', dirHandle);
+                localStorage.setItem('aura_backup_folder_name', dirHandle.name);
+                updateBackupUI(dirHandle.name, true);
+
+                // Crear o comprobar archivo inicial
+                const csvHandle = await dirHandle.getFileHandle('clientes_l1deres.csv', { create: true });
+                const file = await csvHandle.getFile();
+                if (file.size === 0) {
+                    const writable = await csvHandle.createWritable();
+                    const header = '\uFEFF' + "FECHA Y HORA;TIPO REGISTRO;NUMERO SOCIO;PATENTE;TITULAR;TELEFONO;EMAIL;MODELO;SERVICIO;PRECIO;METODO PAGO;ESTADO;NOTAS\r\n";
+                    await writable.write(header);
+                    await writable.close();
+                }
+
+                // Sincronizar clientes que hayan quedado en caché local
+                const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '[]');
+                if (cache.length > 0) {
+                    for (let c of cache.slice(0, 50)) {
+                        await escribirEnDiscoPC(c);
+                    }
+                }
+
+                if (window.showToast) {
+                    window.showToast(`✅ Carpeta "${dirHandle.name}" vinculada exitosamente. Se guardará copia física de cada cliente en tu PC.`, 'success');
+                }
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Error vinculando carpeta local:', err);
+                if (window.showToast) window.showToast('No se pudo acceder a la carpeta seleccionada', 'error');
+            }
+        }
+    };
+
+    // Descargar archivo de DonWeb directamente
+    window.descargarBackupDonWeb = function() {
+        window.open(`${API_URL}backup_clientes.php?action=download`, '_blank');
+        if (window.showToast) window.showToast('Iniciando descarga del resguardo desde DonWeb...', 'info');
+    };
+
+    // Descargar copia consolidada Excel (.csv) inmediata al disco del usuario
+    window.descargarBackupConsolidadoPC = async function() {
+        try {
+            if (window.showToast) window.showToast('Generando archivo de resguardo Excel...', 'info');
+            
+            // 1. Intentar descargar la versión consolidada oficial desde el servidor DonWeb
+            const res = await fetch(`${API_URL}backup_clientes.php?action=download`);
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `clientes_l1deres_resguardo_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                if (window.showToast) window.showToast('✅ Archivo Excel descargado con éxito', 'success');
+                return;
+            }
+        } catch (e) {
+            console.warn('Descarga remota falló, generando desde datos locales:', e);
+        }
+
+        // Fallback: Generar CSV desde datos locales (Socios Fundadores + Reservas + Caché)
+        try {
+            const header = '\uFEFF' + "FECHA Y HORA;TIPO REGISTRO;NUMERO SOCIO;PATENTE;TITULAR;TELEFONO;EMAIL;MODELO;SERVICIO;PRECIO;METODO PAGO;ESTADO;NOTAS\r\n";
+            let rows = [header];
+
+            // Agregar socios fundadores
+            const socios = typeof getSociosFundadoresData === 'function' ? getSociosFundadoresData() : [];
+            socios.forEach(s => {
+                rows.push(formatCsvRow({
+                    timestamp: s.fecha_inscripcion || s.created_at || new Date().toISOString(),
+                    tipo_registro: 'SOCIO_' + (s.tipo || s.tipo_membresia || 'BLACK').toUpperCase(),
+                    numero_socio: s.numero || s.numero_socio,
+                    patente: s.patente,
+                    titular: s.titular || s.nombre,
+                    telefono: s.telefono,
+                    email: s.email,
+                    modelo: s.modelo || s.modelo_auto,
+                    servicio: 'Membresía ' + (s.tipo || 'BLACK').toUpperCase(),
+                    precio: s.monto_pagado || s.monto || 0,
+                    metodo_pago: s.metodo_pago || 'mercadopago',
+                    estado: s.estado_pago || 'pagado',
+                    notas: s.observaciones || s.notas
+                }));
+            });
+
+            // Agregar clientes en caché
+            const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '[]');
+            cache.forEach(c => rows.push(formatCsvRow(c)));
+
+            const blob = new Blob([rows.join('')], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `clientes_l1deres_resguardo_local_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            if (window.showToast) window.showToast('✅ Copia Excel local generada y descargada', 'success');
+        } catch (err) {
+            console.error('Error generando archivo Excel local:', err);
+            if (window.showToast) window.showToast('Error al generar la copia del archivo', 'error');
+        }
+    };
+
+    // Actualizar estadísticas del servidor DonWeb
+    window.actualizarStatsDonWebBackup = async function(showToastFeedback = false) {
+        const countEl = document.getElementById('backup-donweb-count');
+        const badgeEl = document.getElementById('backup-global-status-badge');
+
+        try {
+            const res = await fetch(`${API_URL}backup_clientes.php?action=stats&_t=${Date.now()}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.success) {
+                    if (countEl) {
+                        countEl.innerHTML = `<span style="color:#38bdf8; font-weight:800;">${data.total_clientes_resguardados}</span> registros (${data.tamano_kb} KB)`;
+                    }
+                    if (badgeEl) {
+                        badgeEl.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span> DonWeb Sincronizado (${data.total_clientes_resguardados})`;
+                        badgeEl.style.color = '#34d399';
+                        badgeEl.style.borderColor = 'rgba(16,185,129,0.4)';
+                    }
+                    if (showToastFeedback && window.showToast) {
+                        window.showToast(`DonWeb: ${data.total_clientes_resguardados} clientes resguardados (${data.tamano_kb} KB)`, 'info');
+                    }
+                    return;
+                }
+            }
+        } catch(e) {
+            console.warn('No se pudo obtener stats de backup DonWeb:', e);
+        }
+
+        if (countEl) countEl.textContent = 'En espera de datos';
+    };
+
+    // Inicializar al cargar el DOM
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLocalBackupDirectory);
+    } else {
+        initLocalBackupDirectory();
+    }
 })();

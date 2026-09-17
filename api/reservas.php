@@ -68,17 +68,20 @@ if ($method === 'POST') {
     }
 
     try {
-        $nombre   = isset($input['cliente_nombre']) ? trim($input['cliente_nombre']) : 'Cliente';
-        $telefono = isset($input['cliente_telefono']) ? trim($input['cliente_telefono']) : '';
+        require_once __DIR__ . '/backup_clientes.php';
+
+        $nombre   = isset($input['cliente_nombre']) ? trim($input['cliente_nombre']) : (isset($input['nombre_cliente']) ? trim($input['nombre_cliente']) : 'Cliente');
+        $telefono = isset($input['cliente_telefono']) ? trim($input['cliente_telefono']) : (isset($input['telefono']) ? trim($input['telefono']) : '');
         $patente  = isset($input['patente']) ? strtoupper(trim($input['patente'])) : '';
-        $modelo   = isset($input['modelo_auto']) ? trim($input['modelo_auto']) : 'Auto';
-        $servicio = isset($input['tipo_servicio']) ? trim($input['tipo_servicio']) : 'Lavado';
+        $modelo   = isset($input['modelo_auto']) ? trim($input['modelo_auto']) : (isset($input['tipo_vehiculo']) ? trim($input['tipo_vehiculo']) : 'Auto');
+        $servicio = isset($input['tipo_servicio']) ? trim($input['tipo_servicio']) : (isset($input['tipo_lavado']) ? trim($input['tipo_lavado']) : 'Lavado');
         $precio   = isset($input['precio']) ? (float)$input['precio'] : 0.0;
         $estado   = isset($input['estado']) ? trim($input['estado']) : 'pendiente';
         $box_id   = isset($input['box_id']) ? (int)$input['box_id'] : 0;
-        $fecha    = isset($input['fecha_reserva']) ? $input['fecha_reserva'] : date('Y-m-d');
-        $hora     = isset($input['hora_reserva']) ? $input['hora_reserva'] : date('H:i:s');
+        $fecha    = isset($input['fecha_reserva']) ? $input['fecha_reserva'] : (isset($input['fecha']) ? $input['fecha'] : date('Y-m-d'));
+        $hora     = isset($input['hora_reserva']) ? $input['hora_reserva'] : (isset($input['hora']) ? $input['hora'] : date('H:i:s'));
         $notas    = isset($input['notas']) ? trim($input['notas']) : '';
+        $metodo   = isset($input['metodo_pago']) ? trim($input['metodo_pago']) : (isset($input['metodo']) ? trim($input['metodo']) : 'efectivo');
 
         $stmt = $pdo->prepare("
             INSERT INTO `reservas` 
@@ -101,9 +104,25 @@ if ($method === 'POST') {
             ':notas'    => $notas
         ]);
 
+        $lastId = $pdo->lastInsertId();
+
+        // Resguardo físico inmutable automático en DonWeb (.csv y .jsonl)
+        registrarClienteResguardoDonWeb([
+            'tipo_registro'  => 'CLIENTE_PISTA_O_RESERVA',
+            'patente'        => $patente,
+            'titular'        => $nombre,
+            'telefono'       => $telefono,
+            'modelo'         => $modelo,
+            'servicio'       => $servicio,
+            'precio'         => $precio,
+            'metodo_pago'    => $metodo,
+            'estado'         => $estado,
+            'notas'          => $notas
+        ]);
+
         sendResponse([
             'success' => true,
-            'id' => $pdo->lastInsertId()
+            'id' => $lastId
         ]);
     } catch (Exception $e) {
         sendResponse(['error' => $e->getMessage()], 500);

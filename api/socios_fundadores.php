@@ -313,6 +313,23 @@ if ($method === 'POST') {
         $stmtGet->execute([':id' => $newId]);
         $socioSaved = $stmtGet->fetch();
 
+        // Resguardo físico inmutable automático en DonWeb (.csv y .jsonl)
+        require_once __DIR__ . '/backup_clientes.php';
+        registrarClienteResguardoDonWeb([
+            'tipo_registro' => 'SOCIO_' . strtoupper($tipo_membresia),
+            'numero_socio'  => '#' . sprintf("%03d", $numeroAsignado),
+            'patente'       => $patente,
+            'titular'       => $nombre,
+            'telefono'      => $telefono,
+            'email'         => $email,
+            'modelo'        => $modelo_auto,
+            'servicio'      => 'Membresía ' . ucfirst($tipo_membresia),
+            'precio'        => $monto_pagado,
+            'metodo_pago'   => $metodo_pago,
+            'estado'        => $estado_pago,
+            'notas'         => $observaciones
+        ]);
+
         sendResponse([
             'success' => true,
             'message' => "¡Socio Fundador #" . sprintf("%03d", $numeroAsignado) . " ({$nombre}) registrado con éxito!",
@@ -398,6 +415,23 @@ if ($method === 'PUT') {
         $stmtGet = $pdo->prepare("SELECT * FROM `socios_fundadores` WHERE `id` = :id LIMIT 1");
         $stmtGet->execute([':id' => $id]);
         $socioUpdated = $stmtGet->fetch();
+
+        // Resguardo físico inmutable automático en DonWeb (.csv y .jsonl)
+        require_once __DIR__ . '/backup_clientes.php';
+        registrarClienteResguardoDonWeb([
+            'tipo_registro' => 'SOCIO_EDIT_' . strtoupper($tipo_membresia),
+            'numero_socio'  => '#' . sprintf("%03d", $socioUpdated['numero_socio'] ?? 0),
+            'patente'       => $patente,
+            'titular'       => $nombre,
+            'telefono'      => $telefono,
+            'email'         => $email,
+            'modelo'        => $modelo_auto,
+            'servicio'      => 'Membresía ' . ucfirst($tipo_membresia),
+            'precio'        => $monto_pagado,
+            'metodo_pago'   => $metodo_pago,
+            'estado'        => $estado_pago,
+            'notas'         => $observaciones
+        ]);
 
         sendResponse([
             'success' => true,

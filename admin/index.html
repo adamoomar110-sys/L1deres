@@ -773,6 +773,83 @@
                         <input type="text" id="config-mensaje-feriados" placeholder="Ej: ¡Atención especial en feriados de 09:00 a 18:00 hs!" class="price-input" style="width: 100%;">
                     </div>
                 </div>
+
+                <!-- Card: Resguardo Físico y Automático de Clientes (DonWeb & Disco Local PC) -->
+                <div class="card" style="padding: 1.8rem; background: linear-gradient(145deg, #090e17, #131d2e); border: 1px solid rgba(56,189,248,0.3); border-radius: 14px; grid-column: span 1 / -1; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 15px;">
+                        <div>
+                            <h3 class="section-title" style="margin: 0; color: #38bdf8; display: flex; align-items: center; gap: 10px; font-size: 1.25rem;">
+                                <i class='bx bx-data' style="font-size: 1.5rem;"></i> Resguardo Físico Automático de Clientes (DonWeb & PC Local)
+                            </h3>
+                            <p style="color: #94a3b8; font-size: 0.88rem; margin: 6px 0 0 0;">
+                                Cada nuevo cliente o socio registrado se almacena al instante en un archivo físico inmutable en DonWeb y en tu PC local para máxima seguridad.
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span id="backup-global-status-badge" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: #34d399; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                                <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span> Resguardo DonWeb Activo
+                            </span>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+                        <!-- Columna 1: Resguardo en DonWeb (Nube) -->
+                        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(56,189,248,0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                                    <i class='bx bx-cloud'></i>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0; color: #f8fafc; font-size: 0.98rem; font-weight: 700;">Servidor DonWeb (Resguardo Físico)</h4>
+                                    <span style="font-size: 0.75rem; color: #64748b;">api/backups/clientes_resguardo.csv</span>
+                                </div>
+                            </div>
+                            <p style="color: #cbd5e1; font-size: 0.82rem; line-height: 1.4; margin-bottom: 14px;">
+                                Archivo con formato UTF-8 BOM compatible con Excel. Protegido contra accesos públicos directos con bloqueo .htaccess.
+                            </p>
+                            <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; display: flex; justify-content: space-between; font-size: 0.82rem;">
+                                <span style="color: #94a3b8;">Total Registrados:</span>
+                                <strong id="backup-donweb-count" style="color: #38bdf8;">Cargando...</strong>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-primary" onclick="window.descargarBackupDonWeb()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; font-size: 0.85rem; font-weight: 700; background: linear-gradient(135deg, #0284c7, #0369a1); border: none; border-radius: 8px; cursor: pointer;">
+                                    <i class='bx bx-download'></i> Descargar CSV DonWeb
+                                </button>
+                                <button class="btn" onclick="window.actualizarStatsDonWebBackup(true)" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; padding: 10px; border-radius: 8px; cursor: pointer;" title="Actualizar contador">
+                                    <i class='bx bx-refresh'></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Columna 2: Resguardo en Disco Local PC (File System Access) -->
+                        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(251,191,36,0.15); color: #fbbf24; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                                    <i class='bx bx-laptop'></i>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0; color: #f8fafc; font-size: 0.98rem; font-weight: 700;">Disco de esta PC (Guardado Local)</h4>
+                                    <span id="backup-pc-folder-label" style="font-size: 0.75rem; color: #fbbf24;">Sin carpeta vinculada</span>
+                                </div>
+                            </div>
+                            <p style="color: #cbd5e1; font-size: 0.82rem; line-height: 1.4; margin-bottom: 14px;">
+                                Vincula una carpeta de tu PC (ej. C:\Lavadero_Resguardo) para que cada cliente se guarde directamente en tu disco sin depender de internet.
+                            </p>
+                            <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; display: flex; justify-content: space-between; font-size: 0.82rem;">
+                                <span style="color: #94a3b8;">Estado del Archivo Local:</span>
+                                <strong id="backup-pc-status-text" style="color: #fbbf24;">Pendiente de selección</strong>
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn" onclick="window.vincularCarpetaLocalPC()" style="flex: 1; min-width: 170px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; font-size: 0.85rem; font-weight: 700; background: linear-gradient(135deg, #d97706, #f59e0b); color: #0f172a; border: none; border-radius: 8px; cursor: pointer;">
+                                    <i class='bx bx-folder-open'></i> Vincular Carpeta en PC
+                                </button>
+                                <button class="btn" onclick="window.descargarBackupConsolidadoPC()" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 14px; font-size: 0.85rem; font-weight: 700; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; border-radius: 8px; cursor: pointer;" title="Descargar copia inmediata al disco">
+                                    <i class='bx bx-file'></i> Guardar Copia
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
 
@@ -903,6 +980,9 @@
                     <p style="color: var(--text-secondary); margin-top: 5px;">Membresías exclusivas limitadas a 100 cupos (#001 - #100) · Control de accesos, credenciales VIP y beneficios.</p>
                 </div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="window.descargarBackupConsolidadoPC()" style="display: flex; align-items: center; gap: 8px; background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer;" title="Descargar archivo físico Excel con todos los socios y clientes">
+                        <i class='bx bx-download'></i> Resguardo Excel (.CSV)
+                    </button>
                     <button class="btn btn-secondary" onclick="window.toggleSocioConfigModal()" style="display: flex; align-items: center; gap: 8px; background: #1e293b; color: #94a3b8; border: 1px solid #334155; padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer;">
                         <i class='bx bx-slider-alt'></i> Configurar Beneficios
                     </button>
