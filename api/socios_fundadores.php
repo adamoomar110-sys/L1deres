@@ -222,7 +222,7 @@ if ($method === 'POST') {
     $rawTipo = strtolower(trim($input['tipo_membresia'] ?? $input['tipo'] ?? 'black'));
     $tipo_membresia = ($rawTipo === 'gold') ? 'gold' : 'black';
 
-    $defaultMonto = ($tipo_membresia === 'gold') ? 45000.00 : 65000.00;
+    $defaultMonto = ($tipo_membresia === 'gold') ? 140000.00 : 210000.00;
     $monto_pagado = isset($input['monto_pagado']) ? floatval($input['monto_pagado']) : (isset($input['monto']) ? floatval($input['monto']) : $defaultMonto);
 
     $metodo_pago = trim($input['metodo_pago'] ?? 'mercadopago');

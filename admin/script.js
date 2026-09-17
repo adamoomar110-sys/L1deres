@@ -4205,7 +4205,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         fecha_nacimiento: '',
                         modelo: '',
                         estado: 'PAGADO',
-                        monto: 35000,
+                        monto: 210000,
                         notas: p.observaciones || 'Socio Black Oficial',
                         fechaRegistro: p.fechaRegistro || new Date().toLocaleDateString('es-AR')
                     });
@@ -4223,7 +4223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         fecha_nacimiento: '',
                         modelo: '',
                         estado: 'PAGADO',
-                        monto: 45000,
+                        monto: 140000,
                         notas: p.observaciones || 'Socio Gold Oficial',
                         fechaRegistro: p.fechaRegistro || new Date().toLocaleDateString('es-AR')
                     });
@@ -4469,7 +4469,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('form-socio-email').value = '';
         document.getElementById('form-socio-fecha-nac').value = '';
         document.getElementById('form-socio-estado').value = 'PAGADO';
-        document.getElementById('form-socio-monto').value = '35000';
+        document.getElementById('form-socio-monto').value = '210000';
         document.getElementById('form-socio-notas').value = 'Socio Fundador Inauguración';
 
         const modal = document.getElementById('modal-socio-form');
@@ -4508,7 +4508,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tipo = document.getElementById('form-socio-tipo')?.value;
         const montoInput = document.getElementById('form-socio-monto');
         if (montoInput && !montoInput.value) {
-            montoInput.value = tipo === 'GOLD' ? '45000' : '35000';
+            montoInput.value = tipo === 'GOLD' ? '140000' : '210000';
         }
     };
 
