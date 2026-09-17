@@ -322,13 +322,13 @@
             <div id="dashboard-lpr-alert" class="dashboard-lpr-alert" style="display: none;">
                 <div class="lpr-alert-icon"><i class='bx bx-scan'></i></div>
                 <div class="lpr-alert-content">
-                    <span class="lpr-alert-tag">¡CÁMARA DE INGRESO DETECTÓ VEHÍCULO!</span>
+                    <span class="lpr-alert-tag">🚗 ¡VEHÍCULO INGRESÓ A PISTA!</span>
                     <strong class="lpr-alert-plate" id="alert-plate-text">AB123CD</strong>
-                    <div class="lpr-alert-info" id="alert-plate-info">Verificando padrón...</div>
+                    <div class="lpr-alert-info" id="alert-plate-info">Verificando padrón de socios y reservas...</div>
                 </div>
                 <div class="lpr-alert-actions">
-                    <button class="btn-lpr-quick-assign" id="btn-alert-quick-assign" onclick="handleQuickAlertAssign()">
-                        <i class='bx bx-play-circle'></i> Asignar a Pista
+                    <button class="btn-lpr-quick-assign" id="btn-alert-quick-assign" onclick="handleQuickAlertAssign()" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class='bx bx-check-shield'></i> Verificar y Cobrar
                     </button>
                     <button class="btn-lpr-dismiss" onclick="document.getElementById('dashboard-lpr-alert').style.display='none'">
                         <i class='bx bx-x'></i>
@@ -1890,6 +1890,107 @@
                     <i class='bx bx-check-circle'></i> Asignar a la Pista
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de Verificación de Datos y Cobro para Supervisor -->
+    <div id="modal-supervisor-checkout" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 100000; align-items: center; justify-content: center;">
+        <div style="background: #0f172a; border: 2px solid #38bdf8; border-radius: 20px; padding: 26px; width: 92%; max-width: 500px; box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 30px rgba(56,189,248,0.25); max-height: 90vh; overflow-y: auto;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+                <div>
+                    <h3 style="margin: 0; color: #38bdf8; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
+                        <i class='bx bx-check-shield' style="color: #10b981;"></i> Verificación y Cobro
+                    </h3>
+                    <p style="margin: 4px 0 0; color: #94a3b8; font-size: 0.8rem;">
+                        Vehículo ingresado a pista. Verificá los datos del cliente y registrá el cobro.
+                    </p>
+                </div>
+                <button onclick="closeSupervisorCheckoutModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.6rem; cursor: pointer; padding: 2px 6px;">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="checkout-car-id" value="">
+            <input type="hidden" id="checkout-category" value="GENERAL">
+
+            <!-- Badge de Tipo de Cliente / Socio Fundador / Reserva -->
+            <div id="checkout-customer-banner" style="margin-bottom: 16px; padding: 10px 14px; border-radius: 10px; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span id="checkout-category-badge" style="font-size: 0.82rem; font-weight: 800; color: #38bdf8; text-transform: uppercase;">🚗 CLIENTE GENERAL</span>
+                    <div id="checkout-customer-name" style="color: #f8fafc; font-weight: 700; font-size: 0.95rem; margin-top: 2px;">Cliente Ocasional</div>
+                </div>
+                <div id="checkout-vehicle-model" style="font-size: 0.78rem; color: #94a3b8; text-align: right;">Auto / Camioneta</div>
+            </div>
+
+            <!-- Verificación de Patente -->
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; color: #94a3b8; font-size: 0.78rem; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px;">1. VERIFICAR PATENTE</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="checkout-plate" placeholder="Ej: AB123CD" maxlength="10" style="flex: 1; text-transform: uppercase; font-family: 'Racing Sans One', sans-serif; font-size: 1.4rem; letter-spacing: 2px; padding: 10px 14px; background: #030712; border: 1px solid rgba(56,189,248,0.5); border-radius: 8px; color: #38bdf8; text-align: center;">
+                </div>
+            </div>
+
+            <!-- Elección de Lavado / Servicio -->
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; color: #94a3b8; font-size: 0.78rem; font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px;">2. ELECCIÓN DEL SERVICIO DE LAVADO</label>
+                <select id="checkout-service" onchange="onCheckoutServiceChange(this.value)" style="width: 100%; padding: 12px; background: #030712; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #f8fafc; font-weight: 700; font-size: 0.95rem;">
+                    <option value="express_auto">🏎️ Lavado Express Auto ($10.000)</option>
+                    <option value="express_camioneta">🚙 Lavado Express Camioneta ($12.000)</option>
+                    <option value="completo_auto">⭐ Lavado Completo Auto ($15.000)</option>
+                    <option value="completo_camioneta">🌟 Lavado Completo Camioneta ($18.000)</option>
+                    <option value="solo_secado">💨 Solo Secado / Interior</option>
+                </select>
+            </div>
+
+            <!-- Monto Calculado por el Sistema -->
+            <div style="margin-bottom: 16px; background: rgba(3,7,18,0.8); padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">MONTO DEL SISTEMA:</span>
+                    <div id="checkout-price-display" style="font-size: 1.8rem; font-weight: 800; color: #10b981; font-family: 'Racing Sans One', sans-serif;">$10.000</div>
+                    <div id="checkout-price-hint" style="font-size: 0.72rem; color: #64748b;">Precio tarifado según servicio</div>
+                </div>
+                <div style="text-align: right; width: 140px;">
+                    <label style="font-size: 0.7rem; color: #94a3b8; display: block; margin-bottom: 4px;">Modificar $ si aplica:</label>
+                    <input type="number" id="checkout-custom-amount" style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid rgba(56,189,248,0.4); border-radius: 6px; color: #fff; text-align: center; font-weight: 700; font-size: 1rem;">
+                </div>
+            </div>
+
+            <!-- Medio de Pago Elegido -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: #94a3b8; font-size: 0.78rem; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.5px;">3. MEDIO DE PAGO ELEGIDO</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="checkout-payment-buttons">
+                    <button type="button" class="btn-checkout-payment active" data-method="efectivo" onclick="selectCheckoutPaymentMethod('efectivo', this)" style="padding: 10px; border-radius: 8px; border: 1px solid #10b981; background: rgba(16,185,129,0.2); color: #34d399; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        💵 Efectivo
+                    </button>
+                    <button type="button" class="btn-checkout-payment" data-method="mercadopago" onclick="selectCheckoutPaymentMethod('mercadopago', this)" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #cbd5e1; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        📱 MercadoPago / QR
+                    </button>
+                    <button type="button" class="btn-checkout-payment" data-method="transferencia" onclick="selectCheckoutPaymentMethod('transferencia', this)" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #cbd5e1; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        🏦 Transferencia
+                    </button>
+                    <button type="button" class="btn-checkout-payment" data-method="debito" onclick="selectCheckoutPaymentMethod('debito', this)" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #cbd5e1; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        💳 Débito / Tarjeta
+                    </button>
+                    <button type="button" class="btn-checkout-payment" id="btn-pay-socio" data-method="socio" onclick="selectCheckoutPaymentMethod('socio', this)" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(251,191,36,0.3); background: rgba(251,191,36,0.05); color: #fbbf24; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        👑 Membresía Club 100
+                    </button>
+                    <button type="button" class="btn-checkout-payment" id="btn-pay-reserva" data-method="reserva_online" onclick="selectCheckoutPaymentMethod('reserva_online', this)" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(56,189,248,0.3); background: rgba(56,189,248,0.05); color: #38bdf8; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        📅 Prepagado Online
+                    </button>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div style="display: flex; gap: 10px;">
+                <button type="button" onclick="closeSupervisorCheckoutModal()" class="btn" style="flex: 1; background: rgba(255,255,255,0.08); color: #94a3b8; font-weight: 700;">
+                    Posponer
+                </button>
+                <button type="button" onclick="confirmSupervisorCheckout()" class="btn btn-primary" style="flex: 2; font-weight: 800; font-size: 1.05rem; padding: 12px; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16,185,129,0.4);">
+                    <i class='bx bx-check-circle'></i> Confirmar y Cobrar
+                </button>
+            </div>
+
         </div>
     </div>
 

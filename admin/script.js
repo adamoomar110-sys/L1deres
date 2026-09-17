@@ -1042,8 +1042,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return moved;
     }
 
+    // Calcular precio según servicio y categoría de cliente
+    function getWashPrice(tipo, category = 'GENERAL') {
+        const catUpper = String(category || '').toUpperCase();
+        if (catUpper === 'BLACK' || catUpper === 'GOLD') return 0;
+        if (catUpper === 'RESERVA') return 0;
+
+        const cfg = window.APP_CONFIG || {};
+        if (tipo === 'express_auto') return cfg.precio_express_auto || 10000;
+        if (tipo === 'express_camioneta') return cfg.precio_express_camioneta || 12000;
+        if (tipo === 'completo_auto') return cfg.precio_completo_auto || 15000;
+        if (tipo === 'completo_camioneta') return cfg.precio_completo_camioneta || 18000;
+        if (tipo === 'solo_lavado') return cfg.precio_express_auto || 10000;
+        if (tipo === 'solo_secado') return 8000;
+        return cfg.precio_express_auto || 10000;
+    }
+    window.getWashPrice = getWashPrice;
+
     // Funciones para ingresar autos
-    async function ingresarAuto(tipo, patenteCustom = null) {
+    async function ingresarAuto(tipo, patenteCustom = null, meta = {}) {
         let targetIndices = [];
         if (tipo === 'solo_secado') {
             targetIndices = [0, 2, 4, 6]; // Carril Izquierdo
@@ -1064,17 +1081,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (freeIdx !== undefined) {
-            estadoEspera[freeIdx] = { id: autoIdCounter++, patente: patenteFinal, tipo: tipo, startTime: Date.now() };
+            const clienteTipo = meta.cliente_tipo || 'GENERAL';
+            const initialPrice = (meta.monto !== undefined && meta.monto !== null) ? meta.monto : getWashPrice(tipo, clienteTipo);
+
+            const autoObj = { 
+                id: autoIdCounter++, 
+                patente: patenteFinal, 
+                tipo: tipo, 
+                startTime: Date.now(),
+                cliente_tipo: clienteTipo,
+                titular: meta.titular || 'Cliente Ocasional',
+                modelo: meta.modelo || 'Auto / Camioneta',
+                estado_pago: meta.estado_pago || 'pendiente',
+                metodo_pago: meta.metodo_pago || null,
+                monto: initialPrice,
+                verificado: meta.verificado || false,
+                metricaRegistrada: false
+            };
+
+            estadoEspera[freeIdx] = autoObj;
             if (advanceQueue()) {} // Las físicas los empujan hacia adelante dentro de su carril
             if (typeof updateTimers === 'function') updateTimers();
             if (typeof updateStatusBoard === 'function') updateStatusBoard();
             updateVisuals();
             checkMovement();
-            
-            // --- LÓGICA DE INGRESOS Y RESERVAS ---
-            
+            if (typeof syncLiveState === 'function') syncLiveState();
+            return autoObj;
         } else {
             showToast('El carril correspondiente está lleno.', 'error');
+            return null;
         }
     }
 
@@ -1334,6 +1369,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 const srv = auto.tipo || 'express_auto';
                 const timeDisplay = (b.zone === 'terminado') ? (b.remainingSecs > 0 ? `¡Listo! (Sale en ${b.remainingSecs}s)` : 'Saliendo...') : formatTimeMmSs(b.remainingSecs);
 
+                // Estado de Cobro y Verificación Supervisor
+                let payHtml = '';
+                const estadoPago = auto.estado_pago || 'pendiente';
+                const montoNum = (auto.monto !== undefined && auto.monto !== null) ? Number(auto.monto) : getWashPrice(srv, auto.cliente_tipo);
+                const montoFmt = montoNum.toLocaleString('es-AR');
+
+                if (estadoPago === 'pendiente') {
+                    payHtml = `
+                        <button type="button" class="btn-box-checkout pending" onclick="openSupervisorCheckoutModalByCarId(${auto.id})" title="Verificar datos y registrar cobro">
+                            <i class='bx bx-dollar-circle' style="font-size: 1.1rem;"></i> COBRAR $${montoFmt}
+                        </button>
+                    `;
+                } else if (estadoPago === 'socio_bonificado') {
+                    payHtml = `
+                        <div class="badge-box-paid" style="background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.4);" onclick="openSupervisorCheckoutModalByCarId(${auto.id})" title="Membresía Club 100 Bonificada. Clic para ver o editar">
+                            <i class='bx bx-crown'></i> SOCIO CLUB 100 ($0)
+                        </div>
+                    `;
+                } else if (estadoPago === 'reserva_online') {
+                    payHtml = `
+                        <div class="badge-box-paid" style="background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4);" onclick="openSupervisorCheckoutModalByCarId(${auto.id})" title="Prepagado Online por Web. Clic para ver o editar">
+                            <i class='bx bx-calendar-check'></i> PREPAGADO ONLINE
+                        </div>
+                    `;
+                } else {
+                    const metodoLabel = auto.metodo_pago ? auto.metodo_pago.toUpperCase() : 'COBRADO';
+                    payHtml = `
+                        <div class="badge-box-paid" onclick="openSupervisorCheckoutModalByCarId(${auto.id})" title="Cobrado por ${metodoLabel}. Clic para ver o modificar">
+                            <i class='bx bx-check-circle'></i> PAGADO $${montoFmt} (${metodoLabel})
+                        </div>
+                    `;
+                }
+
                 html += `
                 <div class="box-card ${b.occupiedClass}" id="box-card-${b.id}">
                     <div class="box-card-top">
@@ -1361,6 +1429,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             <option value="solo_lavado" ${srv === 'solo_lavado' ? 'selected' : ''}>Solo Lavado (Heredado)</option>
                             <option value="solo_secado" ${srv === 'solo_secado' ? 'selected' : ''}>Solo Interior (Heredado)</option>
                         </select>
+                    </div>
+
+                    <!-- Cobro / Verificación Supervisor -->
+                    <div style="margin: 4px 0;">
+                        ${payHtml}
                     </div>
 
                     <!-- Timer Row -->
@@ -2303,22 +2376,29 @@ document.addEventListener('DOMContentLoaded', () => {
     let metricsHistory = JSON.parse(localStorage.getItem('metricsHistory')) || [];
 
     window.recordMetric = function(auto) {
-        let rev = 0;
-        if (auto.tipo === 'express_auto') { rev = window.APP_CONFIG.precio_express_auto; }
-        else if (auto.tipo === 'express_camioneta') { rev = window.APP_CONFIG.precio_express_camioneta; }
-        else if (auto.tipo === 'completo_auto') { rev = window.APP_CONFIG.precio_completo_auto; }
-        else if (auto.tipo === 'completo_camioneta') { rev = window.APP_CONFIG.precio_completo_camioneta; }
-        else if (auto.tipo === 'solo_lavado') { rev = window.APP_CONFIG.precio_express_auto; } // Fallback heredado
-        else if (auto.tipo === 'solo_secado') { rev = window.APP_CONFIG.precio_express_camioneta; } // Fallback heredado
-        else { rev = window.APP_CONFIG.precio_completo_auto; }
+        if (!auto) return;
+        if (auto.metricaRegistrada) return; // Ya cobrado y registrado por el supervisor
+
+        let rev = (auto.monto !== undefined && auto.monto !== null) ? Number(auto.monto) : 0;
+        if (rev === 0 && auto.estado_pago !== 'socio_bonificado' && auto.estado_pago !== 'reserva_online') {
+            if (auto.tipo === 'express_auto') { rev = window.APP_CONFIG.precio_express_auto; }
+            else if (auto.tipo === 'express_camioneta') { rev = window.APP_CONFIG.precio_express_camioneta; }
+            else if (auto.tipo === 'completo_auto') { rev = window.APP_CONFIG.precio_completo_auto; }
+            else if (auto.tipo === 'completo_camioneta') { rev = window.APP_CONFIG.precio_completo_camioneta; }
+            else if (auto.tipo === 'solo_lavado') { rev = window.APP_CONFIG.precio_express_auto; } // Fallback heredado
+            else if (auto.tipo === 'solo_secado') { rev = window.APP_CONFIG.precio_express_camioneta; } // Fallback heredado
+            else { rev = window.APP_CONFIG.precio_completo_auto; }
+        }
         
+        auto.metricaRegistrada = true;
         const metricData = {
             id: Date.now() + Math.random(),
             patente: auto.patente || 'S/D',
             timestamp: Date.now(),
             tipo: auto.tipo,
             revenue: rev,
-            profit: rev // La ganancia ahora es el 100% de la recaudación
+            profit: rev, // La ganancia ahora es el 100% de la recaudación
+            metodo_pago: auto.metodo_pago || 'efectivo'
         };
 
         metricsHistory.push(metricData);
@@ -3152,14 +3232,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mostrar Banner Flotante en el Dashboard Principal
         showDashboardLprAlert(lprPayload);
 
-        // Auto-creación en pista si está habilitado el toggle
+        // Auto-creación en pista para TODO vehículo detectado
         const autoAssignToggle = document.getElementById('lpr-auto-assign-toggle');
         const shouldAutoAssign = autoAssignToggle ? autoAssignToggle.checked : true;
 
-        if (shouldAutoAssign && (category === 'BLACK' || category === 'GOLD' || category === 'RESERVA')) {
+        if (shouldAutoAssign) {
             assignLprCarToTrack(lprPayload, true);
         } else if (forceBypassCooldown && !shouldAutoAssign) {
-            if (window.showToast) window.showToast(`Patente ${plate} diagnosticada. Hacé clic en "Asignar a Pista"`, 'info');
+            if (window.showToast) window.showToast(`Patente ${plate} detectada. Hacé clic en "Asignar a Pista"`, 'info');
         }
     }
 
@@ -3236,10 +3316,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                <!-- Botón de Ingreso Directo a Pista -->
+                <!-- Botón de Verificación y Cobro del Supervisor -->
                 <div>
-                    <button class="btn btn-primary" onclick="assignLprCarToTrack(pendingAlertCar, false)" style="padding: 12px 20px; font-weight: 800; font-size: 0.95rem; background: linear-gradient(135deg, #0ea5e9, #10b981); border: none; border-radius: 10px; box-shadow: 0 4px 15px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 8px;">
-                        <i class='bx bx-play-circle' style="font-size: 1.2rem;"></i> Dar Ingreso a Pista
+                    <button class="btn btn-primary" id="btn-lpr-diagnosis-action" onclick="openSupervisorCheckoutModal(pendingAlertCar)" style="padding: 12px 20px; font-weight: 800; font-size: 0.95rem; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 10px; box-shadow: 0 4px 15px rgba(16,185,129,0.3); display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <i class='bx bx-check-shield' style="font-size: 1.2rem;"></i> Verificar y Cobrar
                     </button>
                 </div>
             </div>
@@ -3258,35 +3338,59 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 30);
     }
 
-    // Asignar Auto Detectado a la Pista de Boxes
+    // Asignar Auto Detectado Automáticamente a la Pista de Boxes
     window.assignLprCarToTrack = function(lpr, wasAuto = false) {
         if (!lpr) return;
         
-        // Llamar a ingresarAuto con el servicio y la patente
+        let estadoPagoInicial = 'pendiente';
+        let metodoPagoInicial = null;
+        let montoInicial = getWashPrice(lpr.service, lpr.category);
+
+        if (lpr.category === 'BLACK' || lpr.category === 'GOLD') {
+            estadoPagoInicial = 'socio_bonificado';
+            metodoPagoInicial = 'socio';
+            montoInicial = 0;
+        } else if (lpr.category === 'RESERVA') {
+            estadoPagoInicial = 'reserva_online';
+            metodoPagoInicial = 'reserva_online';
+            montoInicial = 0;
+        }
+
+        const meta = {
+            cliente_tipo: lpr.category || 'GENERAL',
+            titular: lpr.titular || 'Cliente Ocasional',
+            modelo: lpr.modelo || 'Auto / Camioneta',
+            estado_pago: estadoPagoInicial,
+            metodo_pago: metodoPagoInicial,
+            monto: montoInicial,
+            verificado: false
+        };
+
+        // Ingresar a la pista inmediatamente
+        let newCar = null;
         if (typeof window.ingresarAuto === 'function') {
-            window.ingresarAuto(lpr.service, lpr.plate);
+            newCar = window.ingresarAuto(lpr.service, lpr.plate, meta);
         }
 
         // Agregar al historial visual de hoy
         addLprHistoryEntry(lpr);
 
         if (window.showToast) {
-            window.showToast(`🚗 Ingreso registrado: ${lpr.plate} (${lpr.category}) en Pista`, 'success');
+            window.showToast(`🚗 Ingreso automático: ${lpr.plate} en Pista. Pendiente de verificación/cobro`, 'success');
         }
 
-        // Ocultar banner flotante del dashboard si estaba abierto
-        const alertBanner = document.getElementById('dashboard-lpr-alert');
-        if (alertBanner) alertBanner.style.display = 'none';
+        // Mostrar Banner Flotante en el Dashboard para que el supervisor verifique y cobre
+        showDashboardLprAlert(lpr);
 
-        // Actualizar tarjeta de resultado para mostrar estado ingresado
+        // Actualizar botón en la tarjeta de resultado de diagnóstico
         const resContainer = document.getElementById('lpr-detection-result');
         if (resContainer) {
-            const btn = resContainer.querySelector('button');
+            const btn = resContainer.querySelector('#btn-lpr-diagnosis-action');
             if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = "<i class='bx bx-check'></i> Asignado a Pista";
-                btn.style.background = '#059669';
-                btn.style.boxShadow = 'none';
+                btn.innerHTML = "<i class='bx bx-check-shield'></i> Verificar y Cobrar";
+                btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                btn.style.boxShadow = '0 4px 15px rgba(16,185,129,0.3)';
+                btn.onclick = () => openSupervisorCheckoutModal(lpr);
             }
         }
     };
@@ -3338,18 +3442,332 @@ document.addEventListener('DOMContentLoaded', () => {
         const banner = document.getElementById('dashboard-lpr-alert');
         const plateEl = document.getElementById('alert-plate-text');
         const infoEl = document.getElementById('alert-plate-info');
+        const btnEl = document.getElementById('btn-alert-quick-assign');
         if (!banner || !plateEl || !infoEl) return;
 
         plateEl.textContent = lpr.plate;
         infoEl.textContent = `${lpr.categoryLabel} — ${lpr.titular} (${lpr.serviceLabel})`;
+        if (btnEl) {
+            btnEl.innerHTML = "<i class='bx bx-check-shield'></i> Verificar y Cobrar";
+            btnEl.style.background = "linear-gradient(135deg, #10b981, #059669)";
+            btnEl.onclick = () => openSupervisorCheckoutModal(lpr);
+        }
         banner.style.display = 'flex';
     }
 
     // Acción del botón en el banner flotante del Dashboard
     window.handleQuickAlertAssign = function() {
         if (pendingAlertCar) {
-            assignLprCarToTrack(pendingAlertCar, false);
+            openSupervisorCheckoutModal(pendingAlertCar);
         }
+    };
+
+    // ============================================================
+    // MODAL DE CHECKOUT Y VERIFICACIÓN DEL SUPERVISOR
+    // ============================================================
+    let currentCheckoutContext = null;
+    let selectedCheckoutPayment = 'efectivo';
+
+    function findCarById(carId) {
+        if (!carId) return null;
+        if (estadoLavado && estadoLavado.id === carId) return { car: estadoLavado, zone: 'lavado', index: 0 };
+        if (Array.isArray(estadoSecado)) {
+            for (let i = 0; i < estadoSecado.length; i++) {
+                if (estadoSecado[i] && estadoSecado[i].id === carId) return { car: estadoSecado[i], zone: 'interior', index: i };
+            }
+        }
+        if (Array.isArray(estadoTerminado)) {
+            for (let i = 0; i < estadoTerminado.length; i++) {
+                if (estadoTerminado[i] && estadoTerminado[i].id === carId) return { car: estadoTerminado[i], zone: 'terminado', index: i };
+            }
+        }
+        if (Array.isArray(estadoEspera)) {
+            for (let i = 0; i < estadoEspera.length; i++) {
+                if (estadoEspera[i] && estadoEspera[i].id === carId) return { car: estadoEspera[i], zone: 'espera', index: i };
+            }
+        }
+        return null;
+    }
+
+    function findCarByPlate(plate) {
+        if (!plate) return null;
+        const pUpper = plate.trim().toUpperCase();
+        if (estadoLavado && (estadoLavado.patente || '').toUpperCase() === pUpper) return { car: estadoLavado, zone: 'lavado', index: 0 };
+        if (Array.isArray(estadoSecado)) {
+            for (let i = 0; i < estadoSecado.length; i++) {
+                if (estadoSecado[i] && (estadoSecado[i].patente || '').toUpperCase() === pUpper) return { car: estadoSecado[i], zone: 'interior', index: i };
+            }
+        }
+        if (Array.isArray(estadoTerminado)) {
+            for (let i = 0; i < estadoTerminado.length; i++) {
+                if (estadoTerminado[i] && (estadoTerminado[i].patente || '').toUpperCase() === pUpper) return { car: estadoTerminado[i], zone: 'terminado', index: i };
+            }
+        }
+        if (Array.isArray(estadoEspera)) {
+            for (let i = 0; i < estadoEspera.length; i++) {
+                if (estadoEspera[i] && (estadoEspera[i].patente || '').toUpperCase() === pUpper) return { car: estadoEspera[i], zone: 'espera', index: i };
+            }
+        }
+        return null;
+    }
+
+    window.openSupervisorCheckoutModalByCarId = function(carId) {
+        const found = findCarById(carId);
+        if (found && found.car) {
+            openSupervisorCheckoutModal(found.car);
+        } else {
+            if (window.showToast) window.showToast('No se encontró el vehículo en pista.', 'error');
+        }
+    };
+
+    window.openSupervisorCheckoutModal = function(carOrLpr) {
+        const modal = document.getElementById('modal-supervisor-checkout');
+        if (!modal) return;
+
+        let car = null;
+        let lpr = null;
+
+        if (carOrLpr && carOrLpr.id !== undefined && !carOrLpr.plate) {
+            car = carOrLpr;
+        } else if (carOrLpr && carOrLpr.plate) {
+            lpr = carOrLpr;
+            const found = findCarByPlate(lpr.plate);
+            if (found) car = found.car;
+        } else if (pendingAlertCar) {
+            lpr = pendingAlertCar;
+            const found = findCarByPlate(lpr.plate);
+            if (found) car = found.car;
+        }
+
+        const category = car ? (car.cliente_tipo || 'GENERAL') : (lpr ? lpr.category : 'GENERAL');
+        const titular = car ? (car.titular || 'Cliente Ocasional') : (lpr ? lpr.titular : 'Cliente Ocasional');
+        const modelo = car ? (car.modelo || 'Auto / Camioneta') : (lpr ? lpr.modelo : 'Auto / Camioneta');
+        const plate = car ? (car.patente || '') : (lpr ? lpr.plate : '');
+        const currentService = car ? (car.tipo || 'express_auto') : (lpr ? lpr.service : 'express_auto');
+        const initialPaymentMethod = (car && car.metodo_pago) ? car.metodo_pago : (category === 'BLACK' || category === 'GOLD' ? 'socio' : (category === 'RESERVA' ? 'reserva_online' : 'efectivo'));
+
+        currentCheckoutContext = {
+            car: car,
+            lpr: lpr,
+            category: category,
+            titular: titular,
+            modelo: modelo
+        };
+
+        // Rellenar Banner de Cliente
+        const badgeEl = document.getElementById('checkout-category-badge');
+        const nameEl = document.getElementById('checkout-customer-name');
+        const modelEl = document.getElementById('checkout-vehicle-model');
+        const bannerEl = document.getElementById('checkout-customer-banner');
+
+        if (nameEl) nameEl.textContent = titular;
+        if (modelEl) modelEl.textContent = modelo;
+
+        if (badgeEl && bannerEl) {
+            if (category === 'BLACK') {
+                badgeEl.textContent = '👑 SOCIO FUNDADOR BLACK';
+                badgeEl.style.color = '#fbbf24';
+                bannerEl.style.background = 'rgba(251,191,36,0.12)';
+                bannerEl.style.borderColor = 'rgba(251,191,36,0.3)';
+            } else if (category === 'GOLD') {
+                badgeEl.textContent = '🌟 SOCIO CLUB 100 GOLD';
+                badgeEl.style.color = '#f59e0b';
+                bannerEl.style.background = 'rgba(245,158,11,0.12)';
+                bannerEl.style.borderColor = 'rgba(245,158,11,0.3)';
+            } else if (category === 'RESERVA') {
+                badgeEl.textContent = '📅 RESERVA PREPAGADA';
+                badgeEl.style.color = '#38bdf8';
+                bannerEl.style.background = 'rgba(56,189,248,0.12)';
+                bannerEl.style.borderColor = 'rgba(56,189,248,0.3)';
+            } else {
+                badgeEl.textContent = '🚗 CLIENTE GENERAL';
+                badgeEl.style.color = '#10b981';
+                bannerEl.style.background = 'rgba(16,185,129,0.12)';
+                bannerEl.style.borderColor = 'rgba(16,185,129,0.3)';
+            }
+        }
+
+        // Rellenar Patente
+        const plateInput = document.getElementById('checkout-plate');
+        if (plateInput) plateInput.value = plate;
+
+        // Rellenar Servicio
+        const serviceSelect = document.getElementById('checkout-service');
+        if (serviceSelect) serviceSelect.value = currentService;
+
+        // Rellenar Precio
+        const price = (car && car.monto !== undefined && car.monto !== null) ? car.monto : getWashPrice(currentService, category);
+        const displayEl = document.getElementById('checkout-price-display');
+        const customEl = document.getElementById('checkout-custom-amount');
+        const hintEl = document.getElementById('checkout-price-hint');
+
+        if (displayEl) displayEl.textContent = `$${Number(price).toLocaleString('es-AR')}`;
+        if (customEl) customEl.value = price;
+        if (hintEl) {
+            if (category === 'BLACK' || category === 'GOLD') {
+                hintEl.textContent = 'Membresía Club 100 bonificada ($0)';
+            } else if (category === 'RESERVA') {
+                hintEl.textContent = 'Turno prepagado en plataforma web';
+            } else {
+                hintEl.textContent = 'Precio tarifado según servicio';
+            }
+        }
+
+        // Seleccionar Método de Pago
+        const targetBtn = document.querySelector(`#checkout-payment-buttons button[data-method="${initialPaymentMethod}"]`) || document.querySelector('#checkout-payment-buttons button[data-method="efectivo"]');
+        selectCheckoutPaymentMethod(initialPaymentMethod, targetBtn);
+
+        modal.style.display = 'flex';
+        if (plateInput) setTimeout(() => plateInput.focus(), 50);
+    };
+
+    window.closeSupervisorCheckoutModal = function() {
+        const modal = document.getElementById('modal-supervisor-checkout');
+        if (modal) modal.style.display = 'none';
+        currentCheckoutContext = null;
+    };
+
+    window.onCheckoutServiceChange = function(newService) {
+        if (!currentCheckoutContext) return;
+        const cat = currentCheckoutContext.category || 'GENERAL';
+        const price = getWashPrice(newService, cat);
+
+        const displayEl = document.getElementById('checkout-price-display');
+        const customEl = document.getElementById('checkout-custom-amount');
+        if (displayEl) displayEl.textContent = `$${Number(price).toLocaleString('es-AR')}`;
+        if (customEl) customEl.value = price;
+    };
+
+    window.selectCheckoutPaymentMethod = function(method, btn) {
+        selectedCheckoutPayment = method;
+        document.querySelectorAll('#checkout-payment-buttons .btn-checkout-payment').forEach(b => {
+            b.classList.remove('active');
+            b.style.borderColor = 'rgba(255,255,255,0.1)';
+            b.style.background = 'rgba(255,255,255,0.04)';
+            b.style.color = '#cbd5e1';
+            b.style.boxShadow = 'none';
+        });
+
+        const activeBtn = btn || document.querySelector(`#checkout-payment-buttons button[data-method="${method}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+            if (method === 'efectivo') {
+                activeBtn.style.borderColor = '#10b981';
+                activeBtn.style.background = 'rgba(16,185,129,0.25)';
+                activeBtn.style.color = '#34d399';
+                activeBtn.style.boxShadow = '0 0 12px rgba(16,185,129,0.3)';
+            } else if (method === 'socio') {
+                activeBtn.style.borderColor = '#fbbf24';
+                activeBtn.style.background = 'rgba(251,191,36,0.25)';
+                activeBtn.style.color = '#fbbf24';
+                activeBtn.style.boxShadow = '0 0 12px rgba(251,191,36,0.3)';
+            } else if (method === 'reserva_online') {
+                activeBtn.style.borderColor = '#38bdf8';
+                activeBtn.style.background = 'rgba(56,189,248,0.25)';
+                activeBtn.style.color = '#38bdf8';
+                activeBtn.style.boxShadow = '0 0 12px rgba(56,189,248,0.3)';
+            } else {
+                activeBtn.style.borderColor = '#38bdf8';
+                activeBtn.style.background = 'rgba(56,189,248,0.2)';
+                activeBtn.style.color = '#38bdf8';
+                activeBtn.style.boxShadow = '0 0 12px rgba(56,189,248,0.3)';
+            }
+        }
+    };
+
+    window.confirmSupervisorCheckout = function() {
+        if (!currentCheckoutContext) {
+            closeSupervisorCheckoutModal();
+            return;
+        }
+
+        const plateInput = document.getElementById('checkout-plate');
+        const finalPlate = (plateInput ? plateInput.value.trim() : '').toUpperCase();
+        if (!finalPlate) {
+            if (window.showToast) window.showToast('Por favor ingrese una patente válida', 'error');
+            return;
+        }
+
+        const serviceSelect = document.getElementById('checkout-service');
+        const finalService = serviceSelect ? serviceSelect.value : 'express_auto';
+
+        const customInput = document.getElementById('checkout-custom-amount');
+        const parsedCustom = customInput ? parseFloat(customInput.value) : NaN;
+        const finalAmount = !isNaN(parsedCustom) ? parsedCustom : getWashPrice(finalService, currentCheckoutContext.category);
+
+        const method = selectedCheckoutPayment || 'efectivo';
+
+        // Buscar el auto en la pista si no lo teníamos vinculado directamente
+        let carObj = currentCheckoutContext.car;
+        if (!carObj) {
+            const found = findCarByPlate(finalPlate) || (currentCheckoutContext.lpr ? findCarByPlate(currentCheckoutContext.lpr.plate) : null);
+            if (found) carObj = found.car;
+        }
+
+        if (carObj) {
+            carObj.patente = finalPlate;
+            carObj.tipo = finalService;
+            carObj.monto = finalAmount;
+            carObj.metodo_pago = method;
+            carObj.verificado = true;
+            carObj.estado_pago = (method === 'socio') ? 'socio_bonificado' : (method === 'reserva_online' ? 'reserva_online' : 'pagado');
+            carObj.metricaRegistrada = true;
+        }
+
+        // Registrar métrica contable
+        const metricRecord = {
+            id: Date.now() + Math.random(),
+            patente: finalPlate,
+            timestamp: Date.now(),
+            tipo: finalService,
+            revenue: finalAmount,
+            profit: finalAmount,
+            metodo_pago: method,
+            verificado_supervisor: true
+        };
+        metricsHistory.push(metricRecord);
+        localStorage.setItem('metricsHistory', JSON.stringify(metricsHistory));
+        if (typeof window.updateMetricsUI === 'function') {
+            window.updateMetricsUI();
+        }
+
+        // Enviar al backend DonWeb MySQL api/reservas.php
+        try {
+            fetch(`${API_URL}reservas.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nombre_cliente: currentCheckoutContext.titular || 'Cliente en Pista',
+                    telefono: 'S/D',
+                    patente: finalPlate,
+                    tipo_vehiculo: finalService.includes('camioneta') ? 'Camioneta' : 'Auto',
+                    tipo_lavado: finalService,
+                    fecha: new Date().toISOString().split('T')[0],
+                    hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    precio: finalAmount,
+                    estado: 'pagado_en_pista',
+                    notas: `Cobrado por Supervisor (${method.toUpperCase()})`
+                })
+            }).catch(e => console.warn('Error en persistencia de cobro:', e));
+        } catch(e) {}
+
+        // Sincronizar estado en vivo
+        if (typeof syncLiveState === 'function') syncLiveState();
+        if (typeof updateVisuals === 'function') updateVisuals();
+        renderBoxesManagementList();
+
+        // Ocultar banner flotante de alerta si correspondía a este auto
+        const alertBanner = document.getElementById('dashboard-lpr-alert');
+        if (alertBanner) alertBanner.style.display = 'none';
+
+        // Sonido de éxito
+        playLprChime('success');
+
+        if (window.showToast) {
+            window.showToast(`✅ Cobro registrado: $${Number(finalAmount).toLocaleString('es-AR')} (${method.toUpperCase()}) - ${finalPlate}`, 'success');
+        }
+
+        closeSupervisorCheckoutModal();
     };
 
     // Listar Dispositivos de Cámara Web en PC

@@ -2417,3 +2417,77 @@ input:checked + .slider:before {
     }
 }
 
+/* ============================================================
+   BOTONES DE VERIFICACIÓN Y COBRO SUPERVISOR (BOXES & MODALES)
+   ============================================================ */
+.btn-box-checkout {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 6px;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-box-checkout.pending {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    animation: pulse-checkout 2s infinite ease-in-out;
+}
+
+@keyframes pulse-checkout {
+    0%, 100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.3); }
+    50% { box-shadow: 0 0 18px rgba(245, 158, 11, 0.7); }
+}
+
+.btn-box-checkout.paid {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #34d399;
+    cursor: pointer;
+}
+
+.badge-box-paid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #34d399;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-top: 6px;
+    cursor: pointer;
+}
+
+.badge-box-paid:hover {
+    background: rgba(16, 185, 129, 0.25);
+}
+
+.btn-checkout-payment {
+    transition: all 0.2s ease;
+}
+
+.btn-checkout-payment:hover {
+    transform: translateY(-1px);
+}
+
+.btn-checkout-payment.active {
+    border-color: #10b981 !important;
+    background: rgba(16, 185, 129, 0.2) !important;
+    color: #34d399 !important;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+
+
