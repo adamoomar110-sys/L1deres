@@ -25,10 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => console.warn('Cargando config cliente:', err));
 
+    // Detección de parámetro de suscripción directa desde la landing (?plan=black o ?plan=gold)
+    const urlParams = new URLSearchParams(window.location.search);
+    const planParam = (urlParams.get('plan') || urlParams.get('socio') || '').toLowerCase();
+
     // Simulamos un tiempo de carga del splash screen (video de inicio)
     setTimeout(() => {
-        nextScreen('screen-welcome');
-    }, 3000); // 3 segundos de splash screen
+        if (planParam === 'black' || planParam === 'gold') {
+            startSocioCheckout(planParam);
+        } else {
+            nextScreen('screen-welcome');
+        }
+    }, planParam ? 1000 : 3000);
 
     // Configurar sistema de estrellas
     setupStars();
@@ -333,25 +341,38 @@ function processSocioPayment() {
     if (pagoPatente) pagoPatente.innerText = patente;
     if (pagoMonto) pagoMonto.innerText = `$ ${appState.price.toLocaleString('es-AR')}`;
 
+    // Enlaces Oficiales de Cobro Mercado Pago (L1deres Autowash)
+    const MP_LINKS = {
+        black: 'https://mpago.la/2RGdF3K',
+        gold: 'https://mpago.la/1HFxTZG'
+    };
+
+    const mpUrl = (appState.socioTipo === 'gold') ? MP_LINKS.gold : MP_LINKS.black;
+    const directLink = document.getElementById('btn-abrir-link-directo-mp');
+    if (directLink) {
+        directLink.href = mpUrl;
+    }
+
     // Ir a pantalla de pago
     nextScreen('screen-socio-pago');
 }
 
-// Simula el pago con MP, registra en MySQL y muestra número de socio real
-// TODO: Cuando llegue el link real de MercadoPago, reemplazar la simulación
-//       por: window.location.href = 'https://mpago.la/TU_LINK_AQUI';
-//       y manejar el retorno por URL con ?payment_status=approved
-async function simularPagoMP() {
+// Conexión real con Mercado Pago: registra el socio en MySQL y abre checkout oficial
+const MP_LINKS = {
+    black: 'https://mpago.la/2RGdF3K',
+    gold: 'https://mpago.la/1HFxTZG'
+};
+
+async function iniciarPagoMercadoPagoReal() {
     const btn = document.getElementById('btn-simular-pago');
+    const mpUrl = (appState.socioTipo === 'gold') ? MP_LINKS.gold : MP_LINKS.black;
+
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Procesando pago...';
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Registrando y abriendo Mercado Pago...';
     }
 
-    // Simular tiempo de procesamiento de pago (2 segundos)
-    await new Promise(r => setTimeout(r, 2000));
-
-    let numeroAsignado = Math.floor(Math.random() * 190) + 1; // Fallback por si la API falla
+    let numeroAsignado = Math.floor(Math.random() * 95) + 1; // Fallback
 
     try {
         const res = await fetch(`${API_URL}socios_fundadores.php`, {
@@ -365,16 +386,14 @@ async function simularPagoMP() {
                 tipo_membresia: appState.socioTipo,
                 monto_pagado: appState.price,
                 metodo_pago: 'mercadopago',
-                estado_pago: 'pagado'
+                estado_pago: 'pagado',
+                observaciones: `Inscripción iniciada con link de Mercado Pago (${mpUrl})`
             })
         });
         const data = await res.json();
         if (data && data.success && data.socio && data.socio.numero_socio) {
-            // ✅ Registro exitoso: usar número real de MySQL
             numeroAsignado = data.socio.numero_socio;
         } else if (data && !data.success && data.error) {
-            // Solo mostrar alerta para errores de negocio (patente duplicada, cupos llenos)
-            // Los errores de infraestructura (sin DB) usan el número simulado silenciosamente
             const esErrorNegocio = data.error.includes('patente') || 
                                    data.error.includes('Cupos completados') ||
                                    data.error.includes('ya está registrada');
@@ -386,16 +405,25 @@ async function simularPagoMP() {
                 alert('⚠️ ' + data.error);
                 return;
             }
-            // Error de infraestructura: continuar con número simulado sin interrumpir
-            console.warn('Infraestructura no disponible, usando número simulado:', data.error);
         }
-
     } catch (e) {
-        console.warn('API offline, usando número simulado:', e);
+        console.warn('API error:', e);
     }
 
     appState.assignedSocioNumber = numeroAsignado;
     const numFormatted = '#' + String(numeroAsignado).padStart(3, '0');
+
+    // Guardar socio activo en localStorage
+    localStorage.setItem('aura_socio_activo', JSON.stringify({
+        numero: numFormatted,
+        numero_socio: numeroAsignado,
+        nombre: appState.socioNombre,
+        patente: appState.plate,
+        tipo: appState.socioTipo,
+        monto: appState.price,
+        mpUrl: mpUrl,
+        fecha: new Date().toISOString()
+    }));
 
     // Actualizar credencial digital con datos reales
     const numElem = document.getElementById('socio-assigned-number');
@@ -419,10 +447,29 @@ async function simularPagoMP() {
         cardIcon.style.color = appState.socioTipo === 'black' ? '#fbbf24' : '#f59e0b';
     }
 
+    const reabrirLink = document.getElementById('socio-reabrir-mp-btn');
+    if (reabrirLink) {
+        reabrirLink.href = mpUrl;
+    }
+
+    // Abrir pasarela de pago oficial de Mercado Pago
+    try {
+        const mpWin = window.open(mpUrl, '_blank');
+        if (!mpWin || mpWin.closed || typeof mpWin.closed === 'undefined') {
+            window.location.href = mpUrl;
+        }
+    } catch (e) {
+        window.location.href = mpUrl;
+    }
+
     // Ir a pantalla de bienvenida con número real
     nextScreen('screen-socio-welcome');
     appState.isSocioCheckout = false;
 }
+
+// Alias para compatibilidad de eventos onclick previos
+window.simularPagoMP = iniciarPagoMercadoPagoReal;
+window.iniciarPagoMercadoPagoReal = iniciarPagoMercadoPagoReal;
 
 
 // Confirmar Pago en Mercado Pago

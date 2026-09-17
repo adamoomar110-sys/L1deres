@@ -980,6 +980,9 @@
                     <p style="color: var(--text-secondary); margin-top: 5px;">Membresías exclusivas limitadas a 100 cupos (#001 - #100) · Control de accesos, credenciales VIP y beneficios.</p>
                 </div>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-secondary" onclick="window.abrirModalLinksMP()" style="display: flex; align-items: center; gap: 8px; background: rgba(0, 158, 227, 0.15); color: #38bdf8; border: 1px solid rgba(0, 158, 227, 0.4); padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer;" title="Ver y compartir enlaces de cobro Mercado Pago">
+                        <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="MP" style="height: 14px;"> Links Mercado Pago
+                    </button>
                     <button class="btn btn-secondary" onclick="window.descargarBackupConsolidadoPC()" style="display: flex; align-items: center; gap: 8px; background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer;" title="Descargar archivo físico Excel con todos los socios y clientes">
                         <i class='bx bx-download'></i> Resguardo Excel (.CSV)
                     </button>
@@ -1202,9 +1205,30 @@
                         </div>
                     </div>
 
-                    <div style="margin-bottom: 20px;">
+                    <div style="margin-bottom: 16px;">
                         <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #cbd5e1; font-size: 0.85rem;">Notas / Observaciones:</label>
                         <input type="text" id="form-socio-notas" placeholder="Ej: Socio Fundador Inauguración" style="width: 100%; padding: 10px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: white;">
+                    </div>
+
+                    <!-- Enlaces Oficiales Mercado Pago -->
+                    <div style="background: rgba(0, 158, 227, 0.08); border: 1px solid rgba(0, 158, 227, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 20px;">
+                        <span style="font-size: 0.78rem; color: #38bdf8; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                            <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="MP" style="height: 14px;"> Enlaces de Cobro Oficiales
+                        </span>
+                        <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                            <a href="https://mpago.la/2RGdF3K" target="_blank" class="btn" style="flex: 1; min-width: 140px; padding: 7px 10px; font-size: 0.76rem; background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); border-radius: 6px; text-decoration: none; text-align: center; font-weight: 700;">
+                                <i class='bx bx-link-external'></i> Black ($210k)
+                            </a>
+                            <a href="https://mpago.la/1HFxTZG" target="_blank" class="btn" style="flex: 1; min-width: 140px; padding: 7px 10px; font-size: 0.76rem; background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; text-decoration: none; text-align: center; font-weight: 700;">
+                                <i class='bx bx-link-external'></i> Gold ($140k)
+                            </a>
+                            <button type="button" onclick="window.copiarLinkMPActual()" style="padding: 7px 10px; font-size: 0.76rem; background: rgba(255,255,255,0.08); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; cursor: pointer;">
+                                <i class='bx bx-copy'></i> Copiar
+                            </button>
+                            <button type="button" onclick="window.enviarLinkMPWhatsApp()" style="padding: 7px 10px; font-size: 0.76rem; background: rgba(37,211,102,0.15); color: #25d366; border: 1px solid rgba(37,211,102,0.3); border-radius: 6px; cursor: pointer;" title="Enviar link por WhatsApp al teléfono del socio">
+                                <i class='bx bxl-whatsapp'></i> Enviar
+                            </button>
+                        </div>
                     </div>
 
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
@@ -1214,6 +1238,67 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Modal: Links Oficiales de Cobro Mercado Pago -->
+        <div id="modal-links-mp" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+            <div style="background: #0f172a; border: 1px solid rgba(0, 158, 227, 0.4); border-radius: 20px; width: 100%; max-width: 520px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+                <div style="padding: 1.5rem 1.8rem; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;">
+                    <h3 style="margin: 0; color: #38bdf8; display: flex; align-items: center; gap: 8px; font-size: 1.25rem;">
+                        <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="MP" style="height: 18px;"> Enlaces de Cobro Mercado Pago
+                    </h3>
+                    <button onclick="document.getElementById('modal-links-mp').style.display='none'" style="background: transparent; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                </div>
+                <div style="padding: 1.8rem;">
+                    <p style="color: #cbd5e1; font-size: 0.88rem; margin-top: 0; margin-bottom: 16px;">
+                        Compartí estos enlaces oficiales con los clientes para que abonen sus membresías de forma 100% segura por Mercado Pago:
+                    </p>
+
+                    <!-- Plan Black -->
+                    <div style="background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3); border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <strong style="color: #fbbf24; font-size: 0.95rem;">👑 PLAN BLACK — $ 210.000</strong>
+                            <span style="font-size: 0.72rem; color: #94a3b8;">Link Directo</span>
+                        </div>
+                        <input type="text" readonly value="https://mpago.la/2RGdF3K" style="width: 100%; padding: 8px 10px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #38bdf8; font-family: monospace; font-size: 0.85rem; margin-bottom: 8px;">
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn" onclick="window.copiarTextoGenerico('https://mpago.la/2RGdF3K', 'Link Plan Black copiado')" style="flex: 1; padding: 8px; font-size: 0.8rem; background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); border-radius: 6px; cursor: pointer;">
+                                <i class='bx bx-copy'></i> Copiar Link
+                            </button>
+                            <a href="https://mpago.la/2RGdF3K" target="_blank" class="btn" style="padding: 8px 12px; font-size: 0.8rem; background: rgba(255,255,255,0.08); color: #f8fafc; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                                <i class='bx bx-link-external'></i> Abrir
+                            </a>
+                            <button type="button" class="btn" onclick="window.compartirWhatsAppMP('black', 'https://mpago.la/2RGdF3K', 210000)" style="padding: 8px 12px; font-size: 0.8rem; background: rgba(37,211,102,0.15); color: #25d366; border: 1px solid rgba(37,211,102,0.3); border-radius: 6px; cursor: pointer;" title="Enviar por WhatsApp">
+                                <i class='bx bxl-whatsapp'></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Plan Gold -->
+                    <div style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <strong style="color: #f59e0b; font-size: 0.95rem;">🏆 PLAN GOLD — $ 140.000</strong>
+                            <span style="font-size: 0.72rem; color: #94a3b8;">Link Directo</span>
+                        </div>
+                        <input type="text" readonly value="https://mpago.la/1HFxTZG" style="width: 100%; padding: 8px 10px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #f59e0b; font-family: monospace; font-size: 0.85rem; margin-bottom: 8px;">
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" class="btn" onclick="window.copiarTextoGenerico('https://mpago.la/1HFxTZG', 'Link Plan Gold copiado')" style="flex: 1; padding: 8px; font-size: 0.8rem; background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); border-radius: 6px; cursor: pointer;">
+                                <i class='bx bx-copy'></i> Copiar Link
+                            </button>
+                            <a href="https://mpago.la/1HFxTZG" target="_blank" class="btn" style="padding: 8px 12px; font-size: 0.8rem; background: rgba(255,255,255,0.08); color: #f8fafc; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                                <i class='bx bx-link-external'></i> Abrir
+                            </a>
+                            <button type="button" class="btn" onclick="window.compartirWhatsAppMP('gold', 'https://mpago.la/1HFxTZG', 140000)" style="padding: 8px 12px; font-size: 0.8rem; background: rgba(37,211,102,0.15); color: #25d366; border: 1px solid rgba(37,211,102,0.3); border-radius: 6px; cursor: pointer;" title="Enviar por WhatsApp">
+                                <i class='bx bxl-whatsapp'></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button type="button" onclick="document.getElementById('modal-links-mp').style.display='none'" style="padding: 8px 18px; background: #334155; color: #cbd5e1; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cerrar</button>
+                    </div>
+                </div>
             </div>
         </div>
 

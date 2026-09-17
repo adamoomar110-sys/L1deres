@@ -4534,6 +4534,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Funciones de gestión de Enlaces de Cobro Mercado Pago
+    window.abrirModalLinksMP = function() {
+        const modal = document.getElementById('modal-links-mp');
+        if (modal) modal.style.display = 'flex';
+    };
+
+    window.copiarTextoGenerico = function(texto, mensaje = 'Copiado al portapapeles') {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(texto).then(() => {
+                if (window.showToast) window.showToast(mensaje, 'success');
+                else alert(mensaje);
+            }).catch(() => {
+                prompt('Copiar enlace:', texto);
+            });
+        } else {
+            prompt('Copiar enlace:', texto);
+        }
+    };
+
+    window.compartirWhatsAppMP = function(tipo, link, monto, telefono = '') {
+        const planNombre = tipo.toUpperCase() === 'GOLD' ? 'Plan Gold VIP' : 'Plan Black VIP';
+        const msg = `¡Hola! Te compartimos el enlace oficial de Mercado Pago para tu suscripción a ${planNombre} ($${Number(monto).toLocaleString('es-AR')}) en L1deres Autowash:\n\n👉 ${link}\n\nUna vez abonado, tu vehículo queda automáticamente habilitado en nuestro sistema. ¡Te esperamos!`;
+        const cleanTel = telefono ? telefono.replace(/\D/g, '') : '';
+        const url = cleanTel 
+            ? `https://api.whatsapp.com/send?phone=${cleanTel}&text=${encodeURIComponent(msg)}`
+            : `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+        window.open(url, '_blank');
+    };
+
+    window.copiarLinkMPActual = function() {
+        const tipo = document.getElementById('form-socio-tipo')?.value || 'BLACK';
+        const link = (tipo === 'GOLD') ? 'https://mpago.la/1HFxTZG' : 'https://mpago.la/2RGdF3K';
+        window.copiarTextoGenerico(link, `Link de Mercado Pago (${tipo}) copiado`);
+    };
+
+    window.enviarLinkMPWhatsApp = function() {
+        const tipo = document.getElementById('form-socio-tipo')?.value || 'BLACK';
+        const link = (tipo === 'GOLD') ? 'https://mpago.la/1HFxTZG' : 'https://mpago.la/2RGdF3K';
+        const monto = (tipo === 'GOLD') ? 140000 : 210000;
+        const tel = document.getElementById('form-socio-telefono')?.value || '';
+        window.compartirWhatsAppMP(tipo, link, monto, tel);
+    };
+
     window.handleSaveSocio = async function(event) {
         if (event) event.preventDefault();
         const id = document.getElementById('form-socio-id').value;

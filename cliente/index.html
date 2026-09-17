@@ -364,12 +364,17 @@
                     <p style="margin: 4px 0; font-size: 1rem;">Total: <strong id="pago-monto-label" style="color: #009ee3; font-size: 1.1rem;">$ 210.000</strong></p>
                 </div>
 
-                <!-- Botón simulado de MercadoPago - reemplazar href cuando llegue el link real -->
-                <button class="btn btn-mp" id="btn-simular-pago" onclick="simularPagoMP()" style="width: 100%; padding: 14px; font-weight: 900; font-size: 1rem; margin-bottom: 10px;">
+                <!-- Botón Oficial de Mercado Pago -->
+                <button class="btn btn-mp" id="btn-simular-pago" onclick="iniciarPagoMercadoPagoReal()" style="width: 100%; padding: 14px; font-weight: 900; font-size: 1rem; margin-bottom: 8px;">
                     <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.19.5/mercadopago/logo__small@2x.png" alt="MP" style="height: 18px;">
                     PAGAR CON MERCADO PAGO
                 </button>
-                <p style="color: #475569; font-size: 0.72rem;">🔒 Pago seguro procesado por Mercado Pago</p>
+                <div style="margin-bottom: 12px;">
+                    <a id="btn-abrir-link-directo-mp" href="https://mpago.la/2RGdF3K" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; font-size: 0.82rem; text-decoration: underline; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class='bx bx-link-external'></i> Abrir link en la app de Mercado Pago &rarr;
+                    </a>
+                </div>
+                <p style="color: #475569; font-size: 0.72rem;">🔒 Pago 100% seguro procesado por Mercado Pago</p>
             </div>
         </div>
 
@@ -414,6 +419,15 @@
                         <span>Acceso Pit Lane VIP #1</span>
                         <span>Aura Startup © 2026</span>
                     </div>
+                </div>
+
+                <div style="background: rgba(0, 158, 227, 0.1); border: 1px solid rgba(0, 158, 227, 0.3); border-radius: 10px; padding: 10px; margin-bottom: 14px; text-align: center;">
+                    <span style="color: #38bdf8; font-size: 0.8rem; font-weight: 700; display: block;">
+                        <i class='bx bx-credit-card-alt'></i> ¿Necesitás pagar o reabrir el checkout?
+                    </span>
+                    <a id="socio-reabrir-mp-btn" href="https://mpago.la/2RGdF3K" target="_blank" rel="noopener noreferrer" style="color: #fbbf24; text-decoration: underline; font-size: 0.78rem; font-weight: 700; margin-top: 4px; display: inline-block;">
+                        Abrir link de pago Mercado Pago &rarr;
+                    </a>
                 </div>
 
                 <button class="btn btn-primary" onclick="nextScreen('screen-welcome')" style="width: 100%; margin-bottom: 8px; font-weight: 900; font-size: 1rem;">
