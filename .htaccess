@@ -46,3 +46,10 @@ RewriteRule ^ index.html [L]
         Header set Expires 0
     </FilesMatch>
 </IfModule>
+
+# Bloquear acceso público directo a archivos de visitas y registros
+<FilesMatch "\.(csv|txt)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+

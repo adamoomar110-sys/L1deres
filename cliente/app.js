@@ -317,7 +317,20 @@ function processSocioPayment() {
     const errorElem = document.getElementById('error-socio-form');
 
     if (!nombre || patente.length < 6 || phone.length < 6 || !fechaNac) {
-        if (errorElem) errorElem.style.display = 'block';
+        if (errorElem) {
+            errorElem.innerText = "Por favor completá todos los campos obligatorios.";
+            errorElem.style.display = 'block';
+        }
+        return;
+    }
+
+    const checkTerminos = document.getElementById('check-terminos-socio');
+    if (checkTerminos && !checkTerminos.checked) {
+        if (errorElem) {
+            errorElem.innerText = "Debes aceptar los Términos y Condiciones de Afiliación.";
+            errorElem.style.display = 'block';
+        }
+        alert("Es obligatorio aceptar los Términos y Condiciones de Afiliación para continuar.");
         return;
     }
     if (errorElem) errorElem.style.display = 'none';
@@ -502,9 +515,27 @@ async function confirmMPPayment() {
                         fecha_nacimiento: appState.socioFechaNac,
                         tipo_membresia: appState.socioTipo,
                         monto_pagado: appState.price,
-                        metodo_pago: 'mercadopago'
+                        metodo_pago: 'mercadopago',
+                        terminos_aceptados: true,
+                        version_terminos: 'v1.0'
                     })
                 });
+
+                // Respaldo simultáneo en sistema_aura.php para descarga a PC de Omar
+                fetch('../sistema_aura.php?accion=afiliacion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nombre: appState.socioNombre,
+                        patente: appState.plate,
+                        telefono: appState.phone,
+                        fecha_nacimiento: appState.socioFechaNac,
+                        tipo_membresia: appState.socioTipo,
+                        terminos_aceptados: true,
+                        version_terminos: 'v1.0'
+                    })
+                }).catch(() => {});
+
                 const data = await res.json();
                 if (data && data.success && data.numero_socio) {
                     numeroAsignado = data.numero_socio;
@@ -1298,5 +1329,39 @@ function closeSocioModal() {
     const modal = document.getElementById('socio-modal');
     if (modal) modal.style.display = 'none';
 }
+
+// Funciones Legales Términos y Condiciones Afiliación Socio
+function openTerminosModal() {
+    const modal = document.getElementById('modal-terminos-legal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeTerminosModal() {
+    const modal = document.getElementById('modal-terminos-legal');
+    if (modal) modal.style.display = 'none';
+}
+
+function acceptTerminosModal() {
+    const chk = document.getElementById('check-terminos-socio');
+    if (chk) chk.checked = true;
+    closeTerminosModal();
+}
+
+// Cargar contador de visitas Aura en Cliente
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('../sistema_aura.php?accion=visita&sitio=l1deres')
+        .then(res => res.json())
+        .then(data => {
+            const elem = document.getElementById('contador-visitas-cliente');
+            if (elem && data.total) {
+                elem.innerText = Number(data.total).toLocaleString('es-AR');
+            }
+        })
+        .catch(() => {
+            const elem = document.getElementById('contador-visitas-cliente');
+            if (elem) elem.innerText = 'Activo';
+        });
+});
+
 
 

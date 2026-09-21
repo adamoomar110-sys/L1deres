@@ -330,13 +330,20 @@
                 <p id="error-socio-form" class="error-msg" style="margin-bottom: 8px;">Por favor completá todos los campos obligatorios.</p>
 
                 <div class="order-summary" style="margin-bottom: 14px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 10px 12px; text-align: left;">
-                    <h3 style="font-size: 0.8rem; color: #38bdf8; text-transform: uppercase; margin-bottom: 4px;">Resumen del Registro</h3>
-                    <p style="margin: 2px 0; font-size: 0.82rem;">Membresía: <strong id="summary-socio-tipo" style="color: #fbbf24;">Socio Black VIP</strong></p>
                     <p style="margin: 2px 0; font-size: 0.82rem;">Cupo Asignado: <strong style="color: #34d399;">Padrón Oficial (1 a 100)</strong></p>
                     <p style="margin: 2px 0; font-size: 0.82rem;">Total a pagar: <strong id="summary-socio-monto" style="color: #009ee3;">$ 210.000</strong></p>
                 </div>
 
-                <button class="btn btn-mp" onclick="processSocioPayment()" style="width: 100%; padding: 13px; font-weight: 900; font-size: 0.95rem;">
+                <div style="margin: 14px 0; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 12px; text-align: left;">
+                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 0.78rem; color: #cbd5e1; line-height: 1.4;">
+                        <input type="checkbox" id="check-terminos-socio" style="margin-top: 3px; cursor: pointer;">
+                        <span>
+                            He leído y acepto expresamente los <a href="javascript:void(0)" onclick="openTerminosModal()" style="color: #38bdf8; text-decoration: underline; font-weight: 700;">Términos y Condiciones de Afiliación</a> y la Política de Protección de Datos.
+                        </span>
+                    </label>
+                </div>
+
+                <button class="btn btn-mp" id="btn-socio-continuar" onclick="processSocioPayment()" style="width: 100%; padding: 13px; font-weight: 900; font-size: 0.95rem;">
                     <i class='bx bx-arrow-from-left'></i>
                     CONTINUAR AL PAGO &rarr;
                 </button>
@@ -670,7 +677,43 @@
                     </a>
                 </div>
             </div>
+        <!-- Modal Legal Términos y Condiciones Afiliación Socio -->
+        <div id="modal-terminos-legal" class="mp-modal-overlay" style="display: none; z-index: 99999;">
+            <div class="mp-modal-container" style="max-width: 520px; background: #0f172a; color: #e2e8f0; border: 1px solid rgba(56, 189, 248, 0.4); max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; border-radius: 14px;">
+                <div class="mp-header" style="background: linear-gradient(135deg, #090d16, #1e293b); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 14px 18px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 900; font-family: 'Racing Sans One', sans-serif; font-size: 1.05rem; letter-spacing: 1px; color: #38bdf8;">TÉRMINOS Y CONDICIONES DE AFILIACIÓN</span>
+                    <button class="mp-close-btn" onclick="closeTerminosModal()" title="Cerrar" aria-label="Cerrar"><i class='bx bx-x' style="font-size: 1.4rem;"></i></button>
+                </div>
+                <div class="mp-body" style="padding: 18px; overflow-y: auto; font-size: 0.82rem; line-height: 1.6; color: #cbd5e1; text-align: left;">
+                    <p style="margin-top:0; color: #94a3b8; font-size: 0.76rem;"><strong>Programa Oficial de Socios Fundadores L1deres · Plataforma Aura (v1.0)</strong></p>
+                    
+                    <h4 style="color: #38bdf8; margin: 12px 0 4px 0; font-size: 0.88rem;">1. Ausencia de Relación de Dependencia Laboral</h4>
+                    <p>El socio/afiliado se inscribe en calidad de participante comercial independiente. Queda expresamente convenido que no existe ni se derivará relación laboral, vínculo de dependencia ni subordinación alguna con L1deres ni con la startup Aura.</p>
+
+                    <h4 style="color: #38bdf8; margin: 12px 0 4px 0; font-size: 0.88rem;">2. Desempeño y No Garantía de Rentabilidad</h4>
+                    <p>L1deres y Aura no prometen ganancias fijas, rentabilidad financiera garantizada ni retornos pasivos. Los beneficios, descuentos o comisiones aplican según el uso efectivo de los servicios y las ventas reales.</p>
+
+                    <h4 style="color: #38bdf8; margin: 12px 0 4px 0; font-size: 0.88rem;">3. Consentimiento Expreso de Protección de Datos</h4>
+                    <p>El usuario otorga su consentimiento expreso para el tratamiento y resguardo de sus datos de contacto conforme a la Ley de Protección de Datos Personales, con fines operativos y de identificación de membresía.</p>
+
+                    <h4 style="color: #38bdf8; margin: 12px 0 4px 0; font-size: 0.88rem;">4. Mayoría de Edad y Declaración Jurada</h4>
+                    <p>El solicitante declara bajo juramento ser mayor de 18 años, contar con capacidad legal para contratar y que los datos consignados son reales y exactos.</p>
+                </div>
+                <div style="padding: 12px 18px; border-top: 1px solid rgba(255,255,255,0.1); background: #0b1120; text-align: right;">
+                    <button type="button" class="btn" onclick="acceptTerminosModal()" style="background: #10b981; color: white; padding: 8px 18px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; border: none; cursor: pointer;">
+                        Aceptar y Cerrar
+                    </button>
+                </div>
+            </div>
         </div>
+
+        <!-- Footer con Copyright Aura y Contador -->
+        <footer style="text-align: center; padding: 20px 10px; font-size: 0.75rem; color: #94a3b8; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 25px;">
+            <p style="margin: 0 0 4px 0;">&copy; 2026 Aura. Todos los derechos reservados.</p>
+            <div style="display: inline-block; padding: 3px 10px; background: rgba(15,23,42,0.6); border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
+                👁️ Visitas: <strong id="contador-visitas-cliente" style="color: #38bdf8;">...</strong>
+            </div>
+        </footer>
 
             </div>
         </div>

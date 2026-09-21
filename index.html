@@ -557,12 +557,23 @@
             <p style="margin: 0; font-size: 0.82rem; color: #94a3b8;">
                 &copy; 2025 - 2026 <strong style="color: #ffffff; letter-spacing: 0.5px;">Aura</strong> · L1deres Lavado Automático. Todos los derechos reservados. Desarrollado con tecnología <span style="color: #38bdf8; font-weight: 700;">Aura</span>.
             </p>
+            <div style="margin-top: 4px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.2); font-size: 0.8rem; color: #cbd5e1;">
+                👁️ Visitas totales: <strong id="contador-visitas-l1deres" style="color: #38bdf8;">...</strong>
+            </div>
         </div>
     </footer>
 
     <!-- Script Landing -->
     <script src="script.js?v=1.8.9"></script>
     <script>
+        fetch('sistema_aura.php?accion=visita&sitio=l1deres')
+            .then(res => res.json())
+            .then(data => {
+                const elem = document.getElementById('contador-visitas-l1deres');
+                if (elem && data.total) elem.innerText = Number(data.total).toLocaleString('es-AR');
+            })
+            .catch(() => {});
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('cliente/sw.js', { scope: './cliente/' })
