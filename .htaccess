@@ -11,45 +11,80 @@ RewriteRule ^(.*)$ /aura-adamo/$1 [L]
 
 # ============================================================
 # Apache / LiteSpeed Web Server Configuration for DonWeb
-# App: Aura v1.5 - Panel Administrativo (L1deres AutoWash)
+# Ecosistema: Aura - L1deres AutoWash & Aura Ediciones
 # ============================================================
 
 DirectoryIndex index.html
-Options -Indexes
+Options -Indexes -MultiViews
 
 RewriteCond %{HTTP_HOST} !^(www\.)?aura-adamo\.site$ [NC]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.html [L]
 
-# --- CABECERAS DE SEGURIDAD ---
+# ============================================================
+# BLINDAJE DE SEGURIDAD, ANTI-PHISHING Y PROTECCIÓN DE USUARIOS
+# ============================================================
 <IfModule mod_headers.c>
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-XSS-Protection "1; mode=block"
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    # Anti-Clickjacking: Impide que terceros incrusten la web en iframes falsos para phishing
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # Anti-MIME Sniffing: Evita que el navegador interprete archivos maliciosos como HTML o JS
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Anti-XSS: Bloquea intentos de inyección de scripts en navegadores compatibles
+    Header always set X-XSS-Protection "1; mode=block"
+
+    # Política de Referrers: Protege URLs internas y datos sensibles de compradores
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Forzar navegación segura HTTPS (HSTS)
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+    # Anti-Tabnapping: Protege al usuario al abrir links externos (evita redirecciones phishing)
+    Header always set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+
+    # Política de Permisos: Bloquea intentos no autorizados de acceder a cámara o micrófono
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
 </IfModule>
 
-# --- CACHÉ Y NO-CACHE EN TIEMPO REAL ---
-<IfModule mod_expires.c>
-    ExpiresActive On
-    ExpiresByType text/css "access plus 0 seconds"
-    ExpiresByType application/javascript "access plus 0 seconds"
-    ExpiresByType text/javascript "access plus 0 seconds"
-    ExpiresByType text/html "access plus 0 seconds"
-</IfModule>
-
-<IfModule mod_headers.c>
-    <FilesMatch "\.(css|js|json|html)$">
-        Header set Cache-Control "no-cache, no-store, must-revalidate"
-        Header set Pragma "no-cache"
-        Header set Expires 0
-    </FilesMatch>
-</IfModule>
-
-# Bloquear acceso público directo a archivos de visitas y registros
-<FilesMatch "\.(csv|txt)$">
-    Order Allow,Deny
+# ============================================================
+# BLOQUEO DE ARCHIVOS SENSIBLES Y BASE DE DATOS
+# ============================================================
+<FilesMatch "(\.(bak|config|sql|fla|psd|ini|log|sh|inc|swp|dist|env|git|htaccess|csv|txt)|~)$">
+    Order allow,deny
     Deny from all
 </FilesMatch>
 
+# Permitir archivos de verificación legítimos de Google
+<Files "google9df6cc515d5bd125.html">
+    Allow from all
+</Files>
+<Files "robots.txt">
+    Allow from all
+</Files>
+<Files "sitemap.xml">
+    Allow from all
+</Files>
+
+# ============================================================
+# BLOQUEO DE BOTS Y SCANNERS MALICIOSOS (ANTI-EXPLOIT)
+# ============================================================
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP_USER_AGENT} (nikto|sqlmap|acunetix|nessus|nmap|masscan|zgrab|jorgee|morfeus|dirbuster|harvest|miner) [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# ============================================================
+# GESTIÓN DE CACHÉ Y PERFORMANCE EN TIEMPO REAL
+# ============================================================
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 hour"
+    ExpiresByType application/javascript "access plus 1 hour"
+    ExpiresByType text/javascript "access plus 1 hour"
+    ExpiresByType image/jpeg "access plus 1 week"
+    ExpiresByType image/png "access plus 1 week"
+    ExpiresByType image/webp "access plus 1 week"
+    ExpiresByType application/pdf "access plus 1 day"
+</IfModule>

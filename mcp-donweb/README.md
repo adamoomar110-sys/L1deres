@@ -34,7 +34,7 @@ Agregá esta entrada en tu archivo:
 "donweb": {
   "command": "node",
   "args": [
-    "c:\\Users\\trabajo ia\\OneDrive\\Escritorio\\l1deres\\mcp-donweb\\server.js"
+    "C:\\Users\\trabajo ia\\.gemini\\config\\mcp-servers\\donweb\\server.js"
   ]
 }
 ```
